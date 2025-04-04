@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Classic Tetris</title>
+    <style>
+        body {
+            background-color: #f0f0f0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+        #game-container {
+            display: flex;
+            flex-direction: row;
+            gap: 20px;
+        }
+        canvas {
+            border: 2px solid #333;
+            background-color: #111;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+        #score-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding: 10px;
+            background-color: #333;
+            color: white;
+            border-radius: 5px;
+            min-width: 150px;
+        }
+        .button {
+            background-color: #4CAF50;
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        .button-secondary {
+            background-color: #2196F3;
+        }
+        h1 {
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <h1>TETRIS</h1>
+    <div id="game-container">
+        <canvas id="tetris" width="300" height="600"></canvas>
+        <div id="score-container">
+            <div>
+                <h2>Score: <span id="score">0</span></h2>
+                <h2>Level: <span id="level">1</span></h2>
+                <h2>Lines: <span id="lines">0</span></h2>
+            </div>
+            <h3>Next Piece:</h3>
+            <canvas id="next-piece" width="100" height="100"></canvas>
+            <button id="start-btn" class="button">Start Game</button>
+            <button id="grid-toggle" class="button button-secondary">Hide Grid</button>
+            <div>
+                <h3>Controls:</h3>
+                <p>← → : Move</p>
+                <p>↑ : Rotate</p>
+                <p>↓ : Soft Drop</p>
+                <p>Space : Hard Drop</p>
+                <p>P : Pause</p>
+                <p>G : Toggle Grid</p>
+            </div>
+        </div>
+    </div>
+    <script src="tetris.js"></script>
+</body>
+</html>
