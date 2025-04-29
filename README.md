@@ -100,12 +100,11 @@ Implement the game using vanilla JavaScript with the Canvas API for rendering, e
 
 ## Author
 
-[Your Name] - [link to profile or contacts]
+[GitHub Copilot] + [NinelGPT]
+
+  - https://www.patreon.com/NinelGPT
+  - https://opencollective.com/nick-scherbfkov
 
 ## License
 
-This project is licensed under [specify license, e.g., MIT License] - see the LICENSE file for details.
-
-## Language
-
-Russian version of this documentation is available in [README-RU.md](README-RU.md)
+This project is licensed under FREE
