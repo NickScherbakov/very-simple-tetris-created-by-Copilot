@@ -4,6 +4,8 @@
 
 ![俄罗斯方块游戏](./Tetris_logo.png)
 
+我们的版本 (https://nickscherbakov.github.io/very-simple-tetris-created-by-Copilot/)
+
 ## 描述
 
 这个经典俄罗斯方块游戏的实现包含了原始游戏的所有主要元素：
