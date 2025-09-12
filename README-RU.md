@@ -4,7 +4,9 @@
 
 ![Tetris Game](./Tetris_logo.png)
 
-## Описание
+Наша версия (https://nickscherbakov.github.io/very-simple-tetris-created-by-Copilot/)
+
+## Описание 
 
 Эта реализация классической игры Tetris включает в себя все основные элементы оригинальной игры:
 - Семь стандартных тетромино (I, J, L, O, S, T, Z)
