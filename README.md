@@ -2,7 +2,7 @@
 
 A classic Tetris game implemented using HTML, CSS, and JavaScript.
 
-![Tetris Game](https://logos-world.net/wp-content/uploads/2020/12/Tetris-Logo.png)
+![Tetris Game](./Tetris-Logo.png)
 
 ## Description
 
