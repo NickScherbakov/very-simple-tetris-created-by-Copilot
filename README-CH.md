@@ -2,7 +2,7 @@
 
 使用 HTML、CSS 和 JavaScript 实现的经典俄罗斯方块游戏。
 
-![俄罗斯方块游戏](https://logos-world.net/wp-content/uploads/2020/12/Tetris-Logo.png)
+![俄罗斯方块游戏](./Tetris_logo.png)
 
 ## 描述
 
