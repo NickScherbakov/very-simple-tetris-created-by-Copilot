@@ -4,6 +4,8 @@ A classic Tetris game implemented using HTML, CSS, and JavaScript.
 
 ![Tetris Game](./Tetris_logo.png)
 
+Try our version (https://nickscherbakov.github.io/very-simple-tetris-created-by-Copilot/)
+
 ## Description
 
 This implementation of the classic Tetris game includes all the main elements of the original game:
