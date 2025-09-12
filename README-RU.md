@@ -2,7 +2,7 @@
 
 Классическая игра Tetris, реализованная с использованием HTML, CSS и JavaScript.
 
-![Tetris Game](https://via.placeholder.com/600x400?text=Tetris+Game)
+![Tetris Game](https://upload.wikimedia.org/wikipedia/commons/thumb/9/9c/Tetris_logo.svg/300px-Tetris_logo.svg)
 
 ## Описание
 

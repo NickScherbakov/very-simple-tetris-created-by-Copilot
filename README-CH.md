@@ -2,7 +2,7 @@
 
 使用 HTML、CSS 和 JavaScript 实现的经典俄罗斯方块游戏。
 
-![俄罗斯方块游戏](https://via.placeholder.com/600x400?text=Tetris+Game)
+![俄罗斯方块游戏](https://upload.wikimedia.org/wikipedia/commons/thumb/9/9c/Tetris_logo.svg/300px-Tetris_logo.svg)
 
 ## 描述
 
