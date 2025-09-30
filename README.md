@@ -2,6 +2,10 @@
 
 A classic Tetris game implemented using HTML, CSS, and JavaScript.
 
+## Screenshot
+
+![Classic Tetris Gameplay](screenshot.jpg)
+
 ## Description
 
 This implementation of the classic Tetris game includes all the main elements of the original—plus several modern enhancements:
