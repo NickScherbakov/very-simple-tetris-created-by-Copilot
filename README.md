@@ -2,27 +2,28 @@
 
 A classic Tetris game implemented using HTML, CSS, and JavaScript.
 
-![Tetris Game](./Tetris_logo.png)
-
-Try our version (https://nickscherbakov.github.io/very-simple-tetris-created-by-Copilot/)
-
 ## Description
 
-This implementation of the classic Tetris game includes all the main elements of the original game:
+This implementation of the classic Tetris game includes all the main elements of the original—plus several modern enhancements:
 - Seven standard tetrominos (I, J, L, O, S, T, Z)
 - Increasing difficulty with each level
-- Scoring system
+- Scoring system with soft/hard drop bonuses
 - Display of the next piece
-- Option to enable/disable grid
+- Option to enable/disable the grid overlay
+- Adaptive learning engine that analyzes player mistakes
+- Optional touch controls for mobile and tablet devices
+- Persistent high-score and grid preference storage
 
 ## Features
 
-- Smooth animation and responsive controls
-- Ability to pause the game
-- Display of score, level, and lines
-- Preview of the next figure
-- Customizable visual grid
-- Shine effects for tetrominos
+- Smooth animation and responsive keyboard controls
+- Ability to pause/resume play at any time
+- Real-time display of score, level, and cleared lines
+- Preview of the next tetromino
+- Customizable visual grid with shine effects for blocks
+- Adaptive AI insight panel explaining strategy shifts
+- On-screen touch controls for coarse-pointer (touch) devices
+- High-score persistence across sessions via local storage
 
 ## Controls
 
@@ -32,6 +33,9 @@ This implementation of the classic Tetris game includes all the main elements of
 - **Space** : Hard drop (instant)
 - **P** : Pause
 - **G** : Toggle grid display
+- **Touch panel** : Buttons for move/rotate/drop/pause on mobile devices
+
+For mobile users, add the game to your home screen or open it in full-screen mode for the best touch experience.
 
 ## Scoring System
 
@@ -53,6 +57,10 @@ This implementation of the classic Tetris game includes all the main elements of
 - HTML5
 - CSS3
 - JavaScript (using Canvas API for rendering)
+
+## Adaptive Learning AI
+
+The built-in trainer observes each of your placements and increases the frequency of pieces that caused trouble—such as creating holes or raising tall columns—while reducing shapes that helped you recover. It never changes the fall speed, keeping gameplay fair. During the round the **AI Insight** panel calls out what it noticed most recently, and after a top-out it explains exactly how it capitalized on your mistakes so you can adjust your strategy next time.
 
 ## AI Prompt for Recreation
 

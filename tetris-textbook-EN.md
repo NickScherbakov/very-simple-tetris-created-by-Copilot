@@ -12,7 +12,8 @@ This tutorial demonstrates how a beginner programmer, in collaboration with Micr
 4. [Styling the Game with CSS](#styling-the-game-with-css)
 5. [Testing and Debugging](#testing-and-debugging)
 6. [Publishing the Project on GitHub](#publishing-the-project-on-github)
-7. [Further Project Development](#further-project-development)
+7. [Adding an Adaptive Learning AI](#adding-an-adaptive-learning-ai)
+8. [Further Project Development](#further-project-development)
 
 ## Getting Started
 
@@ -183,6 +184,65 @@ The final stage of our project was publishing the game on GitHub. Microsoft Copi
 3. Configure Git for proper versioning of our code
 
 The script performed all necessary actions: initializing the Git repository, creating the first commit, and pushing the code to GitHub.
+
+## Adding an Adaptive Learning AI
+
+With the baseline game complete, we extended it with a self-learning piece generator that studies the player's mistakes. Copilot guided us through the process in five steps:
+
+1. **Expand the UI to surface insights** — in `index.html`, we inserted an `AI Insight` panel (a simple `<div>` with a `<p id="ai-summary">` placeholder) right under the score box. We also added responsive touch buttons and a high-score label so the game can run on tablets while showing what the AI is doing.
+
+2. **Track DOM elements and storage keys** — at the top of `tetris.js`, we captured references to the new elements (`const aiSummaryElement = document.getElementById('ai-summary');`) and defined extra `STORAGE_KEYS` for the high score, grid visibility, and the AI state (`tetrisAiStateV1`). This allows the trainer to remember what worked across sessions.
+
+3. **Measure the board after every placement** — we created a helper that inspects the grid and returns column heights, hole counts, and bumpiness:
+
+```javascript
+function computeBoardMetrics(boardState) {
+    const heights = Array(COLS).fill(0);
+    const holes = Array(COLS).fill(0);
+    // walk each column from top to bottom, recording the first block and any gaps beneath it
+    // ...compute totalHoles, maxHeight, aggregateHeight, bumpiness
+    return { heights, holes, totalHoles, maxHeight, aggregateHeight, bumpiness };
+}
+```
+
+4. **Build the adaptive engine** — Copilot helped us encapsulate the learning logic inside `createAdaptiveEngine()`. The object stores per-piece weights, remembers which shapes caused holes, and exposes five methods: `loadFromStorage`, `resetForNewGame`, `selectShapeIndex`, `registerPlacement`, and `getSummary`. Here is a condensed excerpt:
+
+```javascript
+const aiTrainer = createAdaptiveEngine();
+
+function createAdaptiveEngine() {
+    const weights = Array(SHAPES.length).fill(1);
+    let sessionHolesByShape = Array(SHAPES.length).fill(0);
+
+    function selectShapeIndex() {
+        const total = weights.reduce((sum, w) => sum + w, 0);
+        let threshold = Math.random() * total;
+        for (let i = 0; i < weights.length; i++) {
+            threshold -= weights[i];
+            if (threshold <= 0) return i;
+        }
+        return weights.length - 1;
+    }
+
+    function registerPlacement(shapeIndex, beforeMetrics, afterMetrics, linesCleared) {
+        const holesDelta = afterMetrics.totalHoles - beforeMetrics.totalHoles;
+        if (holesDelta > 0) {
+            weights[shapeIndex] = Math.min(8, weights[shapeIndex] + holesDelta * 0.6 + 0.4);
+            sessionHolesByShape[shapeIndex] += holesDelta;
+        }
+        if (linesCleared > 0) {
+            weights[shapeIndex] = Math.max(0.4, weights[shapeIndex] - (linesCleared > 1 ? 0.5 * linesCleared : 0.2));
+        }
+        // persist weights and craft human-readable reasons for the insight panel
+    }
+
+    return { loadFromStorage, resetForNewGame, selectShapeIndex, registerPlacement, getLiveHint, getSummary };
+}
+```
+
+5. **Wire the engine into the game loop** — we replaced the uniform random picker with `getAdaptivePiece()`, which simply wraps `createPiece(aiTrainer.selectShapeIndex())`. Right before merging a piece we captured metrics for the current board, invoked `registerPlacement` after the merge, and updated the insight text: `updateAiInsight(aiTrainer.getLiveHint());`. On game start we call `aiTrainer.resetForNewGame(board)`; on game over we display `aiTrainer.getSummary(finalMetrics)` so players understand how the AI exploited their stack. Finally, we persisted the trainer state via `localStorage` so the AI keeps learning between sessions.
+
+Thanks to Copilot's inline suggestions, we were able to integrate all of this without breaking the existing mechanics. The end result is a Tetris engine that adapts to the player and explains its strategy in natural language.
 
 ## Further Project Development
 

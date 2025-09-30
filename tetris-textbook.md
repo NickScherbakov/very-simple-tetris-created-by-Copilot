@@ -12,7 +12,8 @@
 4. [Стилизация игры с помощью CSS](#стилизация-игры-с-помощью-css)
 5. [Тестирование и отладка](#тестирование-и-отладка)
 6. [Публикация проекта на GitHub](#публикация-проекта-на-github)
-7. [Дальнейшее развитие проекта](#дальнейшее-развитие-проекта)
+7. [Добавление адаптивного ИИ](#добавление-адаптивного-ии)
+8. [Дальнейшее развитие проекта](#дальнейшее-развитие-проекта)
 
 ## Подготовка к работе
 
@@ -183,6 +184,64 @@ function isValidMove(matrix, cellRow, cellCol) {
 3. Настроить Git для корректного версионирования нашего кода
 
 Скрипт выполнил все необходимые действия: инициализировал Git-репозиторий, создал первый коммит и отправил код на GitHub.
+
+## Добавление адаптивного ИИ
+
+После того как базовая механика была готова, мы внедрили самобучающийся генератор фигур, анализирующий ошибки игрока. Copilot предложил разбить задачу на пять шагов:
+
+1. **Расширяем интерфейс** — в `index.html` под блоком со счётом мы добавили панель «AI Insight» (обычный `<div>` с текстовым узлом `<p id="ai-summary">`), а также вынесли кнопку рекорда и сенсорные кнопки для мобильных устройств. Так игрок сразу видит, как ИИ реагирует на его действия.
+
+2. **Подготавливаем ссылки и ключи хранения** — в верхней части `tetris.js` мы получили новый элемент (`const aiSummaryElement = document.getElementById('ai-summary');`) и добавили в `STORAGE_KEYS` идентификатор `tetrisAiStateV1`, чтобы сохранять веса алгоритма между сессиями вместе с рекордом и настройкой сетки.
+
+3. **Измеряем состояние поля** — была создана утилита `computeBoardMetrics(boardState)`, которая для каждой колонки считает высоту, количество «дыр», суммарную высоту и показатель неровности. Пример функции:
+
+```javascript
+function computeBoardMetrics(boardState) {
+    const heights = Array(COLS).fill(0);
+    const holes = Array(COLS).fill(0);
+    // проходим каждую колонку сверху вниз, фиксируем первую заполненную клетку и пустоты под ней
+    return { heights, holes, totalHoles, maxHeight, aggregateHeight, bumpiness };
+}
+```
+
+4. **Создаём тренер** — основная логика вынесена в `createAdaptiveEngine()`. Объект хранит веса для каждой фигуры, учитывает сколько «дыр» возникло из-за конкретного тетромино и предоставляет методы `loadFromStorage`, `resetForNewGame`, `selectShapeIndex`, `registerPlacement`, `getLiveHint`, `getSummary`.
+
+```javascript
+const aiTrainer = createAdaptiveEngine();
+
+function createAdaptiveEngine() {
+    const weights = Array(SHAPES.length).fill(1);
+    let sessionHolesByShape = Array(SHAPES.length).fill(0);
+
+    function selectShapeIndex() {
+        const total = weights.reduce((sum, value) => sum + value, 0);
+        let threshold = Math.random() * total;
+        for (let i = 0; i < weights.length; i++) {
+            threshold -= weights[i];
+            if (threshold <= 0) return i;
+        }
+        return weights.length - 1;
+    }
+
+    function registerPlacement(shapeIndex, beforeMetrics, afterMetrics, linesCleared) {
+        const holesDelta = afterMetrics.totalHoles - beforeMetrics.totalHoles;
+        if (holesDelta > 0) {
+            weights[shapeIndex] = Math.min(8, weights[shapeIndex] + holesDelta * 0.6 + 0.4);
+            sessionHolesByShape[shapeIndex] += holesDelta;
+        }
+        if (linesCleared > 0) {
+            weights[shapeIndex] = Math.max(0.4, weights[shapeIndex] - (linesCleared > 1 ? 0.5 * linesCleared : 0.2));
+        }
+        // формируем комментарии для панели AI Insight и сохраняем состояние в localStorage
+    }
+
+    return { loadFromStorage, resetForNewGame, selectShapeIndex, registerPlacement, getLiveHint, getSummary };
+}
+```
+
+5. **Встраиваем тренер в цикл игры** — мы заменили равномерный выбор фигур на `getAdaptivePiece()`, вызывающий `aiTrainer.selectShapeIndex()`. В момент фиксации фигуры собираем метрики до и после установки, затем передаём их в `registerPlacement` и обновляем текст панели: `updateAiInsight(aiTrainer.getLiveHint());`. При запуске игры вызываем `aiTrainer.resetForNewGame(board)`, а при поражении показываем отчёт `aiTrainer.getSummary(finalMetrics)`. Состояние тренера автоматически сохраняется в `localStorage`, поэтому ИИ продолжает обучение между запусками.
+
+Благодаря подсказкам Copilot мы добавили адаптивный интеллект, не затронув базовую механику. Теперь игра подстраивается под стиль игрока и объясняет свои решения на понятном языке.
 
 ## Дальнейшее развитие проекта
 
