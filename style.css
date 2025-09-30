@@ -34,7 +34,7 @@ body {
         "ai ai";
     gap: 0.5rem;
     max-width: 100%;
-    padding: 1rem;
+    padding: 0.5rem;
     background: linear-gradient(145deg, var(--secondary-color), var(--background-color));
     border-radius: 10px;
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
@@ -68,12 +68,12 @@ body {
 
 #tetris-canvas {
     grid-area: canvas;
-    width: 100%;
-    max-width: 300px;
-    height: auto;
+    width: 300px;
+    height: 600px;
     border-radius: 5px;
     background-color: rgba(0, 0, 0, 0.5);
     box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
+    justify-self: start;
 }
 
 #next-piece-canvas {
@@ -163,11 +163,12 @@ button:active, .button:active {
     }
 
     #tetris-canvas {
-        max-width: 350px;
+        width: 320px;
+        height: 640px;
     }
 
     .game-container {
-        max-width: 800px;
+        max-width: 700px;
         margin: 0 auto;
     }
 }
