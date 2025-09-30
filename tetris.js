@@ -13,6 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
         'purple', // T
         'red'     // Z
     ];
+    const SHAPE_NAMES = ['I', 'J', 'L', 'O', 'S', 'T', 'Z'];
     
     // Tetromino shapes (I, J, L, O, S, T, Z)
     const SHAPES = [
@@ -39,10 +40,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const startBtn = document.getElementById('start-btn');
     const gridToggleBtn = document.getElementById('grid-toggle');
     const touchControlButtons = document.querySelectorAll('#touch-controls [data-action]');
+    const aiSummaryElement = document.getElementById('ai-summary');
 
     const STORAGE_KEYS = {
         highScore: 'tetrisHighScore',
-        grid: 'tetrisShowGrid'
+        grid: 'tetrisShowGrid',
+        aiState: 'tetrisAiStateV1'
     };
     
     // Game variables
@@ -60,6 +63,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let lastTime = 0;
     let gameLoop = null;
     let showGrid = true;  // Новая переменная для отображения сетки
+
+    const aiTrainer = createAdaptiveEngine();
     
     // Create empty game board
     function createBoard() {
@@ -67,14 +72,21 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     // Generate a random tetromino
-    function getRandomPiece() {
-        const shapeIndex = Math.floor(Math.random() * SHAPES.length);
+    function createPiece(shapeIndex) {
+        const template = SHAPES[shapeIndex];
+        const shape = template.map((row) => row.slice());
         return {
-            shape: SHAPES[shapeIndex],
+            shape,
             color: COLORS[shapeIndex],
-            x: Math.floor(COLS / 2) - Math.floor(SHAPES[shapeIndex][0].length / 2),
+            shapeIndex,
+            x: Math.floor(COLS / 2) - Math.floor(template[0].length / 2),
             y: 0
         };
+    }
+
+    function getAdaptivePiece() {
+        const shapeIndex = aiTrainer.selectShapeIndex();
+        return createPiece(shapeIndex);
     }
     
     // Draw a single square on the game board
@@ -154,9 +166,245 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    function computeBoardMetrics(boardState) {
+        const heights = Array(COLS).fill(0);
+        const holes = Array(COLS).fill(0);
+
+        for (let x = 0; x < COLS; x++) {
+            let seenBlock = false;
+            let columnHeight = 0;
+            for (let y = 0; y < ROWS; y++) {
+                if (boardState[y][x]) {
+                    if (!seenBlock) {
+                        columnHeight = ROWS - y;
+                        seenBlock = true;
+                    }
+                } else if (seenBlock) {
+                    holes[x]++;
+                }
+            }
+            heights[x] = columnHeight;
+        }
+
+        const totalHoles = holes.reduce((sum, value) => sum + value, 0);
+        const maxHeight = heights.reduce((max, value) => Math.max(max, value), 0);
+        const aggregateHeight = heights.reduce((sum, value) => sum + value, 0);
+        let bumpiness = 0;
+        for (let x = 0; x < COLS - 1; x++) {
+            bumpiness += Math.abs(heights[x] - heights[x + 1]);
+        }
+
+        return {
+            heights,
+            holes,
+            totalHoles,
+            maxHeight,
+            aggregateHeight,
+            bumpiness
+        };
+    }
+
+    function createAdaptiveEngine() {
+        const MIN_WEIGHT = 0.4;
+        const MAX_WEIGHT = 8;
+        const weights = Array(SHAPES.length).fill(1);
+        const holesByShape = Array(SHAPES.length).fill(0);
+    let sessionHolesByShape = Array(SHAPES.length).fill(0);
+        let totalTrackedMistakes = 0;
+        let recentHighlights = [];
+        let lastMetrics = null;
+
+        function loadFromStorage() {
+            try {
+                const raw = localStorage.getItem(STORAGE_KEYS.aiState);
+                if (!raw) {
+                    return;
+                }
+                const parsed = JSON.parse(raw);
+                if (Array.isArray(parsed.weights) && parsed.weights.length === SHAPES.length) {
+                    parsed.weights.forEach((value, index) => {
+                        const numeric = Number(value);
+                        if (Number.isFinite(numeric) && numeric > 0) {
+                            weights[index] = Math.min(MAX_WEIGHT, Math.max(MIN_WEIGHT, numeric));
+                        }
+                    });
+                }
+                if (Array.isArray(parsed.holesByShape) && parsed.holesByShape.length === SHAPES.length) {
+                    parsed.holesByShape.forEach((value, index) => {
+                        const numeric = Number(value);
+                        holesByShape[index] = Number.isFinite(numeric) && numeric > 0 ? numeric : 0;
+                    });
+                }
+                if (typeof parsed.totalTrackedMistakes === 'number' && parsed.totalTrackedMistakes >= 0) {
+                    totalTrackedMistakes = parsed.totalTrackedMistakes;
+                }
+            } catch (err) {
+                // Ignore corrupted state and fall back to defaults.
+            }
+        }
+
+        function persistState() {
+            try {
+                const payload = JSON.stringify({
+                    weights,
+                    holesByShape,
+                    totalTrackedMistakes
+                });
+                localStorage.setItem(STORAGE_KEYS.aiState, payload);
+            } catch (err) {
+                // Persistence is optional; ignore storage errors.
+            }
+        }
+
+        function resetForNewGame(boardState) {
+            lastMetrics = computeBoardMetrics(boardState);
+            recentHighlights = [];
+            sessionHolesByShape = Array(SHAPES.length).fill(0);
+        }
+
+        function selectShapeIndex() {
+            const totalWeight = weights.reduce((sum, value) => sum + value, 0);
+            if (totalWeight <= 0) {
+                return Math.floor(Math.random() * SHAPES.length);
+            }
+            let threshold = Math.random() * totalWeight;
+            for (let i = 0; i < weights.length; i++) {
+                threshold -= weights[i];
+                if (threshold <= 0) {
+                    return i;
+                }
+            }
+            return weights.length - 1;
+        }
+
+        function registerPlacement(shapeIndex, beforeMetrics, afterMetrics, linesCleared) {
+            if (!beforeMetrics || !afterMetrics) {
+                return;
+            }
+
+            const insightReasons = [];
+            let positiveObservation = false;
+            const holesDelta = afterMetrics.totalHoles - beforeMetrics.totalHoles;
+            if (holesDelta > 0) {
+                const boost = holesDelta * 0.6 + 0.4;
+                weights[shapeIndex] = Math.min(MAX_WEIGHT, weights[shapeIndex] + boost);
+                holesByShape[shapeIndex] += holesDelta;
+                sessionHolesByShape[shapeIndex] += holesDelta;
+                totalTrackedMistakes += holesDelta;
+                insightReasons.push(`created ${holesDelta} new hole${holesDelta === 1 ? '' : 's'}`);
+                positiveObservation = true;
+            }
+
+            const maxHeightDelta = afterMetrics.maxHeight - beforeMetrics.maxHeight;
+            if (maxHeightDelta >= 3) {
+                const heightBoost = maxHeightDelta * 0.3;
+                weights[shapeIndex] = Math.min(MAX_WEIGHT, weights[shapeIndex] + heightBoost);
+                const tallestColumn = afterMetrics.heights.indexOf(afterMetrics.maxHeight);
+                if (tallestColumn >= 0) {
+                    insightReasons.push(`pushed column ${tallestColumn + 1} higher by ${maxHeightDelta}`);
+                    positiveObservation = true;
+                }
+            }
+
+            if (linesCleared > 0) {
+                const penalty = linesCleared > 1 ? linesCleared * 0.5 : 0.2;
+                weights[shapeIndex] = Math.max(MIN_WEIGHT, weights[shapeIndex] - penalty);
+            }
+
+            if (positiveObservation) {
+                recentHighlights.push({
+                    shapeIndex,
+                    reasons: insightReasons,
+                    afterMetrics: {
+                        maxHeight: afterMetrics.maxHeight,
+                        totalHoles: afterMetrics.totalHoles,
+                        heights: afterMetrics.heights.slice()
+                    }
+                });
+                if (recentHighlights.length > 6) {
+                    recentHighlights.shift();
+                }
+            }
+
+            lastMetrics = afterMetrics;
+            persistState();
+        }
+
+        function getLiveHint() {
+            const latest = recentHighlights[recentHighlights.length - 1];
+            if (!latest) {
+                return 'The adaptive engine is observing your moves.';
+            }
+            const reasonText = latest.reasons.join(' and ');
+            return `Recent pressure: more ${SHAPE_NAMES[latest.shapeIndex]} pieces because you ${reasonText}.`;
+        }
+
+        function getSummary(finalMetrics) {
+            const sessionMistakes = sessionHolesByShape.reduce((sum, value) => sum + value, 0);
+            const sentences = [];
+            if (sessionMistakes === 0) {
+                if (finalMetrics) {
+                    const columnIndex = finalMetrics.heights.indexOf(finalMetrics.maxHeight);
+                    const columnLabel = columnIndex >= 0 ? columnIndex + 1 : 'one column';
+                    sentences.push(`I could not exploit a repeating weakness, but your stack in column ${columnLabel} climbed to ${finalMetrics.maxHeight} blocks.`);
+                    if (finalMetrics.totalHoles > 0) {
+                        sentences.push(`Keeping ${finalMetrics.totalHoles} hidden hole${finalMetrics.totalHoles === 1 ? '' : 's'} made recovery harder.`);
+                    }
+                } else {
+                    sentences.push('I did not gather enough data to exploit a weakness this round.');
+                }
+                return sentences.join(' ');
+            }
+
+            const rankedShapes = sessionHolesByShape
+                .map((value, index) => ({ index, value }))
+                .filter((entry) => entry.value > 0)
+                .sort((a, b) => b.value - a.value);
+
+            if (rankedShapes.length > 0) {
+                const primary = rankedShapes[0];
+                sentences.push(`I boosted ${SHAPE_NAMES[primary.index]} pieces after they trapped ${primary.value} extra hole${primary.value === 1 ? '' : 's'}.`);
+                const secondary = rankedShapes[1];
+                if (secondary) {
+                    sentences.push(`I also leaned on ${SHAPE_NAMES[secondary.index]} pieces because they kept your board unstable.`);
+                }
+            }
+
+            const highlight = recentHighlights[recentHighlights.length - 1];
+            if (highlight) {
+                const columnIndex = highlight.afterMetrics.heights.indexOf(highlight.afterMetrics.maxHeight);
+                const columnLabel = columnIndex >= 0 ? columnIndex + 1 : 'a column';
+                sentences.push(`Near the end, extra ${SHAPE_NAMES[highlight.shapeIndex]} pieces ${highlight.reasons.join(' and ')} while column ${columnLabel} reached ${highlight.afterMetrics.maxHeight} blocks.`);
+            }
+
+            if (finalMetrics) {
+                const columnIndex = finalMetrics.heights.indexOf(finalMetrics.maxHeight);
+                const columnLabel = columnIndex >= 0 ? columnIndex + 1 : 'one column';
+                sentences.push(`You topped out with ${finalMetrics.totalHoles} hole${finalMetrics.totalHoles === 1 ? '' : 's'} and a skyline difference of ${finalMetrics.bumpiness}. Column ${columnLabel} was the first to break the ceiling.`);
+            }
+
+            return sentences.join(' ');
+        }
+
+        return {
+            loadFromStorage,
+            resetForNewGame,
+            selectShapeIndex,
+            registerPlacement,
+            getLiveHint,
+            getSummary
+        };
+    }
+
     function updateHighScoreDisplay() {
         if (highScoreElement) {
             highScoreElement.textContent = highScore;
+        }
+    }
+
+    function updateAiInsight(message) {
+        if (aiSummaryElement) {
+            aiSummaryElement.textContent = message;
         }
     }
 
@@ -177,6 +425,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function loadPreferences() {
+        aiTrainer.loadFromStorage();
         try {
             const storedHighScore = localStorage.getItem(STORAGE_KEYS.highScore);
             if (storedHighScore !== null) {
@@ -197,6 +446,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (gridToggleBtn) {
             gridToggleBtn.textContent = showGrid ? 'Hide Grid' : 'Show Grid';
         }
+        updateAiInsight(aiTrainer.getLiveHint());
     }
     
     // Toggle grid visibility
@@ -245,8 +495,14 @@ document.addEventListener('DOMContentLoaded', () => {
         currentPiece.y++;
         if (checkCollision(currentPiece)) {
             currentPiece.y--;
+            const beforeMetrics = computeBoardMetrics(board);
             mergePiece();
-            clearLines();
+            const linesCleared = clearLines();
+            const afterMetrics = computeBoardMetrics(board);
+            if (typeof currentPiece.shapeIndex === 'number') {
+                aiTrainer.registerPlacement(currentPiece.shapeIndex, beforeMetrics, afterMetrics, linesCleared);
+                updateAiInsight(aiTrainer.getLiveHint());
+            }
             spawnPiece();
         }
         dropCounter = 0;
@@ -344,6 +600,8 @@ document.addEventListener('DOMContentLoaded', () => {
             
             updateScore();
         }
+
+        return linesCleared;
     }
     
     // Update score display
@@ -362,10 +620,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // Spawn a new piece
     function spawnPiece() {
         if (!nextPiece) {
-            nextPiece = getRandomPiece();
+            nextPiece = getAdaptivePiece();
         }
         currentPiece = nextPiece;
-        nextPiece = getRandomPiece();
+        nextPiece = getAdaptivePiece();
         drawNextPiece();
         
         // Check if game is over
@@ -381,6 +639,8 @@ document.addEventListener('DOMContentLoaded', () => {
             ctx.font = '20px Arial';
             ctx.fillText('Press Start to Play Again', canvas.width / 2, canvas.height / 2 + 40);
             startBtn.textContent = 'Play Again';
+            const finalMetrics = computeBoardMetrics(board);
+            updateAiInsight(aiTrainer.getSummary(finalMetrics));
         }
     }
     
@@ -419,8 +679,12 @@ document.addEventListener('DOMContentLoaded', () => {
         dropInterval = 1000;
         gameOver = false;
         isPaused = false;
+    currentPiece = null;
+    nextPiece = null;
         
+        aiTrainer.resetForNewGame(board);
         updateScore();
+        updateAiInsight(aiTrainer.getLiveHint());
         spawnPiece();
         draw();
         
