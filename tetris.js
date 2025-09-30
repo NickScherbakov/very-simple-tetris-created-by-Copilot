@@ -91,64 +91,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // Draw a single square on the game board
     function drawBlock(x, y, color, context = null) {
         const ctx_to_use = context || ctx;
-        const blockSize = BLOCK_SIZE;
-
-        // Create gradient
-        const gradient = ctx_to_use.createLinearGradient(
-            x * blockSize,
-            y * blockSize,
-            x * blockSize + blockSize,
-            y * blockSize + blockSize
-        );
-        gradient.addColorStop(0, color);
-        gradient.addColorStop(1, darkenColor(color, 30));
-
-        // Draw block with gradient
-        ctx_to_use.fillStyle = gradient;
-        ctx_to_use.fillRect(x * blockSize, y * blockSize, blockSize, blockSize);
-
-        // Draw highlights
-        ctx_to_use.fillStyle = lightenColor(color, 50);
-        ctx_to_use.fillRect(x * blockSize, y * blockSize, blockSize / 10, blockSize / 10);
-        ctx_to_use.fillRect(x * blockSize, y * blockSize, blockSize / 10, blockSize);
-
-        // Draw shadow
-        ctx_to_use.fillStyle = 'rgba(0,0,0,0.3)';
-        ctx_to_use.fillRect(x * blockSize + blockSize - blockSize / 10, y * blockSize, blockSize / 10, blockSize);
-        ctx_to_use.fillRect(x * blockSize, y * blockSize + blockSize - blockSize / 10, blockSize, blockSize / 10);
-
-        // Draw border
-        ctx_to_use.strokeStyle = darkenColor(color, 50);
-        ctx_to_use.strokeRect(x * blockSize, y * blockSize, blockSize, blockSize);
-    }
-
-    // Helper functions for color manipulation
-    function darkenColor(color, percent) {
-        const num = parseInt(color.slice(1), 16);
-        const amt = Math.round(2.55 * percent);
-        const R = (num >> 16) - amt;
-        const G = (num >> 8 & 0x00FF) - amt;
-        const B = (num & 0x0000FF) - amt;
-        return '#' + (
-            0x1000000 +
-            (R < 0 ? 0 : R) * 0x10000 +
-            (G < 0 ? 0 : G) * 0x100 +
-            (B < 0 ? 0 : B)
-        ).toString(16).slice(1);
-    }
-
-    function lightenColor(color, percent) {
-        const num = parseInt(color.slice(1), 16);
-        const amt = Math.round(2.55 * percent);
-        const R = Math.min(255, (num >> 16) + amt);
-        const G = Math.min(255, (num >> 8 & 0x00FF) + amt);
-        const B = Math.min(255, (num & 0x0000FF) + amt);
-        return '#' + (
-            0x1000000 +
-            R * 0x10000 +
-            G * 0x100 +
-            B
-        ).toString(16).slice(1);
+        ctx_to_use.fillStyle = color;
+        ctx_to_use.fillRect(x * BLOCK_SIZE, y * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE);
+        ctx_to_use.strokeStyle = '#000';
+        ctx_to_use.strokeRect(x * BLOCK_SIZE, y * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE);
     }
     
     // Draw the current piece on the game board
@@ -193,10 +139,10 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Draw grid lines
     function drawGrid() {
-        if (!showGrid) return; // Не рисуем сетку, если она выключена
+        if (!showGrid) return;
         
-        ctx.strokeStyle = '#4488aa'; // Более яркий, контрастный цвет для сетки
-        ctx.lineWidth = 1; // Увеличенная толщина линии
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+        ctx.lineWidth = 0.5;
         
         // Vertical lines
         for (let i = 0; i <= COLS; i++) {
@@ -632,59 +578,28 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (linesCleared > 0) {
-            // Animate line clear
-            animateLineClear(linesToClear, () => {
-                // After animation, actually remove the lines
-                linesToClear.sort((a, b) => b - a).forEach(y => {
-                    board.splice(y, 1);
-                    board.unshift(Array(COLS).fill(0));
-                });
-
-                lines += linesCleared;
-
-                // Calculate score based on lines cleared
-                const lineScores = [40, 100, 300, 1200];
-                score += lineScores[linesCleared - 1] * level;
-
-                // Update level every 10 lines
-                level = Math.floor(lines / 10) + 1;
-
-                // Adjust drop speed based on level
-                dropInterval = Math.max(1000 - (level - 1) * 100, 100);
-
-                updateScore();
+            // Remove completed lines
+            linesToClear.sort((a, b) => b - a).forEach(y => {
+                board.splice(y, 1);
+                board.unshift(Array(COLS).fill(0));
             });
+
+            lines += linesCleared;
+
+            // Calculate score based on lines cleared
+            const lineScores = [40, 100, 300, 1200];
+            score += lineScores[linesCleared - 1] * level;
+
+            // Update level every 10 lines
+            level = Math.floor(lines / 10) + 1;
+
+            // Adjust drop speed based on level
+            dropInterval = Math.max(1000 - (level - 1) * 100, 100);
+
+            updateScore();
         }
 
         return linesCleared;
-    }
-
-    // Animate line clear effect
-    function animateLineClear(linesToClear, callback) {
-        let animationFrame = 0;
-        const maxFrames = 10;
-
-        function animate() {
-            animationFrame++;
-            const progress = animationFrame / maxFrames;
-
-            // Flash effect
-            linesToClear.forEach(y => {
-                for (let x = 0; x < COLS; x++) {
-                    const alpha = Math.sin(progress * Math.PI * 2) * 0.5 + 0.5;
-                    ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
-                    ctx.fillRect(x * BLOCK_SIZE, y * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE);
-                }
-            });
-
-            if (animationFrame < maxFrames) {
-                requestAnimationFrame(animate);
-            } else {
-                callback();
-            }
-        }
-
-        animate();
     }
     
     // Update score display
@@ -713,14 +628,14 @@ document.addEventListener('DOMContentLoaded', () => {
         if (checkCollision(currentPiece)) {
             gameOver = true;
             cancelAnimationFrame(gameLoop);
-            const overlay = document.createElement('div');
-            overlay.className = 'game-overlay';
-            overlay.innerHTML = `
-                <h2>GAME OVER</h2>
-                <p>Press Start to Play Again</p>
-            `;
-            canvas.parentNode.style.position = 'relative';
-            canvas.parentNode.appendChild(overlay);
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = 'red';
+            ctx.font = '30px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('GAME OVER', canvas.width / 2, canvas.height / 2);
+            ctx.font = '20px Arial';
+            ctx.fillText('Press Start or Enter to Play Again', canvas.width / 2, canvas.height / 2 + 40);
             startBtn.textContent = 'Play Again';
             const finalMetrics = computeBoardMetrics(board);
             updateAiInsight(aiTrainer.getSummary(finalMetrics));
@@ -755,12 +670,6 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Start the game
     function startGame() {
-        // Remove any existing overlays
-        const overlay = canvas.parentNode.querySelector('.game-overlay');
-        if (overlay) {
-            overlay.remove();
-        }
-
         board = createBoard();
         score = 0;
         lines = 0;
@@ -794,20 +703,15 @@ document.addEventListener('DOMContentLoaded', () => {
         isPaused = !isPaused;
         if (isPaused) {
             cancelAnimationFrame(gameLoop);
-            const overlay = document.createElement('div');
-            overlay.className = 'game-overlay';
-            overlay.innerHTML = `
-                <h2>PAUSED</h2>
-                <p>Press P to Resume</p>
-            `;
-            canvas.parentNode.style.position = 'relative';
-            canvas.parentNode.appendChild(overlay);
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = 'white';
+            ctx.font = '30px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('PAUSED', canvas.width / 2, canvas.height / 2);
+            ctx.font = '20px Arial';
+            ctx.fillText('Press P to Resume', canvas.width / 2, canvas.height / 2 + 40);
         } else {
-            // Remove pause overlay
-            const overlay = canvas.parentNode.querySelector('.game-overlay');
-            if (overlay) {
-                overlay.remove();
-            }
             lastTime = performance.now();
             gameLoop = requestAnimationFrame(update);
         }
@@ -815,22 +719,39 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Handle keyboard input
     document.addEventListener('keydown', (e) => {
+        // Allow starting the game with Enter or Space when game is over
+        if (gameOver && (e.key === 'Enter' || e.key === ' ')) {
+            e.preventDefault();
+            startGame();
+            return;
+        }
+        
+        // Block other controls when game is over
         if (gameOver) return;
+        
+        // Block movement controls when no current piece (game not started)
+        if (!currentPiece && ['ArrowLeft', 'ArrowRight', 'ArrowDown', 'ArrowUp', ' '].includes(e.key)) {
+            return;
+        }
         
         switch (e.key) {
             case 'ArrowLeft':
                 movePieceLeft();
+                draw();
                 break;
             case 'ArrowRight':
                 movePieceRight();
+                draw();
                 break;
             case 'ArrowDown':
                 movePieceDown();
                 score++;
                 updateScore();
+                draw();
                 break;
             case 'ArrowUp':
                 rotatePiece();
+                draw();
                 break;
             case ' ':
                 e.preventDefault(); // Prevent page scrolling
@@ -843,6 +764,13 @@ document.addEventListener('DOMContentLoaded', () => {
             case 'g':
             case 'G':
                 toggleGrid();
+                break;
+            case 'Enter':
+            case 's':
+            case 'S':
+                if (!currentPiece && !gameOver) {
+                    startGame();
+                }
                 break;
         }
     });
@@ -860,12 +788,12 @@ document.addEventListener('DOMContentLoaded', () => {
     draw();
 
     // Show start screen
-    const startOverlay = document.createElement('div');
-    startOverlay.className = 'game-overlay';
-    startOverlay.innerHTML = `
-        <h2>TETRIS</h2>
-        <p>Press Start to Play</p>
-    `;
-    canvas.parentNode.style.position = 'relative';
-    canvas.parentNode.appendChild(startOverlay);
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = 'white';
+    ctx.font = '30px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('TETRIS', canvas.width / 2, canvas.height / 2 - 30);
+    ctx.font = '20px Arial';
+    ctx.fillText('Press Start or Enter to Play', canvas.width / 2, canvas.height / 2 + 20);
 });
