@@ -1,0 +1,252 @@
+:root {
+    --primary-color: #7b68ee;
+    --secondary-color: #4a4489;
+    --accent-color: #ff6b6b;
+    --background-color: #121212;
+    --text-color: #ffffff;
+    --grid-line-color: rgba(255, 255, 255, 0.1);
+    --button-hover-color: #9485f0;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    touch-action: manipulation;
+}
+
+.game-container {
+    display: grid;
+    grid-template-areas:
+        "score next"
+        "canvas canvas"
+        "controls controls"
+        "buttons buttons"
+        "ai ai";
+    gap: 1rem;
+    max-width: 100%;
+    padding: 1rem;
+    background: linear-gradient(145deg, var(--secondary-color), var(--background-color));
+    border-radius: 10px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+}
+
+.score-section {
+    grid-area: score;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    font-size: 1.2rem;
+    padding: 0.5rem;
+    background-color: rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+}
+
+.next-piece {
+    grid-area: next;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0.5rem;
+    background-color: rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+}
+
+.next-piece h3 {
+    margin-bottom: 0.5rem;
+    color: var(--text-color);
+}
+
+#tetris-canvas {
+    grid-area: canvas;
+    width: 100%;
+    border-radius: 5px;
+    background-color: rgba(0, 0, 0, 0.5);
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
+}
+
+#next-piece-canvas {
+    width: 80px;
+    height: 80px;
+    margin-top: 0.5rem;
+}
+
+.controls {
+    grid-area: controls;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.direction-controls {
+    display: grid;
+    grid-template-areas:
+        ". up ."
+        "left down right";
+    gap: 0.5rem;
+}
+
+button {
+    background-color: var(--primary-color);
+    color: var(--text-color);
+    border: none;
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    font-size: 1.5rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    touch-action: manipulation;
+    transition: background-color 0.15s, transform 0.15s;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    -webkit-tap-highlight-color: transparent;
+}
+
+button:hover, button:focus {
+    background-color: var(--button-hover-color);
+}
+
+button:active {
+    transform: scale(0.95);
+}
+
+#left-btn { grid-area: left; }
+#down-btn { grid-area: down; }
+#right-btn { grid-area: right; }
+#rotate-btn, #drop-btn, #pause-btn {
+    width: 70px;
+    height: 70px;
+}
+
+.game-buttons {
+    grid-area: buttons;
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+}
+
+.button {
+    background-color: var(--primary-color);
+    color: var(--text-color);
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.15s, transform 0.15s;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+}
+
+.button:hover, .button:focus {
+    background-color: var(--button-hover-color);
+}
+
+.button:active {
+    transform: scale(0.95);
+}
+
+.button-secondary {
+    background-color: var(--accent-color);
+}
+
+.ai-insight {
+    grid-area: ai;
+    background-color: rgba(255, 255, 255, 0.08);
+    padding: 1rem;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+.ai-insight h3 {
+    margin-bottom: 0.5rem;
+    color: var(--text-color);
+}
+
+#ai-summary {
+    margin: 0;
+}
+
+/* Media queries for responsive design */
+@media (min-width: 768px) {
+    .game-container {
+        grid-template-areas:
+            "canvas score"
+            "canvas next"
+            "canvas controls"
+            "canvas buttons"
+            "canvas ai";
+        grid-template-columns: 2fr 1fr;
+    }
+
+    #tetris-canvas {
+        height: 500px;
+    }
+}
+
+@media (max-width: 767px) {
+    .controls button {
+        width: 50px;
+        height: 50px;
+        font-size: 1.2rem;
+    }
+
+    #rotate-btn, #drop-btn, #pause-btn {
+        width: 60px;
+        height: 60px;
+    }
+
+    .game-container {
+        padding: 0.75rem;
+    }
+
+    .game-buttons {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .button {
+        width: 100%;
+        max-width: 200px;
+    }
+}
+
+/* Game over and pause overlays */
+.game-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    border-radius: 5px;
+    color: var(--text-color);
+}
+
+.game-overlay h2 {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+}
+
+.game-overlay p {
+    font-size: 1.2rem;
+    text-align: center;
+}

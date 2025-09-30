@@ -27,9 +27,9 @@ document.addEventListener('DOMContentLoaded', () => {
     ];
     
     // Get canvases and contexts
-    const canvas = document.getElementById('tetris');
+    const canvas = document.getElementById('tetris-canvas');
     const ctx = canvas.getContext('2d');
-    const nextPieceCanvas = document.getElementById('next-piece');
+    const nextPieceCanvas = document.getElementById('next-piece-canvas');
     const nextPieceCtx = nextPieceCanvas.getContext('2d');
     
     // Get DOM elements
@@ -92,14 +92,64 @@ document.addEventListener('DOMContentLoaded', () => {
     // Draw a single square on the game board
     function drawBlock(x, y, color, context = null) {
         const ctx_to_use = context || ctx;
-        ctx_to_use.fillStyle = color;
-        ctx_to_use.fillRect(x * BLOCK_SIZE, y * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE);
-        ctx_to_use.strokeStyle = '#222';
-        ctx_to_use.strokeRect(x * BLOCK_SIZE, y * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE);
-        
-        // Add shine effect
-        ctx_to_use.fillStyle = 'rgba(255, 255, 255, 0.2)';
-        ctx_to_use.fillRect(x * BLOCK_SIZE, y * BLOCK_SIZE, BLOCK_SIZE / 3, BLOCK_SIZE / 3);
+        const blockSize = BLOCK_SIZE;
+
+        // Create gradient
+        const gradient = ctx_to_use.createLinearGradient(
+            x * blockSize,
+            y * blockSize,
+            x * blockSize + blockSize,
+            y * blockSize + blockSize
+        );
+        gradient.addColorStop(0, color);
+        gradient.addColorStop(1, darkenColor(color, 30));
+
+        // Draw block with gradient
+        ctx_to_use.fillStyle = gradient;
+        ctx_to_use.fillRect(x * blockSize, y * blockSize, blockSize, blockSize);
+
+        // Draw highlights
+        ctx_to_use.fillStyle = lightenColor(color, 50);
+        ctx_to_use.fillRect(x * blockSize, y * blockSize, blockSize / 10, blockSize / 10);
+        ctx_to_use.fillRect(x * blockSize, y * blockSize, blockSize / 10, blockSize);
+
+        // Draw shadow
+        ctx_to_use.fillStyle = 'rgba(0,0,0,0.3)';
+        ctx_to_use.fillRect(x * blockSize + blockSize - blockSize / 10, y * blockSize, blockSize / 10, blockSize);
+        ctx_to_use.fillRect(x * blockSize, y * blockSize + blockSize - blockSize / 10, blockSize, blockSize / 10);
+
+        // Draw border
+        ctx_to_use.strokeStyle = darkenColor(color, 50);
+        ctx_to_use.strokeRect(x * blockSize, y * blockSize, blockSize, blockSize);
+    }
+
+    // Helper functions for color manipulation
+    function darkenColor(color, percent) {
+        const num = parseInt(color.slice(1), 16);
+        const amt = Math.round(2.55 * percent);
+        const R = (num >> 16) - amt;
+        const G = (num >> 8 & 0x00FF) - amt;
+        const B = (num & 0x0000FF) - amt;
+        return '#' + (
+            0x1000000 +
+            (R < 0 ? 0 : R) * 0x10000 +
+            (G < 0 ? 0 : G) * 0x100 +
+            (B < 0 ? 0 : B)
+        ).toString(16).slice(1);
+    }
+
+    function lightenColor(color, percent) {
+        const num = parseInt(color.slice(1), 16);
+        const amt = Math.round(2.55 * percent);
+        const R = Math.min(255, (num >> 16) + amt);
+        const G = Math.min(255, (num >> 8 & 0x00FF) + amt);
+        const B = Math.min(255, (num & 0x0000FF) + amt);
+        return '#' + (
+            0x1000000 +
+            R * 0x10000 +
+            G * 0x100 +
+            B
+        ).toString(16).slice(1);
     }
     
     // Draw the current piece on the game board
@@ -570,38 +620,72 @@ document.addEventListener('DOMContentLoaded', () => {
     // Clear completed lines and update score
     function clearLines() {
         let linesCleared = 0;
-        
+        const linesToClear = [];
+
         outer: for (let y = ROWS - 1; y >= 0; y--) {
             for (let x = 0; x < COLS; x++) {
                 if (!board[y][x]) {
                     continue outer;
                 }
             }
-            
-            // Clear the line and move everything down
-            const row = board.splice(y, 1)[0].fill(0);
-            board.unshift(row);
-            y++; // Check the same row again
+            linesToClear.push(y);
             linesCleared++;
         }
-        
+
         if (linesCleared > 0) {
-            lines += linesCleared;
-            
-            // Calculate score based on lines cleared
-            const lineScores = [40, 100, 300, 1200];
-            score += lineScores[linesCleared - 1] * level;
-            
-            // Update level every 10 lines
-            level = Math.floor(lines / 10) + 1;
-            
-            // Adjust drop speed based on level
-            dropInterval = Math.max(1000 - (level - 1) * 100, 100);
-            
-            updateScore();
+            // Animate line clear
+            animateLineClear(linesToClear, () => {
+                // After animation, actually remove the lines
+                linesToClear.sort((a, b) => b - a).forEach(y => {
+                    board.splice(y, 1);
+                    board.unshift(Array(COLS).fill(0));
+                });
+
+                lines += linesCleared;
+
+                // Calculate score based on lines cleared
+                const lineScores = [40, 100, 300, 1200];
+                score += lineScores[linesCleared - 1] * level;
+
+                // Update level every 10 lines
+                level = Math.floor(lines / 10) + 1;
+
+                // Adjust drop speed based on level
+                dropInterval = Math.max(1000 - (level - 1) * 100, 100);
+
+                updateScore();
+            });
         }
 
         return linesCleared;
+    }
+
+    // Animate line clear effect
+    function animateLineClear(linesToClear, callback) {
+        let animationFrame = 0;
+        const maxFrames = 10;
+
+        function animate() {
+            animationFrame++;
+            const progress = animationFrame / maxFrames;
+
+            // Flash effect
+            linesToClear.forEach(y => {
+                for (let x = 0; x < COLS; x++) {
+                    const alpha = Math.sin(progress * Math.PI * 2) * 0.5 + 0.5;
+                    ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
+                    ctx.fillRect(x * BLOCK_SIZE, y * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE);
+                }
+            });
+
+            if (animationFrame < maxFrames) {
+                requestAnimationFrame(animate);
+            } else {
+                callback();
+            }
+        }
+
+        animate();
     }
     
     // Update score display
@@ -630,14 +714,14 @@ document.addEventListener('DOMContentLoaded', () => {
         if (checkCollision(currentPiece)) {
             gameOver = true;
             cancelAnimationFrame(gameLoop);
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = 'red';
-            ctx.font = '30px Arial';
-            ctx.textAlign = 'center';
-            ctx.fillText('GAME OVER', canvas.width / 2, canvas.height / 2);
-            ctx.font = '20px Arial';
-            ctx.fillText('Press Start to Play Again', canvas.width / 2, canvas.height / 2 + 40);
+            const overlay = document.createElement('div');
+            overlay.className = 'game-overlay';
+            overlay.innerHTML = `
+                <h2>GAME OVER</h2>
+                <p>Press Start to Play Again</p>
+            `;
+            canvas.parentNode.style.position = 'relative';
+            canvas.parentNode.appendChild(overlay);
             startBtn.textContent = 'Play Again';
             const finalMetrics = computeBoardMetrics(board);
             updateAiInsight(aiTrainer.getSummary(finalMetrics));
@@ -672,6 +756,12 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Start the game
     function startGame() {
+        // Remove any existing overlays
+        const overlay = canvas.parentNode.querySelector('.game-overlay');
+        if (overlay) {
+            overlay.remove();
+        }
+
         board = createBoard();
         score = 0;
         lines = 0;
@@ -679,20 +769,20 @@ document.addEventListener('DOMContentLoaded', () => {
         dropInterval = 1000;
         gameOver = false;
         isPaused = false;
-    currentPiece = null;
-    nextPiece = null;
-        
+        currentPiece = null;
+        nextPiece = null;
+
         aiTrainer.resetForNewGame(board);
         updateScore();
         updateAiInsight(aiTrainer.getLiveHint());
         spawnPiece();
         draw();
-        
+
         if (gameLoop) {
             cancelAnimationFrame(gameLoop);
         }
-        
-        lastTime = performance.now();  // Устанавливаем начальное время от текущего момента
+
+        lastTime = performance.now();
         dropCounter = 0;
         gameLoop = requestAnimationFrame(update);
         startBtn.textContent = 'Restart';
@@ -701,19 +791,24 @@ document.addEventListener('DOMContentLoaded', () => {
     // Pause the game
     function togglePause() {
         if (gameOver) return;
-        
+
         isPaused = !isPaused;
         if (isPaused) {
             cancelAnimationFrame(gameLoop);
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = 'white';
-            ctx.font = '30px Arial';
-            ctx.textAlign = 'center';
-            ctx.fillText('PAUSED', canvas.width / 2, canvas.height / 2);
-            ctx.font = '20px Arial';
-            ctx.fillText('Press P to Resume', canvas.width / 2, canvas.height / 2 + 40);
+            const overlay = document.createElement('div');
+            overlay.className = 'game-overlay';
+            overlay.innerHTML = `
+                <h2>PAUSED</h2>
+                <p>Press P to Resume</p>
+            `;
+            canvas.parentNode.style.position = 'relative';
+            canvas.parentNode.appendChild(overlay);
         } else {
+            // Remove pause overlay
+            const overlay = canvas.parentNode.querySelector('.game-overlay');
+            if (overlay) {
+                overlay.remove();
+            }
             lastTime = performance.now();
             gameLoop = requestAnimationFrame(update);
         }
@@ -753,97 +848,103 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    if (touchControlButtons.length) {
-        const repeatingActions = new Set(['left', 'right', 'down']);
-        const activeRepeats = new Map();
-        const repeatIntervalMs = 140;
+    // Enhanced touch controls setup
+    function setupTouchControls() {
+        // Button controls
+        document.getElementById('left-btn').addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            movePieceLeft();
+            draw();
+        });
+        document.getElementById('right-btn').addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            movePieceRight();
+            draw();
+        });
+        document.getElementById('down-btn').addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            movePieceDown();
+            score++;
+            updateScore();
+            draw();
+        });
+        document.getElementById('rotate-btn').addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            rotatePiece();
+            draw();
+        });
+        document.getElementById('drop-btn').addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            hardDrop();
+            draw();
+        });
+        document.getElementById('pause-btn').addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            togglePause();
+        });
 
-        const stopRepeat = (action) => {
-            const intervalId = activeRepeats.get(action);
-            if (intervalId) {
-                clearInterval(intervalId);
-                activeRepeats.delete(action);
-            }
-        };
+        // Prevent default touch behavior to avoid browser gestures interfering with the game
+        const touchControls = document.getElementById('touch-controls');
+        if (touchControls) {
+            touchControls.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+            }, { passive: false });
+        }
 
-        const handleTouchAction = (action) => {
-            if (action !== 'pause' && (gameOver || isPaused && action !== 'pause')) {
-                return;
-            }
+        // Add swipe gestures for additional control options
+        let touchStartX = 0;
+        let touchStartY = 0;
+        const gameCanvas = document.getElementById('tetris-canvas');
 
-            switch (action) {
-                case 'left':
-                    movePieceLeft();
-                    draw();
-                    break;
-                case 'right':
+        gameCanvas.addEventListener('touchstart', (e) => {
+            touchStartX = e.changedTouches[0].screenX;
+            touchStartY = e.changedTouches[0].screenY;
+        }, { passive: true });
+
+        gameCanvas.addEventListener('touchend', (e) => {
+            const touchEndX = e.changedTouches[0].screenX;
+            const touchEndY = e.changedTouches[0].screenY;
+            const diffX = touchEndX - touchStartX;
+            const diffY = touchEndY - touchStartY;
+
+            // Detect swipe direction based on the most significant movement
+            if (Math.abs(diffX) > Math.abs(diffY)) {
+                // Horizontal swipe
+                if (diffX > 30) {
                     movePieceRight();
-                    draw();
-                    break;
-                case 'down':
+                } else if (diffX < -30) {
+                    movePieceLeft();
+                }
+            } else {
+                // Vertical swipe
+                if (diffY > 30) {
                     movePieceDown();
                     score++;
                     updateScore();
-                    draw();
-                    break;
-                case 'rotate':
+                } else if (diffY < -30) {
                     rotatePiece();
-                    draw();
-                    break;
-                case 'hard-drop':
-                    hardDrop();
-                    draw();
-                    break;
-                case 'pause':
-                    togglePause();
-                    break;
-                default:
-                    break;
+                }
             }
-        };
+            draw();
+        }, { passive: true });
 
-        touchControlButtons.forEach((button) => {
-            const action = button.dataset.action;
-            if (!action) {
-                return;
+        // Add haptic feedback if available
+        function vibrateIfPossible(duration = 20) {
+            if (navigator.vibrate) {
+                navigator.vibrate(duration);
             }
+        }
 
-            button.addEventListener('pointerdown', (event) => {
-                event.preventDefault();
-                handleTouchAction(action);
-                if (repeatingActions.has(action) && !activeRepeats.has(action)) {
-                    const intervalId = setInterval(() => handleTouchAction(action), repeatIntervalMs);
-                    activeRepeats.set(action, intervalId);
-                }
-                if (button.setPointerCapture) {
-                    try {
-                        button.setPointerCapture(event.pointerId);
-                    } catch (err) {
-                        // Pointer capture may fail on some browsers; safe to ignore.
-                    }
-                }
-            });
-
-            const cancelRepeat = (event) => {
-                if (event) {
-                    event.preventDefault();
-                }
-                stopRepeat(action);
-                if (button.releasePointerCapture && event && event.pointerId) {
-                    try {
-                        button.releasePointerCapture(event.pointerId);
-                    } catch (err) {
-                        // Ignore release failures; pointer capture might not be active.
-                    }
-                }
-            };
-
-            button.addEventListener('pointerup', cancelRepeat);
-            button.addEventListener('pointerleave', cancelRepeat);
-            button.addEventListener('pointercancel', cancelRepeat);
-            button.addEventListener('contextmenu', (event) => event.preventDefault());
-        });
+        // Add vibration to existing game events
+        const originalLockPiece = mergePiece; // We'll add vibration when piece locks
+        window.mergePiece = function() {
+            vibrateIfPossible(30);
+            return originalLockPiece.apply(this, arguments);
+        }
     }
+
+    // Initialize touch controls when the page loads
+    setupTouchControls();
     
     // Button event listeners
     startBtn.addEventListener('click', startGame);
@@ -854,14 +955,14 @@ document.addEventListener('DOMContentLoaded', () => {
     // Load stored settings and render initial board
     loadPreferences();
     draw();
-    
+
     // Show start screen
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = 'white';
-    ctx.font = '30px Arial';
-    ctx.textAlign = 'center';
-    ctx.fillText('TETRIS', canvas.width / 2, canvas.height / 2 - 30);
-    ctx.font = '20px Arial';
-    ctx.fillText('Press Start to Play', canvas.width / 2, canvas.height / 2 + 20);
+    const startOverlay = document.createElement('div');
+    startOverlay.className = 'game-overlay';
+    startOverlay.innerHTML = `
+        <h2>TETRIS</h2>
+        <p>Press Start to Play</p>
+    `;
+    canvas.parentNode.style.position = 'relative';
+    canvas.parentNode.appendChild(startOverlay);
 });
