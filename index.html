@@ -51,6 +51,36 @@
         .button-secondary {
             background-color: #2196F3;
         }
+        #touch-controls {
+            display: none;
+            margin-top: 20px;
+            width: 100%;
+            max-width: 320px;
+            gap: 10px;
+        }
+        #touch-controls button {
+            flex: 1 1 30%;
+        }
+        .touch-button {
+            padding: 12px;
+            font-size: 18px;
+        }
+        @media (max-width: 900px) {
+            body {
+                height: auto;
+                padding: 20px 0;
+            }
+            #game-container {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+        @media (pointer: coarse), (max-width: 900px) {
+            #touch-controls {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
         h1 {
             color: #333;
         }
@@ -63,6 +93,7 @@
         <div id="score-container">
             <div>
                 <h2>Score: <span id="score">0</span></h2>
+                <h2>High Score: <span id="high-score">0</span></h2>
                 <h2>Level: <span id="level">1</span></h2>
                 <h2>Lines: <span id="lines">0</span></h2>
             </div>
@@ -80,6 +111,14 @@
                 <p>G : Toggle Grid</p>
             </div>
         </div>
+    </div>
+    <div id="touch-controls">
+        <button class="button touch-button" data-action="left">Left</button>
+        <button class="button touch-button" data-action="down">Down</button>
+        <button class="button touch-button" data-action="right">Right</button>
+        <button class="button touch-button" data-action="rotate">Rotate</button>
+        <button class="button touch-button" data-action="hard-drop">Drop</button>
+        <button class="button touch-button" data-action="pause">Pause</button>
     </div>
     <script src="tetris.js"></script>
 </body>

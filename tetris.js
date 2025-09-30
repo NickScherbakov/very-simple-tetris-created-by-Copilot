@@ -33,16 +33,24 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Get DOM elements
     const scoreElement = document.getElementById('score');
+    const highScoreElement = document.getElementById('high-score');
     const levelElement = document.getElementById('level');
     const linesElement = document.getElementById('lines');
     const startBtn = document.getElementById('start-btn');
     const gridToggleBtn = document.getElementById('grid-toggle');
+    const touchControlButtons = document.querySelectorAll('#touch-controls [data-action]');
+
+    const STORAGE_KEYS = {
+        highScore: 'tetrisHighScore',
+        grid: 'tetrisShowGrid'
+    };
     
     // Game variables
     let board = createBoard();
     let currentPiece = null;
     let nextPiece = null;
     let score = 0;
+    let highScore = 0;
     let lines = 0;
     let level = 1;
     let gameOver = false;
@@ -145,11 +153,57 @@ document.addEventListener('DOMContentLoaded', () => {
             ctx.stroke();
         }
     }
+
+    function updateHighScoreDisplay() {
+        if (highScoreElement) {
+            highScoreElement.textContent = highScore;
+        }
+    }
+
+    function persistHighScore() {
+        try {
+            localStorage.setItem(STORAGE_KEYS.highScore, String(highScore));
+        } catch (err) {
+            // localStorage might be unavailable; ignore persist errors.
+        }
+    }
+
+    function persistGridPreference() {
+        try {
+            localStorage.setItem(STORAGE_KEYS.grid, showGrid ? 'true' : 'false');
+        } catch (err) {
+            // Ignore storage errors; the preference simply will not persist.
+        }
+    }
+
+    function loadPreferences() {
+        try {
+            const storedHighScore = localStorage.getItem(STORAGE_KEYS.highScore);
+            if (storedHighScore !== null) {
+                const parsedScore = parseInt(storedHighScore, 10);
+                if (!Number.isNaN(parsedScore)) {
+                    highScore = parsedScore;
+                }
+            }
+            const storedGrid = localStorage.getItem(STORAGE_KEYS.grid);
+            if (storedGrid !== null) {
+                showGrid = storedGrid === 'true';
+            }
+        } catch (err) {
+            // Storage access failed; keep defaults in memory only.
+        }
+
+        updateHighScoreDisplay();
+        if (gridToggleBtn) {
+            gridToggleBtn.textContent = showGrid ? 'Hide Grid' : 'Show Grid';
+        }
+    }
     
     // Toggle grid visibility
     function toggleGrid() {
         showGrid = !showGrid;
         gridToggleBtn.textContent = showGrid ? 'Hide Grid' : 'Show Grid';
+        persistGridPreference();
         draw();
     }
     
@@ -217,37 +271,34 @@ document.addEventListener('DOMContentLoaded', () => {
     // Rotate the current piece
     function rotatePiece() {
         const originalShape = currentPiece.shape;
-        const len = originalShape.length;
-        
-        // Create a new matrix with the same dimensions as the original
-        const rotated = Array.from({ length: len }, () => Array(len).fill(0));
-        
-        // Perform the rotation (90 degrees clockwise)
-        for (let y = 0; y < len; y++) {
-            for (let x = 0; x < len; x++) {
-                rotated[x][len - 1 - y] = originalShape[y][x];
+        const size = originalShape.length;
+        const rotated = Array.from({ length: size }, () => Array(size).fill(0));
+
+        // Rotate 90 degrees clockwise
+        for (let y = 0; y < size; y++) {
+            for (let x = 0; x < size; x++) {
+                rotated[x][size - 1 - y] = originalShape[y][x];
             }
         }
-        
-        const original = currentPiece.shape;
+
+        const originalX = currentPiece.x;
         currentPiece.shape = rotated;
-        
-        // If rotation causes collision, try to adjust position
-        let offset = 1;
-        const limit = Math.floor(len / 2) + 1;
-        
-        while (checkCollision(currentPiece)) {
-            // Try to adjust left
-            currentPiece.x -= offset;
-            offset = -(offset + (offset > 0 ? 1 : -1));
-            
-            // If offset becomes too large, revert rotation
-            if (Math.abs(offset) > limit) {
-                currentPiece.shape = original;
-                currentPiece.x = currentPiece.x + offset;
-                break;
+
+        const offsets = [0];
+        for (let i = 1; i <= size; i++) {
+            offsets.push(i, -i);
+        }
+
+        for (const offset of offsets) {
+            currentPiece.x = originalX + offset;
+            if (!checkCollision(currentPiece)) {
+                return;
             }
         }
+
+        // Revert rotation and horizontal shift when no valid kick is found
+        currentPiece.shape = originalShape;
+        currentPiece.x = originalX;
     }
     
     // Hard drop the current piece
@@ -300,6 +351,12 @@ document.addEventListener('DOMContentLoaded', () => {
         scoreElement.textContent = score;
         levelElement.textContent = level;
         linesElement.textContent = lines;
+
+        if (score > highScore) {
+            highScore = score;
+            updateHighScoreDisplay();
+            persistHighScore();
+        }
     }
     
     // Spawn a new piece
@@ -431,6 +488,98 @@ document.addEventListener('DOMContentLoaded', () => {
                 break;
         }
     });
+
+    if (touchControlButtons.length) {
+        const repeatingActions = new Set(['left', 'right', 'down']);
+        const activeRepeats = new Map();
+        const repeatIntervalMs = 140;
+
+        const stopRepeat = (action) => {
+            const intervalId = activeRepeats.get(action);
+            if (intervalId) {
+                clearInterval(intervalId);
+                activeRepeats.delete(action);
+            }
+        };
+
+        const handleTouchAction = (action) => {
+            if (action !== 'pause' && (gameOver || isPaused && action !== 'pause')) {
+                return;
+            }
+
+            switch (action) {
+                case 'left':
+                    movePieceLeft();
+                    draw();
+                    break;
+                case 'right':
+                    movePieceRight();
+                    draw();
+                    break;
+                case 'down':
+                    movePieceDown();
+                    score++;
+                    updateScore();
+                    draw();
+                    break;
+                case 'rotate':
+                    rotatePiece();
+                    draw();
+                    break;
+                case 'hard-drop':
+                    hardDrop();
+                    draw();
+                    break;
+                case 'pause':
+                    togglePause();
+                    break;
+                default:
+                    break;
+            }
+        };
+
+        touchControlButtons.forEach((button) => {
+            const action = button.dataset.action;
+            if (!action) {
+                return;
+            }
+
+            button.addEventListener('pointerdown', (event) => {
+                event.preventDefault();
+                handleTouchAction(action);
+                if (repeatingActions.has(action) && !activeRepeats.has(action)) {
+                    const intervalId = setInterval(() => handleTouchAction(action), repeatIntervalMs);
+                    activeRepeats.set(action, intervalId);
+                }
+                if (button.setPointerCapture) {
+                    try {
+                        button.setPointerCapture(event.pointerId);
+                    } catch (err) {
+                        // Pointer capture may fail on some browsers; safe to ignore.
+                    }
+                }
+            });
+
+            const cancelRepeat = (event) => {
+                if (event) {
+                    event.preventDefault();
+                }
+                stopRepeat(action);
+                if (button.releasePointerCapture && event && event.pointerId) {
+                    try {
+                        button.releasePointerCapture(event.pointerId);
+                    } catch (err) {
+                        // Ignore release failures; pointer capture might not be active.
+                    }
+                }
+            };
+
+            button.addEventListener('pointerup', cancelRepeat);
+            button.addEventListener('pointerleave', cancelRepeat);
+            button.addEventListener('pointercancel', cancelRepeat);
+            button.addEventListener('contextmenu', (event) => event.preventDefault());
+        });
+    }
     
     // Button event listeners
     startBtn.addEventListener('click', startGame);
@@ -438,7 +587,8 @@ document.addEventListener('DOMContentLoaded', () => {
         gridToggleBtn.addEventListener('click', toggleGrid);
     }
     
-    // Initial render
+    // Load stored settings and render initial board
+    loadPreferences();
     draw();
     
     // Show start screen
