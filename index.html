@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tetris</title>
     <link rel="stylesheet" href="style.css">
 </head>
@@ -22,15 +22,9 @@
             <canvas id="next-piece-canvas" width="100" height="100"></canvas>
         </div>
 
-        <div class="controls" id="touch-controls">
-            <button id="rotate-btn" aria-label="Rotate">↻</button>
-            <div class="direction-controls">
-                <button id="left-btn" aria-label="Move Left">←</button>
-                <button id="down-btn" aria-label="Move Down">↓</button>
-                <button id="right-btn" aria-label="Move Right">→</button>
-            </div>
-            <button id="drop-btn" aria-label="Hard Drop">⤓</button>
-            <button id="pause-btn" aria-label="Pause">⏸</button>
+        <div class="controls-instructions">
+            <h3>Controls:</h3>
+            <p>Arrow Keys: Move/Drop | Space: Hard Drop | P: Pause | G: Toggle Grid</p>
         </div>
 
         <div class="game-buttons">

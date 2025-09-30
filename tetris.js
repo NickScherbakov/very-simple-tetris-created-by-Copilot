@@ -39,7 +39,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const linesElement = document.getElementById('lines');
     const startBtn = document.getElementById('start-btn');
     const gridToggleBtn = document.getElementById('grid-toggle');
-    const touchControlButtons = document.querySelectorAll('#touch-controls [data-action]');
     const aiSummaryElement = document.getElementById('ai-summary');
 
     const STORAGE_KEYS = {
@@ -848,103 +847,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Enhanced touch controls setup
-    function setupTouchControls() {
-        // Button controls
-        document.getElementById('left-btn').addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            movePieceLeft();
-            draw();
-        });
-        document.getElementById('right-btn').addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            movePieceRight();
-            draw();
-        });
-        document.getElementById('down-btn').addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            movePieceDown();
-            score++;
-            updateScore();
-            draw();
-        });
-        document.getElementById('rotate-btn').addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            rotatePiece();
-            draw();
-        });
-        document.getElementById('drop-btn').addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            hardDrop();
-            draw();
-        });
-        document.getElementById('pause-btn').addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            togglePause();
-        });
-
-        // Prevent default touch behavior to avoid browser gestures interfering with the game
-        const touchControls = document.getElementById('touch-controls');
-        if (touchControls) {
-            touchControls.addEventListener('touchstart', (e) => {
-                e.preventDefault();
-            }, { passive: false });
-        }
-
-        // Add swipe gestures for additional control options
-        let touchStartX = 0;
-        let touchStartY = 0;
-        const gameCanvas = document.getElementById('tetris-canvas');
-
-        gameCanvas.addEventListener('touchstart', (e) => {
-            touchStartX = e.changedTouches[0].screenX;
-            touchStartY = e.changedTouches[0].screenY;
-        }, { passive: true });
-
-        gameCanvas.addEventListener('touchend', (e) => {
-            const touchEndX = e.changedTouches[0].screenX;
-            const touchEndY = e.changedTouches[0].screenY;
-            const diffX = touchEndX - touchStartX;
-            const diffY = touchEndY - touchStartY;
-
-            // Detect swipe direction based on the most significant movement
-            if (Math.abs(diffX) > Math.abs(diffY)) {
-                // Horizontal swipe
-                if (diffX > 30) {
-                    movePieceRight();
-                } else if (diffX < -30) {
-                    movePieceLeft();
-                }
-            } else {
-                // Vertical swipe
-                if (diffY > 30) {
-                    movePieceDown();
-                    score++;
-                    updateScore();
-                } else if (diffY < -30) {
-                    rotatePiece();
-                }
-            }
-            draw();
-        }, { passive: true });
-
-        // Add haptic feedback if available
-        function vibrateIfPossible(duration = 20) {
-            if (navigator.vibrate) {
-                navigator.vibrate(duration);
-            }
-        }
-
-        // Add vibration to existing game events
-        const originalLockPiece = mergePiece; // We'll add vibration when piece locks
-        window.mergePiece = function() {
-            vibrateIfPossible(30);
-            return originalLockPiece.apply(this, arguments);
-        }
-    }
-
-    // Initialize touch controls when the page loads
-    setupTouchControls();
+    // Touch controls removed to fix keyboard input issues
     
     // Button event listeners
     startBtn.addEventListener('click', startGame);

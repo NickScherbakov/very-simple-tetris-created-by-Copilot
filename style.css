@@ -22,7 +22,6 @@ body {
     justify-content: center;
     align-items: center;
     min-height: 100vh;
-    touch-action: manipulation;
 }
 
 .game-container {
@@ -81,55 +80,23 @@ body {
     margin-top: 0.5rem;
 }
 
-.controls {
+.controls-instructions {
     grid-area: controls;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 0.5rem;
+    background-color: rgba(255, 255, 255, 0.08);
+    padding: 1rem;
+    border-radius: 8px;
+    text-align: center;
 }
 
-.direction-controls {
-    display: grid;
-    grid-template-areas:
-        ". up ."
-        "left down right";
-    gap: 0.5rem;
-}
-
-button {
-    background-color: var(--primary-color);
+.controls-instructions h3 {
+    margin-bottom: 0.5rem;
     color: var(--text-color);
-    border: none;
-    border-radius: 50%;
-    width: 60px;
-    height: 60px;
-    font-size: 1.5rem;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    cursor: pointer;
-    touch-action: manipulation;
-    transition: background-color 0.15s, transform 0.15s;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-    -webkit-tap-highlight-color: transparent;
 }
 
-button:hover, button:focus {
-    background-color: var(--button-hover-color);
-}
-
-button:active {
-    transform: scale(0.95);
-}
-
-#left-btn { grid-area: left; }
-#down-btn { grid-area: down; }
-#right-btn { grid-area: right; }
-#rotate-btn, #drop-btn, #pause-btn {
-    width: 70px;
-    height: 70px;
+.controls-instructions p {
+    margin: 0;
+    font-size: 0.9rem;
+    line-height: 1.4;
 }
 
 .game-buttons {
@@ -139,7 +106,7 @@ button:active {
     gap: 1rem;
 }
 
-.button {
+button, .button {
     background-color: var(--primary-color);
     color: var(--text-color);
     border: none;
@@ -151,11 +118,11 @@ button:active {
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
 }
 
-.button:hover, .button:focus {
+button:hover, button:focus, .button:hover, .button:focus {
     background-color: var(--button-hover-color);
 }
 
-.button:active {
+button:active, .button:active {
     transform: scale(0.95);
 }
 
@@ -199,17 +166,6 @@ button:active {
 }
 
 @media (max-width: 767px) {
-    .controls button {
-        width: 50px;
-        height: 50px;
-        font-size: 1.2rem;
-    }
-
-    #rotate-btn, #drop-btn, #pause-btn {
-        width: 60px;
-        height: 60px;
-    }
-
     .game-container {
         padding: 0.75rem;
     }
