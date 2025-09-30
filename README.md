@@ -1,6 +1,6 @@
 # Classic Tetris
 
-A classic Tetris game implemented using HTML, CSS, and JavaScript.
+A classic Tetris game implemented using HTML, CSS, JavaScript ... and little AI-trainer-mentor
 
 ## Screenshot
 
