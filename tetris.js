@@ -729,8 +729,13 @@ document.addEventListener('DOMContentLoaded', () => {
         // Block other controls when game is over
         if (gameOver) return;
         
-        // Block movement controls when no current piece (game not started)
-        if (!currentPiece && ['ArrowLeft', 'ArrowRight', 'ArrowDown', 'ArrowUp', ' '].includes(e.key)) {
+        // Block movement controls when game is not active (no current piece and not game over)
+        if (!currentPiece && !gameOver && ['ArrowLeft', 'ArrowRight', 'ArrowDown', 'ArrowUp', ' '].includes(e.key)) {
+            return;
+        }
+        
+        // If game is paused, only allow unpause
+        if (isPaused && e.key !== 'p' && e.key !== 'P') {
             return;
         }
         
