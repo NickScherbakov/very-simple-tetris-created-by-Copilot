@@ -35,22 +35,21 @@ document.addEventListener('DOMContentLoaded', () => {
     // Get DOM elements
     const scoreElement = document.getElementById('score');
     const highScoreElement = document.getElementById('high-score');
-    const levelElement = document.getElementById('level');
     const linesElement = document.getElementById('lines');
     const startBtn = document.getElementById('start-btn');
     const gridToggleBtn = document.getElementById('grid-toggle');
     const aiSummaryElement = document.getElementById('ai-summary');
 
-    const STORAGE_KEYS = {
-        highScore: 'tetrisHighScore',
-        grid: 'tetrisShowGrid',
-        aiState: 'tetrisAiStateV1'
-    };
-    
-    // Game variables
-    let board = createBoard();
-    let currentPiece = null;
-    let nextPiece = null;
+    // Get AI vs AI panel elements
+    const aiVsAiBtn = document.getElementById('ai-vs-ai-btn');
+    const aiVsAiPanel = document.getElementById('ai-vs-ai-panel');
+    const ai1ThinkingElement = document.getElementById('ai1-thinking');
+    const ai1PlanElement = document.getElementById('ai1-plan');
+    const ai2ThinkingElement = document.getElementById('ai2-thinking');
+    const ai2PlanElement = document.getElementById('ai2-plan');
+    const takeControlBtn = document.getElementById('take-control-btn');
+    const exitAiModeBtn = document.getElementById('exit-ai-mode-btn');
+    const currentTurnElement = document.getElementById('current-turn');
     let score = 0;
     let highScore = 0;
     let lines = 0;
@@ -64,6 +63,13 @@ document.addEventListener('DOMContentLoaded', () => {
     let showGrid = true;  // Новая переменная для отображения сетки
 
     const aiTrainer = createAdaptiveEngine();
+    
+    // AI vs AI mode variables
+    let aiVsAiMode = false;
+    let currentAiPlayer = 1; // 1 or 2
+    let aiPlayer1 = null;
+    let aiPlayer2 = null;
+    let playerTakingControl = false;
     
     // Create empty game board
     function createBoard() {

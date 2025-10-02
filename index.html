@@ -24,17 +24,36 @@
 
         <div class="controls-instructions">
             <h3>Controls:</h3>
-            <p>Enter/S: Start Game | Arrow Keys: Move/Drop | Space: Hard Drop | P: Pause | G: Toggle Grid</p>
+            <p>Enter/S: Start Game | Arrow Keys: Move/Drop | Space: Hard Drop | P: Pause | G: Toggle Grid | T: Take Control (AI Mode)</p>
         </div>
 
         <div class="game-buttons">
             <button id="start-btn" class="button">Start Game</button>
+            <button id="ai-vs-ai-btn" class="button button-primary">AI vs AI Mode</button>
             <button id="grid-toggle" class="button button-secondary">Hide Grid</button>
         </div>
 
         <div class="ai-insight">
             <h3>AI Insight:</h3>
             <p id="ai-summary">The adaptive engine is observing your moves.</p>
+        </div>
+
+        <div class="ai-vs-ai-panel" id="ai-vs-ai-panel" style="display: none;">
+            <div class="ai-player ai-player-1">
+                <h4>AI Player 1 (Red)</h4>
+                <div class="ai-thinking" id="ai1-thinking">AI 1 is analyzing...</div>
+                <div class="ai-plan" id="ai1-plan">Planning next move...</div>
+            </div>
+            <div class="ai-player ai-player-2">
+                <h4>AI Player 2 (Blue)</h4>
+                <div class="ai-thinking" id="ai2-thinking">AI 2 is analyzing...</div>
+                <div class="ai-plan" id="ai2-plan">Planning next move...</div>
+            </div>
+            <div class="game-controls">
+                <button id="take-control-btn" class="button button-warning">Take Control</button>
+                <button id="exit-ai-mode-btn" class="button button-secondary">Exit AI Mode</button>
+                <div class="current-turn" id="current-turn">AI 1's Turn</div>
+            </div>
         </div>
     </div>
     <script src="tetris.js"></script>

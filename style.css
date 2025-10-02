@@ -128,8 +128,21 @@ button:active, .button:active {
     transform: scale(0.95);
 }
 
-.button-secondary {
-    background-color: var(--accent-color);
+.button-primary {
+    background-color: #28a745;
+}
+
+.button-primary:hover, .button-primary:focus {
+    background-color: #218838;
+}
+
+.button-warning {
+    background-color: #ffc107;
+    color: #212529;
+}
+
+.button-warning:hover, .button-warning:focus {
+    background-color: #e0a800;
 }
 
 .ai-insight {
@@ -146,8 +159,75 @@ button:active, .button:active {
     color: var(--text-color);
 }
 
-#ai-summary {
-    margin: 0;
+.ai-vs-ai-panel {
+    grid-area: ai;
+    background-color: rgba(255, 255, 255, 0.08);
+    padding: 1rem;
+    border-radius: 8px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-top: 0.5rem;
+}
+
+.ai-player {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.75rem;
+    background-color: rgba(0, 0, 0, 0.3);
+    border-radius: 6px;
+    border-left: 4px solid;
+}
+
+.ai-player-1 {
+    border-left-color: #dc3545;
+}
+
+.ai-player-2 {
+    border-left-color: #007bff;
+}
+
+.ai-player h4 {
+    margin: 0 0 0.5rem 0;
+    color: var(--text-color);
+    font-size: 1rem;
+}
+
+.ai-thinking, .ai-plan {
+    font-size: 0.8rem;
+    line-height: 1.3;
+    min-height: 2.5rem;
+    padding: 0.5rem;
+    background-color: rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
+}
+
+.game-controls {
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.current-turn {
+    grid-column: 1 / -1;
+    text-align: center;
+    font-weight: bold;
+    padding: 0.5rem;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    margin-bottom: 0.5rem;
+}
+
+#ai1-thinking, #ai2-thinking {
+    color: #ffc107;
+}
+
+#ai1-plan, #ai2-plan {
+    color: #28a745;
 }
 
 /* Media queries for responsive design */
@@ -186,6 +266,15 @@ button:active, .button:active {
     .button {
         width: 100%;
         max-width: 200px;
+    }
+
+    .ai-vs-ai-panel {
+        grid-template-columns: 1fr;
+    }
+
+    .game-controls {
+        flex-direction: column;
+        align-items: center;
     }
 }
 
