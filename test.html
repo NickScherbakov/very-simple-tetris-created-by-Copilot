@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tetris Test</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1>Testing Tetris</h1>
+    <div class="game-container">
+        <canvas id="tetris-canvas" width="300" height="600"></canvas>
+        <button id="start-btn" class="button">Start Game</button>
+    </div>
+    <script>
+        console.log('Script loaded');
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('DOM Content Loaded');
+            const canvas = document.getElementById('tetris-canvas');
+            const ctx = canvas.getContext('2d');
+            const startBtn = document.getElementById('start-btn');
+            
+            console.log('Canvas:', canvas);
+            console.log('Context:', ctx);
+            console.log('Start button:', startBtn);
+            
+            if (startBtn) {
+                startBtn.addEventListener('click', () => {
+                    console.log('Start button clicked!');
+                    ctx.fillStyle = 'green';
+                    ctx.fillRect(0, 0, 100, 100);
+                });
+            }
+        });
+    </script>
+</body>
+</html>

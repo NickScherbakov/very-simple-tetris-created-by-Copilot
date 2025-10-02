@@ -35,12 +35,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // Get DOM elements
     const scoreElement = document.getElementById('score');
     const highScoreElement = document.getElementById('high-score');
+    const levelElement = document.getElementById('level');
     const linesElement = document.getElementById('lines');
     const startBtn = document.getElementById('start-btn');
     const gridToggleBtn = document.getElementById('grid-toggle');
     const aiSummaryElement = document.getElementById('ai-summary');
-
-    // Get AI vs AI panel elements
     const aiVsAiBtn = document.getElementById('ai-vs-ai-btn');
     const aiVsAiPanel = document.getElementById('ai-vs-ai-panel');
     const ai1ThinkingElement = document.getElementById('ai1-thinking');
@@ -50,6 +49,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const takeControlBtn = document.getElementById('take-control-btn');
     const exitAiModeBtn = document.getElementById('exit-ai-mode-btn');
     const currentTurnElement = document.getElementById('current-turn');
+
+    const STORAGE_KEYS = {
+        highScore: 'tetrisHighScore',
+        grid: 'tetrisShowGrid',
+        aiState: 'tetrisAiStateV1'
+    };
+    
+    // Game variables
+    let board = null;
+    let currentPiece = null;
+    let nextPiece = null;
     let score = 0;
     let highScore = 0;
     let lines = 0;
@@ -786,6 +796,67 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // AI vs AI Mode Functions
+    function startAiVsAiMode() {
+        aiVsAiMode = true;
+        currentAiPlayer = 1;
+        playerTakingControl = false;
+        
+        // Show AI panel and hide regular buttons
+        if (aiVsAiPanel) aiVsAiPanel.style.display = 'block';
+        if (startBtn) startBtn.style.display = 'none';
+        if (aiVsAiBtn) aiVsAiBtn.style.display = 'none';
+        
+        // Initialize game
+        startGame();
+        
+        // Update turn display
+        if (currentTurnElement) {
+            currentTurnElement.textContent = `AI ${currentAiPlayer}'s Turn`;
+        }
+    }
+    
+    function exitAiVsAiMode() {
+        aiVsAiMode = false;
+        playerTakingControl = false;
+        
+        // Hide AI panel and show regular buttons
+        if (aiVsAiPanel) aiVsAiPanel.style.display = 'none';
+        if (startBtn) startBtn.style.display = 'inline-block';
+        if (aiVsAiBtn) aiVsAiBtn.style.display = 'inline-block';
+        
+        // Stop game
+        if (gameLoop) {
+            cancelAnimationFrame(gameLoop);
+        }
+        gameOver = true;
+        
+        // Show start screen
+        draw();
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = 'white';
+        ctx.font = '30px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('TETRIS', canvas.width / 2, canvas.height / 2 - 30);
+        ctx.font = '20px Arial';
+        ctx.fillText('Press Start or Enter to Play', canvas.width / 2, canvas.height / 2 + 20);
+    }
+    
+    function takeControl() {
+        playerTakingControl = !playerTakingControl;
+        
+        if (takeControlBtn) {
+            if (playerTakingControl) {
+                takeControlBtn.textContent = 'Release Control';
+                takeControlBtn.classList.add('active');
+            } else {
+                takeControlBtn.textContent = 'Take Control';
+                takeControlBtn.classList.remove('active');
+            }
+        }
+    }
+
     // Touch controls removed to fix keyboard input issues
     
     // Button event listeners
@@ -793,8 +864,18 @@ document.addEventListener('DOMContentLoaded', () => {
     if (gridToggleBtn) {
         gridToggleBtn.addEventListener('click', toggleGrid);
     }
+    if (aiVsAiBtn) {
+        aiVsAiBtn.addEventListener('click', startAiVsAiMode);
+    }
+    if (exitAiModeBtn) {
+        exitAiModeBtn.addEventListener('click', exitAiVsAiMode);
+    }
+    if (takeControlBtn) {
+        takeControlBtn.addEventListener('click', takeControl);
+    }
     
     // Load stored settings and render initial board
+    board = createBoard();
     loadPreferences();
     draw();
 
