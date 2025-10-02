@@ -655,6 +655,23 @@ document.addEventListener('DOMContentLoaded', () => {
             startBtn.textContent = 'Play Again';
             const finalMetrics = computeBoardMetrics(board);
             updateAiInsight(aiTrainer.getSummary(finalMetrics));
+            
+            // Exit AI mode if active
+            if (aiVsAiMode) {
+                setTimeout(() => {
+                    if (ai1ThinkingElement) ai1ThinkingElement.textContent = 'Game Over!';
+                    if (ai2ThinkingElement) ai2ThinkingElement.textContent = 'Game Over!';
+                    if (ai1PlanElement) ai1PlanElement.textContent = `AI ${currentAiPlayer === 1 ? 2 : 1} wins!`;
+                    if (ai2PlanElement) ai2PlanElement.textContent = '';
+                }, 500);
+            }
+        } else if (aiVsAiMode && !playerTakingControl) {
+            // AI makes move automatically
+            setTimeout(() => {
+                if (!gameOver && aiVsAiMode && !playerTakingControl) {
+                    executeAiMove();
+                }
+            }, 500);
         }
     }
     
@@ -675,9 +692,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const deltaTime = lastTime === 0 ? 0 : time - lastTime;
         lastTime = time;
         
-        dropCounter += deltaTime;
-        if (dropCounter > dropInterval) {
-            movePieceDown();
+        // In AI vs AI mode, AI controls the pieces, so we don't auto-drop unless player takes control
+        if (!aiVsAiMode || playerTakingControl) {
+            dropCounter += deltaTime;
+            if (dropCounter > dropInterval) {
+                movePieceDown();
+            }
         }
         
         draw();
@@ -786,6 +806,12 @@ document.addEventListener('DOMContentLoaded', () => {
             case 'G':
                 toggleGrid();
                 break;
+            case 't':
+            case 'T':
+                if (aiVsAiMode) {
+                    takeControl();
+                }
+                break;
             case 'Enter':
             case 's':
             case 'S':
@@ -797,6 +823,137 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // AI vs AI Mode Functions
+    
+    // AI Strategy: Evaluate board position and return score
+    function evaluatePosition(testBoard, aiPlayerNum) {
+        const metrics = computeBoardMetrics(testBoard);
+        
+        // Different strategies for AI 1 (aggressive) vs AI 2 (defensive)
+        if (aiPlayerNum === 1) {
+            // AI 1: Aggressive - minimize height, clear lines
+            return -metrics.aggregateHeight * 0.5 - metrics.totalHoles * 3 - metrics.bumpiness * 0.3;
+        } else {
+            // AI 2: Defensive - focus on stability
+            return -metrics.maxHeight * 1.2 - metrics.totalHoles * 2 - metrics.bumpiness * 0.5;
+        }
+    }
+    
+    // Find best move for current piece
+    function findBestMove(piece, aiPlayerNum) {
+        let bestScore = -Infinity;
+        let bestMove = { x: piece.x, rotation: 0 };
+        
+        // Try all rotations (0, 1, 2, 3)
+        for (let rotation = 0; rotation < 4; rotation++) {
+            const testPiece = JSON.parse(JSON.stringify(piece));
+            
+            // Rotate piece
+            for (let r = 0; r < rotation; r++) {
+                const size = testPiece.shape.length;
+                const rotated = Array.from({ length: size }, () => Array(size).fill(0));
+                for (let y = 0; y < size; y++) {
+                    for (let x = 0; x < size; x++) {
+                        rotated[x][size - 1 - y] = testPiece.shape[y][x];
+                    }
+                }
+                testPiece.shape = rotated;
+            }
+            
+            // Try all horizontal positions
+            for (let x = -2; x < COLS + 2; x++) {
+                testPiece.x = x;
+                testPiece.y = piece.y;
+                
+                // Drop piece down
+                while (!checkCollision(testPiece, 0, 1)) {
+                    testPiece.y++;
+                }
+                
+                // Check if this position is valid
+                if (!checkCollision(testPiece)) {
+                    // Simulate placing the piece
+                    const testBoard = board.map(row => [...row]);
+                    testPiece.shape.forEach((row, py) => {
+                        row.forEach((value, px) => {
+                            if (value) {
+                                const boardY = testPiece.y + py;
+                                const boardX = testPiece.x + px;
+                                if (boardY >= 0 && boardY < ROWS && boardX >= 0 && boardX < COLS) {
+                                    testBoard[boardY][boardX] = COLORS.indexOf(testPiece.color) + 1;
+                                }
+                            }
+                        });
+                    });
+                    
+                    // Evaluate this position
+                    const score = evaluatePosition(testBoard, aiPlayerNum);
+                    if (score > bestScore) {
+                        bestScore = score;
+                        bestMove = { x, rotation };
+                    }
+                }
+            }
+        }
+        
+        return bestMove;
+    }
+    
+    // Execute AI move
+    function executeAiMove() {
+        if (!currentPiece || gameOver || !aiVsAiMode || playerTakingControl) return;
+        
+        // Update AI thinking display
+        const thinkingEl = currentAiPlayer === 1 ? ai1ThinkingElement : ai2ThinkingElement;
+        const planEl = currentAiPlayer === 1 ? ai1PlanElement : ai2PlanElement;
+        
+        if (thinkingEl) thinkingEl.textContent = `AI ${currentAiPlayer} is analyzing...`;
+        if (planEl) planEl.textContent = 'Calculating optimal position...';
+        
+        // Find best move
+        const bestMove = findBestMove(currentPiece, currentAiPlayer);
+        
+        // Apply rotations
+        for (let r = 0; r < bestMove.rotation; r++) {
+            rotatePiece();
+        }
+        
+        // Move to target X position
+        const targetX = bestMove.x;
+        const moveSteps = Math.abs(targetX - currentPiece.x);
+        
+        if (planEl) {
+            planEl.textContent = `Moving to column ${targetX + 1}, ${bestMove.rotation} rotation(s)`;
+        }
+        
+        // Animate movement
+        let movesMade = 0;
+        const moveInterval = setInterval(() => {
+            if (movesMade >= moveSteps || !currentPiece || gameOver) {
+                clearInterval(moveInterval);
+                // Drop the piece
+                setTimeout(() => {
+                    if (currentPiece && !gameOver) {
+                        hardDrop();
+                        // Switch AI player
+                        currentAiPlayer = currentAiPlayer === 1 ? 2 : 1;
+                        if (currentTurnElement) {
+                            currentTurnElement.textContent = `AI ${currentAiPlayer}'s Turn`;
+                        }
+                    }
+                }, 100);
+                return;
+            }
+            
+            if (currentPiece.x < targetX) {
+                movePieceRight();
+            } else if (currentPiece.x > targetX) {
+                movePieceLeft();
+            }
+            movesMade++;
+            draw();
+        }, 50);
+    }
+    
     function startAiVsAiMode() {
         aiVsAiMode = true;
         currentAiPlayer = 1;
@@ -814,6 +971,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (currentTurnElement) {
             currentTurnElement.textContent = `AI ${currentAiPlayer}'s Turn`;
         }
+        
+        // Start AI moves
+        setTimeout(() => {
+            if (aiVsAiMode) {
+                executeAiMove();
+            }
+        }, 1000);
     }
     
     function exitAiVsAiMode() {
@@ -850,9 +1014,18 @@ document.addEventListener('DOMContentLoaded', () => {
             if (playerTakingControl) {
                 takeControlBtn.textContent = 'Release Control';
                 takeControlBtn.classList.add('active');
+                // Reset drop counter when player takes control
+                dropCounter = 0;
+                lastTime = performance.now();
+                if (ai1ThinkingElement) ai1ThinkingElement.textContent = 'Player in control!';
+                if (ai2ThinkingElement) ai2ThinkingElement.textContent = 'Waiting...';
             } else {
                 takeControlBtn.textContent = 'Take Control';
                 takeControlBtn.classList.remove('active');
+                // AI takes back control
+                if (currentPiece && !gameOver) {
+                    executeAiMove();
+                }
             }
         }
     }
