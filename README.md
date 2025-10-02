@@ -1,6 +1,6 @@
 # Classic Tetris
 
-A classic Tetris game implemented using HTML, CSS, and JavaScript.
+A classic Tetris game implemented using HTML, CSS, JavaScript ... and little AI-trainer-mentor
 
 ## Screenshot
 
@@ -61,6 +61,38 @@ For mobile users, add the game to your home screen or open it in full-screen mod
 - HTML5
 - CSS3
 - JavaScript (using Canvas API for rendering)
+
+## AI vs AI Game Mode
+
+**New Feature!** Watch two AI players compete against each other in this exciting game mode that demonstrates advanced strategic thinking and adaptive learning.
+
+### How It Works
+
+1. **AI Competition**: Two independent AI engines play against each other, each learning and adapting to the board state
+2. **Real-time Analysis**: Each AI shows its thinking process and strategic planning in real-time
+3. **Player Learning**: Observe sophisticated AI decision-making to improve your own Tetris skills
+4. **Player Intervention**: Take control at any time using the 'T' key or "Take Control" button
+
+### AI vs AI Features
+
+- **Dual AI System**: Two separate AI players with independent learning algorithms
+- **Strategic Analysis**: Each AI analyzes the board and explains its reasoning
+- **Visual Feedback**: Color-coded UI showing which AI is active (Red AI 1 vs Blue AI 2)
+- **Educational Value**: Perfect for learning advanced Tetris strategies by observing AI gameplay
+- **Seamless Integration**: Switch between normal gameplay and AI vs AI mode instantly
+
+### Controls (AI vs AI Mode)
+
+- **AI vs AI Mode Button**: Start AI vs AI gameplay
+- **T Key**: Take control from the current AI player
+- **Take Control Button**: Alternative way to intervene in AI gameplay
+- **Exit AI Mode Button**: Return to normal gameplay
+
+This mode is perfect for players who want to:
+- Learn advanced Tetris strategies by watching AI gameplay
+- Understand how different AI approaches handle various board situations
+- Practice taking over from AI at critical moments
+- Experience the educational value of AI vs AI competition
 
 ## Adaptive Learning AI
 
