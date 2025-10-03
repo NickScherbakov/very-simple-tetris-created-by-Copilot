@@ -40,6 +40,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const startBtn = document.getElementById('start-btn');
     const gridToggleBtn = document.getElementById('grid-toggle');
     const aiSummaryElement = document.getElementById('ai-summary');
+    const aiInsightContainer = document.querySelector('.ai-insight');
     const aiVsAiBtn = document.getElementById('ai-vs-ai-btn');
     const aiVsAiPanel = document.getElementById('ai-vs-ai-panel');
     const ai1ThinkingElement = document.getElementById('ai1-thinking');
@@ -960,7 +961,8 @@ document.addEventListener('DOMContentLoaded', () => {
         playerTakingControl = false;
         
         // Show AI panel and hide regular buttons
-        if (aiVsAiPanel) aiVsAiPanel.style.display = 'block';
+    if (aiVsAiPanel) aiVsAiPanel.style.display = 'block';
+    if (aiInsightContainer) aiInsightContainer.style.display = 'none';
         if (startBtn) startBtn.style.display = 'none';
         if (aiVsAiBtn) aiVsAiBtn.style.display = 'none';
         
@@ -985,7 +987,8 @@ document.addEventListener('DOMContentLoaded', () => {
         playerTakingControl = false;
         
         // Hide AI panel and show regular buttons
-        if (aiVsAiPanel) aiVsAiPanel.style.display = 'none';
+    if (aiVsAiPanel) aiVsAiPanel.style.display = 'none';
+    if (aiInsightContainer) aiInsightContainer.style.display = '';
         if (startBtn) startBtn.style.display = 'inline-block';
         if (aiVsAiBtn) aiVsAiBtn.style.display = 'inline-block';
         
