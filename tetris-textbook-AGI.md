@@ -25,49 +25,52 @@ const canvas = document.getElementById('tetris');
 const context = canvas.getContext('2d');
 context.scale(20, 20);
 </script>
+```
 
-Exercise:
+**Exercise:**
+- Change the size of the field.
+- Draw a square and make sure it appears.
 
-Change the size of the field.
+---
 
-Draw a square and make sure it appears.
+## 🧩 Chapter 2. Pieces
 
-🧩 Chapter 2. Pieces
-
-Code:
-
+**Code:**
+```javascript
 function createPiece(type) {
   if (type === 'T') return [[0,0,0],[1,1,1],[0,1,0]];
   if (type === 'O') return [[2,2],[2,2]];
   // add the other pieces
 }
+```
 
-Exercise:
+**Exercise:**
+- Add all missing pieces.
+- Try changing their colors.
 
-Add all missing pieces.
+---
 
-Try changing their colors.
+## 🎮 Chapter 3. Movement and Collisions
 
-🎮 Chapter 3. Movement and Collisions
-
-Code:
-
+**Code:**
+```javascript
 document.addEventListener('keydown', event => {
   if (event.keyCode === 37) player.pos.x--; // left
   if (event.keyCode === 39) player.pos.x++; // right
   if (event.keyCode === 40) player.pos.y++; // down
 });
+```
 
-Exercise:
+**Exercise:**
+- Add "hard drop" (Space).
+- Implement a "Pause" button.
 
-Add “hard drop” (Space).
+---
 
-Implement a “Pause” button.
+## �� Chapter 4. Scoring and Levels
 
-🏆 Chapter 4. Scoring and Levels
-
-Code:
-
+**Code:**
+```javascript
 function arenaSweep() {
   let rowCount = 1;
   for (let y = arena.length -1; y >= 0; --y) {
@@ -79,65 +82,60 @@ function arenaSweep() {
     }
   }
 }
+```
 
-Exercise:
+**Exercise:**
+- Modify the scoring system.
+- Add game acceleration when the level increases.
 
-Modify the scoring system.
+---
 
-Add game acceleration when the level increases.
+## 🤖 Chapter 5. AI Insight
 
-🤖 Chapter 5. AI Insight
-
-Code:
-
+**Code:**
+```javascript
 function aiInsight(arena) {
   const holes = countHoles(arena);
   if (holes > 0) return `You created ${holes} holes!`;
   return "Good job!";
 }
+```
 
-Exercise:
+**Exercise:**
+- Add a "pressure" metric (tower height).
+- Make the AI suggest strategies.
 
-Add a “pressure” metric (tower height).
+---
 
-Make the AI suggest strategies.
+## 🌍 Chapter 6. Community and Self-Evolution
 
-🌍 Chapter 6. Community and Self-Evolution
+**Ideas:**
+- Fork the repository and add a mod.
+- Create a new mode (for example, "Invisible Tetris").
+- Submit a Pull Request.
 
-Ideas:
+**Exercise:**
+- Invent a mod that changes the rules.
+- Share it with the community.
 
-Fork the repository and add a mod.
+---
 
-Create a new mode (for example, “Invisible Tetris”).
+## 🚀 Chapter 7. Toward AGI
 
-Submit a Pull Request.
+**Ideas:**
+- Log player sessions.
+- Train a model to predict moves.
+- Let the AI explain strategies.
 
-Exercise:
+**Exercise:**
+- Save logs of your own games.
+- Try training a simple model on this data.
 
-Invent a mod that changes the rules.
+---
 
-Share it with the community.
+## 📣 Conclusion
 
-🚀 Chapter 7. Toward AGI
-
-Ideas:
-
-Log player sessions.
-
-Train a model to predict moves.
-
-Let the AI explain strategies.
-
-Exercise:
-
-Save logs of your own games.
-
-Try training a simple model on this data.
-
-📣 Conclusion
-
-You started with an empty field.Now you have a game, an AI analyst, and a platform for future AGI.
+You started with an empty field. Now you have a game, an AI analyst, and a platform for future AGI.
 
 This textbook teaches. This textbook inspires. This textbook calls you to action.
-
 
