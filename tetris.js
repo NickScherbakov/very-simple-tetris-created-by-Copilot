@@ -50,6 +50,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const takeControlBtn = document.getElementById('take-control-btn');
     const exitAiModeBtn = document.getElementById('exit-ai-mode-btn');
     const currentTurnElement = document.getElementById('current-turn');
+    
+    // New UI elements for PWA features
+    const balanceElement = document.getElementById('tetricoins-balance');
+    const tournamentBtn = document.getElementById('tournament-btn');
+    const achievementsBtn = document.getElementById('achievements-btn');
+    const shareBtn = document.getElementById('share-btn');
+    const achievementsModal = document.getElementById('achievements-modal');
+    const closeAchievementsBtn = document.getElementById('close-achievements');
 
     const STORAGE_KEYS = {
         highScore: 'tetrisHighScore',
@@ -81,6 +89,22 @@ document.addEventListener('DOMContentLoaded', () => {
     let aiPlayer1 = null;
     let aiPlayer2 = null;
     let playerTakingControl = false;
+    
+    // Betting and tournament variables
+    let bettingEnabled = false;
+    let currentBet = null;
+    let tournamentMode = false;
+    let tournamentMatchCount = 0;
+    let matchStats = {
+        ai1Score: 0,
+        ai2Score: 0,
+        firstTetris: null,
+        firstToReach1000: null
+    };
+    
+    // Achievement tracking
+    let consecutiveTetris = 0;
+    let lastLinesClearedWas4 = false;
     
     // Create empty game board
     function createBoard() {
@@ -459,6 +483,67 @@ document.addEventListener('DOMContentLoaded', () => {
             gridToggleBtn.textContent = showGrid ? 'Hide Grid' : 'Show Grid';
         }
         updateAiInsight(aiTrainer.getLiveHint());
+        
+        // Initialize balance display and check daily bonus
+        updateBalanceDisplay();
+        checkDailyBonus();
+        
+        // Check balance achievement
+        window.achievementSystem.checkBalanceAchievement(window.tetriCoins.getBalance());
+    }
+    
+    // Update balance display
+    function updateBalanceDisplay() {
+        if (balanceElement) {
+            balanceElement.textContent = window.tetriCoins.formatCoins();
+        }
+        // Check for rich achievement
+        window.achievementSystem.checkBalanceAchievement(window.tetriCoins.getBalance());
+    }
+    
+    // Check and award daily bonus
+    function checkDailyBonus() {
+        const gotBonus = window.tetriCoins.checkDailyBonus();
+        if (gotBonus) {
+            showMessage('🎁 Ежедневный бонус: +100 TC!');
+            updateBalanceDisplay();
+        }
+    }
+    
+    // Show coin reward animation
+    function showCoinReward(amount) {
+        const msg = document.createElement('div');
+        msg.className = 'temp-message';
+        msg.textContent = `+${amount} TC`;
+        msg.style.color = '#ffd700';
+        msg.style.fontWeight = 'bold';
+        document.body.appendChild(msg);
+        
+        setTimeout(() => {
+            msg.classList.add('show');
+        }, 100);
+        
+        setTimeout(() => {
+            msg.classList.remove('show');
+            setTimeout(() => msg.remove(), 300);
+        }, 2000);
+    }
+    
+    // Show temporary message
+    function showMessage(message) {
+        const msg = document.createElement('div');
+        msg.className = 'temp-message';
+        msg.textContent = message;
+        document.body.appendChild(msg);
+        
+        setTimeout(() => {
+            msg.classList.add('show');
+        }, 100);
+        
+        setTimeout(() => {
+            msg.classList.remove('show');
+            setTimeout(() => msg.remove(), 300);
+        }, 3000);
     }
     
     // Toggle grid visibility
@@ -613,6 +698,44 @@ document.addEventListener('DOMContentLoaded', () => {
             // Adjust drop speed based on level
             dropInterval = Math.max(1000 - (level - 1) * 100, 100);
 
+            // Award TetriCoins if not in AI vs AI mode or if player is taking control
+            if (!aiVsAiMode || playerTakingControl) {
+                const reward = window.tetriCoins.awardLinesCleared(linesCleared);
+                if (reward > 0) {
+                    updateBalanceDisplay();
+                    showCoinReward(reward);
+                }
+                
+                // Track Tetris streak for achievement
+                if (linesCleared === 4) {
+                    consecutiveTetris++;
+                    lastLinesClearedWas4 = true;
+                    window.achievementSystem.checkTetrisStreak(consecutiveTetris);
+                    
+                    // Track first Tetris in AI vs AI match
+                    if (aiVsAiMode && !matchStats.firstTetris) {
+                        matchStats.firstTetris = currentAiPlayer;
+                    }
+                } else {
+                    if (lastLinesClearedWas4) {
+                        consecutiveTetris = 0;
+                        window.achievementSystem.resetTetrisStreak();
+                    }
+                    lastLinesClearedWas4 = false;
+                }
+                
+                // Vibrate on line clear (if supported)
+                if (navigator.vibrate) {
+                    const vibrationPattern = linesCleared === 4 ? [50, 50, 50] : [30];
+                    navigator.vibrate(vibrationPattern);
+                }
+            }
+            
+            // Track score race in AI vs AI mode
+            if (aiVsAiMode && !matchStats.firstToReach1000 && score >= 1000) {
+                matchStats.firstToReach1000 = currentAiPlayer;
+            }
+
             updateScore();
         }
 
@@ -645,6 +768,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (checkCollision(currentPiece)) {
             gameOver = true;
             cancelAnimationFrame(gameLoop);
+            
+            // Vibrate on game over
+            if (navigator.vibrate) {
+                navigator.vibrate([200, 100, 200, 100, 200]);
+            }
+            
             ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             ctx.fillStyle = 'red';
@@ -657,13 +786,63 @@ document.addEventListener('DOMContentLoaded', () => {
             const finalMetrics = computeBoardMetrics(board);
             updateAiInsight(aiTrainer.getSummary(finalMetrics));
             
-            // Exit AI mode if active
+            // Handle AI vs AI mode game over
             if (aiVsAiMode) {
+                const winner = currentAiPlayer === 1 ? 2 : 1;
+                const winnerScore = score;
+                
+                // Store match stats
+                if (currentAiPlayer === 1) {
+                    matchStats.ai2Score = winnerScore;
+                } else {
+                    matchStats.ai1Score = winnerScore;
+                }
+                
                 setTimeout(() => {
                     if (ai1ThinkingElement) ai1ThinkingElement.textContent = 'Game Over!';
                     if (ai2ThinkingElement) ai2ThinkingElement.textContent = 'Game Over!';
-                    if (ai1PlanElement) ai1PlanElement.textContent = `AI ${currentAiPlayer === 1 ? 2 : 1} wins!`;
-                    if (ai2PlanElement) ai2PlanElement.textContent = '';
+                    if (ai1PlanElement) ai1PlanElement.textContent = `AI ${winner} wins!`;
+                    if (ai2PlanElement) ai2PlanElement.textContent = `Score: ${winnerScore}`;
+                    
+                    // Resolve bet if exists
+                    if (currentBet) {
+                        const matchResult = {
+                            winner: winner,
+                            loser: currentAiPlayer,
+                            winnerScore: winnerScore,
+                            firstTetris: matchStats.firstTetris,
+                            firstToReach: matchStats.firstToReach1000
+                        };
+                        
+                        const result = window.bettingSystem.resolveBet(matchResult);
+                        if (result) {
+                            setTimeout(() => {
+                                showBetResult(result);
+                            }, 1000);
+                        }
+                        
+                        // Check sniper achievement
+                        if (result.won && currentBet.type === 'score_range') {
+                            window.achievementSystem.checkSniperAchievement(true, 'score_range');
+                        }
+                    }
+                    
+                    // Handle tournament mode
+                    if (tournamentMode) {
+                        const isLastMatch = window.bettingSystem.nextTournamentMatch();
+                        if (isLastMatch) {
+                            const jackpotWin = window.bettingSystem.endTournament();
+                            if (jackpotWin > 0) {
+                                setTimeout(() => {
+                                    showMessage(`🎉 Турнир окончен! Вы выиграли джекпот: ${jackpotWin} TC!`);
+                                    updateBalanceDisplay();
+                                }, 2000);
+                            }
+                            tournamentMode = false;
+                        }
+                    }
+                    
+                    currentBet = null;
                 }, 500);
             }
         } else if (aiVsAiMode && !playerTakingControl) {
@@ -823,6 +1002,63 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // Touch controls for mobile
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let touchEndX = 0;
+    let touchEndY = 0;
+    const minSwipeDistance = 30;
+    
+    canvas.addEventListener('touchstart', (e) => {
+        if (gameOver || isPaused || !currentPiece) return;
+        e.preventDefault();
+        
+        const touch = e.touches[0];
+        touchStartX = touch.clientX;
+        touchStartY = touch.clientY;
+    }, { passive: false });
+    
+    canvas.addEventListener('touchmove', (e) => {
+        e.preventDefault();
+    }, { passive: false });
+    
+    canvas.addEventListener('touchend', (e) => {
+        if (gameOver || isPaused || !currentPiece) return;
+        e.preventDefault();
+        
+        const touch = e.changedTouches[0];
+        touchEndX = touch.clientX;
+        touchEndY = touch.clientY;
+        
+        const deltaX = touchEndX - touchStartX;
+        const deltaY = touchEndY - touchStartY;
+        const absDeltaX = Math.abs(deltaX);
+        const absDeltaY = Math.abs(deltaY);
+        
+        // Swipe detection
+        if (absDeltaX > minSwipeDistance || absDeltaY > minSwipeDistance) {
+            if (absDeltaX > absDeltaY) {
+                // Horizontal swipe
+                if (deltaX > 0) {
+                    movePieceRight();
+                } else {
+                    movePieceLeft();
+                }
+            } else {
+                // Vertical swipe
+                if (deltaY > 0) {
+                    // Swipe down - hard drop
+                    hardDrop();
+                }
+            }
+        } else {
+            // Tap - rotate piece
+            rotatePiece();
+        }
+        
+        draw();
+    }, { passive: false });
+
     // AI vs AI Mode Functions
     
     // AI Strategy: Evaluate board position and return score
@@ -956,15 +1192,43 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     function startAiVsAiMode() {
+        // Reset match stats
+        matchStats = {
+            ai1Score: 0,
+            ai2Score: 0,
+            firstTetris: null,
+            firstToReach1000: null
+        };
+        
+        // Start betting phase
+        bettingEnabled = true;
+        window.bettingSystem.startBetting(
+            (bet) => {
+                // Betting completed with a bet
+                currentBet = bet;
+                bettingEnabled = false;
+                startAiMatch();
+            },
+            () => {
+                // Betting completed without a bet
+                currentBet = null;
+                bettingEnabled = false;
+                startAiMatch();
+            }
+        );
+    }
+    
+    function startAiMatch() {
         aiVsAiMode = true;
         currentAiPlayer = 1;
         playerTakingControl = false;
         
         // Show AI panel and hide regular buttons
-    if (aiVsAiPanel) aiVsAiPanel.style.display = 'block';
-    if (aiInsightContainer) aiInsightContainer.style.display = 'none';
+        if (aiVsAiPanel) aiVsAiPanel.style.display = 'block';
+        if (aiInsightContainer) aiInsightContainer.style.display = 'none';
         if (startBtn) startBtn.style.display = 'none';
         if (aiVsAiBtn) aiVsAiBtn.style.display = 'none';
+        if (tournamentBtn) tournamentBtn.style.display = 'none';
         
         // Initialize game
         startGame();
@@ -1033,6 +1297,239 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Show bet result overlay
+    function showBetResult(result) {
+        const overlay = document.createElement('div');
+        overlay.className = 'bet-result-overlay';
+        
+        const content = document.createElement('div');
+        content.className = `bet-result-content ${result.won ? 'win' : 'lose'}`;
+        
+        const icon = document.createElement('div');
+        icon.className = 'result-icon';
+        icon.textContent = result.won ? '🎉' : '😔';
+        
+        const text = document.createElement('div');
+        text.className = `result-text ${result.won ? 'win' : 'lose'}`;
+        text.textContent = result.won ? 'ВЫИГРЫШ!' : 'Проигрыш';
+        
+        const amount = document.createElement('div');
+        amount.className = 'result-amount';
+        if (result.won) {
+            amount.textContent = `+${result.payout} TC (${result.profit > 0 ? '+' : ''}${result.profit} TC прибыль)`;
+        } else {
+            amount.textContent = `Ставка не сыграла`;
+        }
+        
+        const closeBtn = document.createElement('button');
+        closeBtn.className = 'place-bet-btn';
+        closeBtn.textContent = 'OK';
+        closeBtn.onclick = () => {
+            overlay.remove();
+            updateBalanceDisplay();
+        };
+        
+        content.appendChild(icon);
+        content.appendChild(text);
+        content.appendChild(amount);
+        content.appendChild(closeBtn);
+        overlay.appendChild(content);
+        document.body.appendChild(overlay);
+        
+        // Confetti animation for wins
+        if (result.won) {
+            createConfetti();
+        }
+        
+        // Vibrate
+        if (navigator.vibrate) {
+            if (result.won) {
+                navigator.vibrate([100, 50, 100, 50, 200]);
+            } else {
+                navigator.vibrate(200);
+            }
+        }
+    }
+    
+    // Create confetti animation
+    function createConfetti() {
+        const colors = ['#ffd700', '#ff6b6b', '#7b68ee', '#28a745', '#17a2b8'];
+        for (let i = 0; i < 50; i++) {
+            setTimeout(() => {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = Math.random() * 100 + '%';
+                confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.animationDelay = Math.random() * 0.5 + 's';
+                document.body.appendChild(confetti);
+                setTimeout(() => confetti.remove(), 3000);
+            }, i * 30);
+        }
+    }
+    
+    // Tournament mode functions
+    function startTournament() {
+        tournamentMode = true;
+        tournamentMatchCount = 0;
+        window.bettingSystem.startTournament();
+        
+        // Update UI
+        const tournamentProgress = document.getElementById('tournament-progress');
+        if (tournamentProgress) {
+            tournamentProgress.style.display = 'block';
+        }
+        
+        // Start first match
+        startAiVsAiMode();
+    }
+    
+    // Show achievements modal
+    function showAchievementsModal() {
+        if (!achievementsModal) return;
+        
+        achievementsModal.style.display = 'flex';
+        
+        // Update progress
+        const progressElement = document.getElementById('achievements-progress');
+        if (progressElement) {
+            progressElement.textContent = window.achievementSystem.getProgress();
+        }
+        
+        // Populate achievements list
+        const listElement = document.getElementById('achievements-list');
+        if (listElement) {
+            listElement.innerHTML = '';
+            const achievements = window.achievementSystem.getAllAchievements();
+            achievements.forEach(achievement => {
+                const item = document.createElement('div');
+                item.className = `achievement-item ${achievement.unlocked ? 'unlocked' : 'locked'}`;
+                item.innerHTML = `
+                    <div class="achievement-icon-large">${achievement.name.split(' ')[0]}</div>
+                    <div class="achievement-info">
+                        <h3>${achievement.name}</h3>
+                        <p>${achievement.description}</p>
+                        ${achievement.progress !== undefined && !achievement.unlocked ? 
+                            `<p>Прогресс: ${achievement.progress}/${achievement.target}</p>` : ''}
+                    </div>
+                    ${achievement.reward > 0 ? `<div class="achievement-reward">+${achievement.reward} TC</div>` : ''}
+                `;
+                listElement.appendChild(item);
+            });
+        }
+        
+        // Populate leaderboard
+        const leaderboardElement = document.getElementById('leaderboard');
+        if (leaderboardElement) {
+            leaderboardElement.innerHTML = '';
+            const leaderboard = window.achievementSystem.getLeaderboard();
+            if (leaderboard.length === 0) {
+                leaderboardElement.innerHTML = '<p style="text-align: center; color: rgba(255,255,255,0.5);">Нет записей</p>';
+            } else {
+                leaderboard.forEach((entry, index) => {
+                    const item = document.createElement('div');
+                    item.className = 'leaderboard-item';
+                    item.innerHTML = `
+                        <div class="leaderboard-rank">#${index + 1}</div>
+                        <div class="leaderboard-name">${entry.name || 'Игрок'}</div>
+                        <div class="leaderboard-balance">${window.tetriCoins.formatCoins(entry.balance)} TC</div>
+                    `;
+                    leaderboardElement.appendChild(item);
+                });
+            }
+        }
+    }
+    
+    // Initialize betting UI
+    function initBettingUI() {
+        // Bet type selection
+        const betTypeCards = document.querySelectorAll('.bet-type-card');
+        let selectedBetType = null;
+        let selectedTarget = null;
+        let selectedAmount = null;
+        
+        betTypeCards.forEach(card => {
+            card.addEventListener('click', (e) => {
+                if (e.target.classList.contains('bet-option-btn')) return;
+                
+                betTypeCards.forEach(c => c.classList.remove('selected'));
+                card.classList.add('selected');
+                selectedBetType = card.dataset.betType;
+                updatePlaceBetButton();
+            });
+            
+            // Bet option buttons
+            const optionBtns = card.querySelectorAll('.bet-option-btn');
+            optionBtns.forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    optionBtns.forEach(b => b.classList.remove('selected'));
+                    btn.classList.add('selected');
+                    
+                    betTypeCards.forEach(c => c.classList.remove('selected'));
+                    card.classList.add('selected');
+                    
+                    selectedBetType = card.dataset.betType;
+                    selectedTarget = btn.dataset.target;
+                    updatePlaceBetButton();
+                });
+            });
+        });
+        
+        // Quick bet buttons
+        const quickBetBtns = document.querySelectorAll('.quick-bet-btn');
+        quickBetBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                quickBetBtns.forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+                selectedAmount = parseInt(btn.dataset.amount);
+                document.getElementById('custom-bet-amount').value = '';
+                updatePlaceBetButton();
+            });
+        });
+        
+        // Custom bet amount
+        const customBetInput = document.getElementById('custom-bet-amount');
+        if (customBetInput) {
+            customBetInput.addEventListener('input', () => {
+                quickBetBtns.forEach(b => b.classList.remove('selected'));
+                const value = parseInt(customBetInput.value);
+                selectedAmount = isNaN(value) ? null : value;
+                updatePlaceBetButton();
+            });
+        }
+        
+        // Place bet button
+        const placeBetBtn = document.getElementById('place-bet-btn');
+        if (placeBetBtn) {
+            placeBetBtn.addEventListener('click', () => {
+                if (!selectedBetType || !selectedTarget || !selectedAmount) return;
+                
+                const result = window.bettingSystem.placeBet(selectedBetType, selectedTarget, selectedAmount);
+                if (result.success) {
+                    showMessage(`Ставка принята: ${selectedAmount} TC`);
+                    placeBetBtn.disabled = true;
+                    updateBalanceDisplay();
+                } else {
+                    showMessage(`Ошибка: ${result.message}`);
+                }
+            });
+        }
+        
+        // Cancel bet button
+        const cancelBetBtn = document.getElementById('cancel-bet-btn');
+        if (cancelBetBtn) {
+            cancelBetBtn.addEventListener('click', () => {
+                window.bettingSystem.stopBetting();
+            });
+        }
+        
+        function updatePlaceBetButton() {
+            if (placeBetBtn) {
+                placeBetBtn.disabled = !(selectedBetType && selectedTarget && selectedAmount);
+            }
+        }
+    }
+
     // Touch controls removed to fix keyboard input issues
     
     // Button event listeners
@@ -1049,6 +1546,28 @@ document.addEventListener('DOMContentLoaded', () => {
     if (takeControlBtn) {
         takeControlBtn.addEventListener('click', takeControl);
     }
+    if (tournamentBtn) {
+        tournamentBtn.addEventListener('click', startTournament);
+    }
+    if (achievementsBtn) {
+        achievementsBtn.addEventListener('click', showAchievementsModal);
+    }
+    if (closeAchievementsBtn) {
+        closeAchievementsBtn.addEventListener('click', () => {
+            achievementsModal.style.display = 'none';
+        });
+    }
+    if (shareBtn) {
+        shareBtn.addEventListener('click', () => {
+            window.achievementSystem.shareResult(score, window.tetriCoins.getBalance());
+        });
+    }
+    
+    // Initialize betting UI
+    initBettingUI();
+    
+    // Update balance listener
+    window.tetriCoins.addListener(updateBalanceDisplay);
     
     // Load stored settings and render initial board
     board = createBoard();

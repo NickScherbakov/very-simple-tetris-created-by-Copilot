@@ -1,0 +1,2 @@
+# Exclude SVG source file (we have PNGs)
+icons/icon.svg

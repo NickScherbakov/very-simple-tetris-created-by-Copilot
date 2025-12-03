@@ -303,3 +303,396 @@ button:active, .button:active {
     font-size: 1.2rem;
     text-align: center;
 }
+
+/* Balance display */
+.balance {
+    color: #ffd700;
+    font-weight: bold;
+    font-size: 1.3rem;
+    margin-top: 0.5rem;
+    text-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
+}
+
+/* Tournament button */
+.button-tournament {
+    background: linear-gradient(135deg, #ffd700, #ffed4e);
+    color: #000;
+}
+
+.button-tournament:hover {
+    background: linear-gradient(135deg, #ffed4e, #ffd700);
+}
+
+/* Install button */
+.button-install {
+    background-color: #28a745;
+}
+
+.button-install:hover {
+    background-color: #218838;
+}
+
+/* Achievements button */
+.button-achievements {
+    background-color: #6f42c1;
+}
+
+.button-achievements:hover {
+    background-color: #5a32a3;
+}
+
+/* Share button */
+.button-share {
+    background-color: #17a2b8;
+}
+
+.button-share:hover {
+    background-color: #138496;
+}
+
+/* Modal styles */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+}
+
+.modal-content {
+    background: linear-gradient(145deg, var(--secondary-color), var(--background-color));
+    padding: 2rem;
+    border-radius: 15px;
+    max-width: 600px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    position: relative;
+    box-shadow: 0 10px 50px rgba(0, 0, 0, 0.5);
+}
+
+.close-modal {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    font-size: 2rem;
+    cursor: pointer;
+    color: var(--text-color);
+}
+
+.close-modal:hover {
+    color: var(--accent-color);
+}
+
+/* Achievements list */
+.achievements-progress {
+    text-align: center;
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+    color: #ffd700;
+}
+
+.achievements-list {
+    display: grid;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.achievement-item {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 1rem;
+    border-radius: 8px;
+    border-left: 4px solid;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.achievement-item.unlocked {
+    border-color: #28a745;
+    background: rgba(40, 167, 69, 0.1);
+}
+
+.achievement-item.locked {
+    border-color: #6c757d;
+    opacity: 0.6;
+}
+
+.achievement-icon-large {
+    font-size: 2.5rem;
+}
+
+.achievement-info h3 {
+    margin: 0 0 0.3rem 0;
+    color: var(--text-color);
+}
+
+.achievement-info p {
+    margin: 0;
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.achievement-reward {
+    margin-left: auto;
+    color: #ffd700;
+    font-weight: bold;
+}
+
+/* Achievement notification */
+.achievement-notification {
+    position: fixed;
+    top: -200px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(135deg, #1a0a2e, #0f0520);
+    border: 2px solid #ffd700;
+    border-radius: 15px;
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    z-index: 3000;
+    box-shadow: 0 10px 30px rgba(255, 215, 0, 0.5);
+    transition: top 0.5s ease-out;
+    max-width: 400px;
+}
+
+.achievement-notification.show {
+    top: 20px;
+}
+
+.achievement-notification .achievement-icon {
+    font-size: 3rem;
+}
+
+.achievement-content {
+    flex: 1;
+}
+
+.achievement-title {
+    color: #ffd700;
+    font-weight: bold;
+    margin-bottom: 0.3rem;
+}
+
+.achievement-name {
+    color: var(--text-color);
+    font-size: 1.1rem;
+    margin-bottom: 0.2rem;
+}
+
+.achievement-desc {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.9rem;
+}
+
+.achievement-reward {
+    color: #ffd700;
+    font-weight: bold;
+    margin-top: 0.3rem;
+}
+
+/* Leaderboard */
+.leaderboard {
+    background: rgba(0, 0, 0, 0.3);
+    padding: 1rem;
+    border-radius: 8px;
+}
+
+.leaderboard-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.7rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.leaderboard-item:last-child {
+    border-bottom: none;
+}
+
+.leaderboard-rank {
+    font-weight: bold;
+    color: #ffd700;
+    min-width: 30px;
+}
+
+.leaderboard-name {
+    flex: 1;
+    margin: 0 1rem;
+}
+
+.leaderboard-balance {
+    color: #ffd700;
+    font-weight: bold;
+}
+
+/* Temporary message */
+.temp-message {
+    position: fixed;
+    bottom: -100px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(123, 104, 238, 0.95);
+    color: white;
+    padding: 1rem 2rem;
+    border-radius: 10px;
+    z-index: 3000;
+    transition: bottom 0.3s ease-out;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
+}
+
+.temp-message.show {
+    bottom: 20px;
+}
+
+/* Footer */
+.game-footer {
+    text-align: center;
+    padding: 1rem;
+    background: rgba(0, 0, 0, 0.3);
+    color: rgba(255, 255, 255, 0.7);
+    margin-top: 1rem;
+    border-radius: 8px;
+}
+
+.game-footer p {
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+/* Touch-friendly improvements */
+@media (hover: none) and (pointer: coarse) {
+    button, .button {
+        min-height: 48px;
+        min-width: 48px;
+        font-size: 1.1rem;
+    }
+    
+    .bet-option-btn {
+        min-height: 44px;
+    }
+    
+    .quick-bet-btn {
+        min-height: 44px;
+    }
+}
+
+/* Responsive improvements */
+@media (max-width: 767px) {
+    body {
+        padding: 0.5rem;
+    }
+    
+    .game-container {
+        padding: 0.5rem;
+    }
+    
+    #tetris-canvas {
+        width: 280px;
+        height: 560px;
+    }
+    
+    .score-section {
+        font-size: 1rem;
+    }
+    
+    .balance {
+        font-size: 1.1rem;
+    }
+    
+    .controls-instructions {
+        display: none;
+    }
+    
+    .game-buttons {
+        gap: 0.5rem;
+    }
+    
+    button, .button {
+        padding: 10px 16px;
+        font-size: 0.95rem;
+    }
+    
+    .modal-content {
+        padding: 1.5rem;
+        width: 95%;
+    }
+    
+    .achievement-notification {
+        max-width: 90%;
+        padding: 1rem;
+    }
+}
+
+@media (min-width: 768px) and (max-width: 1024px) {
+    #tetris-canvas {
+        width: 300px;
+        height: 600px;
+    }
+}
+
+/* PWA mode specific styles */
+.pwa-mode .game-container {
+    margin-top: env(safe-area-inset-top);
+    margin-bottom: env(safe-area-inset-bottom);
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Loading state */
+.loading {
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+/* Vibration indicator (visual feedback) */
+@keyframes vibrate {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-2px); }
+    75% { transform: translateX(2px); }
+}
+
+.vibrating {
+    animation: vibrate 0.1s linear 3;
+}
+
+/* Scrollbar styling for modals */
+.modal-content::-webkit-scrollbar {
+    width: 8px;
+}
+
+.modal-content::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
+}
+
+.modal-content::-webkit-scrollbar-thumb {
+    background: rgba(123, 104, 238, 0.5);
+    border-radius: 4px;
+}
+
+.modal-content::-webkit-scrollbar-thumb:hover {
+    background: rgba(123, 104, 238, 0.7);
+}
