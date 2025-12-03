@@ -1,10 +1,27 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tetris</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#7b68ee">
+    <meta name="description" content="Классическая игра Tetris с виртуальной валютой и системой ставок">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Tetris PWA">
+    
+    <title>Tetris PWA - TetriCoins Edition</title>
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json">
+    
+    <!-- Icons -->
+    <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192x192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="/icons/icon-512x512.png">
+    <link rel="apple-touch-icon" href="/icons/icon-192x192.png">
+    
+    <!-- Stylesheets -->
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="css/betting-panel.css">
 </head>
 <body>
     <div class="game-container">
@@ -13,6 +30,7 @@
             <div class="level">Level: <span id="level">1</span></div>
             <div class="lines">Lines: <span id="lines">0</span></div>
             <div class="high-score">High Score: <span id="high-score">0</span></div>
+            <div class="balance">💰 Balance: <span id="tetricoins-balance">1000</span> TC</div>
         </div>
 
         <canvas id="tetris-canvas" width="300" height="600"></canvas>
@@ -30,7 +48,11 @@
         <div class="game-buttons">
             <button id="start-btn" class="button">Start Game</button>
             <button id="ai-vs-ai-btn" class="button button-primary">AI vs AI Mode</button>
+            <button id="tournament-btn" class="button button-tournament">Tournament Mode</button>
             <button id="grid-toggle" class="button button-secondary">Hide Grid</button>
+            <button id="install-pwa-btn" class="button button-install" style="display: none;">Install App</button>
+            <button id="achievements-btn" class="button button-achievements">🏆 Achievements</button>
+            <button id="share-btn" class="button button-share">📤 Share</button>
         </div>
 
         <div class="ai-insight">
@@ -56,6 +78,120 @@
             </div>
         </div>
     </div>
+    
+    <!-- Betting Panel -->
+    <div id="betting-panel" class="betting-panel">
+        <div class="betting-header">
+            <h2>🎲 Сделайте ставку!</h2>
+            <div class="betting-countdown-wrapper">
+                <p>Времени осталось: <span id="betting-countdown" class="betting-countdown">15</span> сек</p>
+            </div>
+        </div>
+        
+        <div id="tournament-progress" class="tournament-progress" style="display: none;">
+            <h3>🏆 Турнир</h3>
+            <div class="match-counter">Матч <span id="current-match">1</span> из 5</div>
+            <div class="jackpot-display">
+                Джекпот: <span class="amount" id="jackpot-amount">0</span> TC
+            </div>
+        </div>
+        
+        <div class="bet-types" id="bet-types">
+            <div class="bet-type-card" data-bet-type="winner">
+                <div class="bet-type-title">
+                    <h3>🏆 Победитель</h3>
+                    <span class="bet-odds">2.0x</span>
+                </div>
+                <div class="bet-type-desc">Ставка на победителя матча</div>
+                <div class="bet-options">
+                    <button class="bet-option-btn" data-target="1">AI 1</button>
+                    <button class="bet-option-btn" data-target="2">AI 2</button>
+                </div>
+            </div>
+            
+            <div class="bet-type-card" data-bet-type="first_tetris">
+                <div class="bet-type-title">
+                    <h3>⚡ Первый Tetris</h3>
+                    <span class="bet-odds">5.0x</span>
+                </div>
+                <div class="bet-type-desc">Кто первым соберёт 4 линии</div>
+                <div class="bet-options">
+                    <button class="bet-option-btn" data-target="1">AI 1</button>
+                    <button class="bet-option-btn" data-target="2">AI 2</button>
+                </div>
+            </div>
+            
+            <div class="bet-type-card" data-bet-type="score_range">
+                <div class="bet-type-title">
+                    <h3>🎯 Диапазон очков</h3>
+                    <span class="bet-odds">3-10x</span>
+                </div>
+                <div class="bet-type-desc">Угадайте диапазон финального счёта</div>
+                <div class="bet-options">
+                    <button class="bet-option-btn" data-target="0-1000">0-1000</button>
+                    <button class="bet-option-btn" data-target="1001-2000">1001-2000</button>
+                    <button class="bet-option-btn" data-target="2001-3000">2001-3000</button>
+                    <button class="bet-option-btn" data-target="5001+">5001+</button>
+                </div>
+            </div>
+            
+            <div class="bet-type-card" data-bet-type="score_race">
+                <div class="bet-type-title">
+                    <h3>🏃 Гонка очков</h3>
+                    <span class="bet-odds">1.5x</span>
+                </div>
+                <div class="bet-type-desc">Кто первым достигнет 1000 очков</div>
+                <div class="bet-options">
+                    <button class="bet-option-btn" data-target="1">AI 1</button>
+                    <button class="bet-option-btn" data-target="2">AI 2</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bet-amount-section">
+            <h3>💰 Сумма ставки:</h3>
+            <div class="quick-bet-buttons">
+                <button class="quick-bet-btn" data-amount="10">10 TC</button>
+                <button class="quick-bet-btn" data-amount="50">50 TC</button>
+                <button class="quick-bet-btn" data-amount="100">100 TC</button>
+                <button class="quick-bet-btn" data-amount="250">250 TC</button>
+                <button class="quick-bet-btn" data-amount="500">500 TC</button>
+            </div>
+            <div class="custom-bet-input">
+                <input type="number" id="custom-bet-amount" placeholder="Своя сумма" min="10" max="500">
+            </div>
+        </div>
+        
+        <div id="current-bet-display"></div>
+        
+        <button id="place-bet-btn" class="place-bet-btn" disabled>Сделать ставку</button>
+        <button id="cancel-bet-btn" class="cancel-bet-btn">Пропустить</button>
+    </div>
+    
+    <!-- Achievements Modal -->
+    <div id="achievements-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close-modal" id="close-achievements">&times;</span>
+            <h2>🏆 Достижения</h2>
+            <div class="achievements-progress">
+                <p>Прогресс: <span id="achievements-progress">0</span>%</p>
+            </div>
+            <div id="achievements-list" class="achievements-list"></div>
+            <h3>📊 Таблица лидеров</h3>
+            <div id="leaderboard" class="leaderboard"></div>
+        </div>
+    </div>
+    
+    <!-- Footer with disclaimer -->
+    <footer class="game-footer">
+        <p>🎮 Это игра на виртуальную валюту. Реальные деньги не используются. Только для развлечения!</p>
+    </footer>
+    
+    <!-- Scripts -->
+    <script src="js/currency.js"></script>
+    <script src="js/betting.js"></script>
+    <script src="js/achievements.js"></script>
+    <script src="js/pwa.js"></script>
     <script src="tetris.js"></script>
 </body>
 </html>
