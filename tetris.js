@@ -480,7 +480,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         updateHighScoreDisplay();
         if (gridToggleBtn) {
-            gridToggleBtn.textContent = showGrid ? 'Hide Grid' : 'Show Grid';
+            const lang = getCurrentLanguage ? getCurrentLanguage() : 'en';
+            gridToggleBtn.textContent = showGrid ? getTranslation('hide_grid', lang) : getTranslation('show_grid', lang);
         }
         updateAiInsight(aiTrainer.getLiveHint());
         
@@ -549,7 +550,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Toggle grid visibility
     function toggleGrid() {
         showGrid = !showGrid;
-        gridToggleBtn.textContent = showGrid ? 'Hide Grid' : 'Show Grid';
+        const lang = getCurrentLanguage ? getCurrentLanguage() : 'en';
+        gridToggleBtn.textContent = showGrid ? getTranslation('hide_grid', lang) : getTranslation('show_grid', lang);
         persistGridPreference();
         draw();
     }
@@ -1583,4 +1585,12 @@ document.addEventListener('DOMContentLoaded', () => {
     ctx.fillText('TETRIS', canvas.width / 2, canvas.height / 2 - 30);
     ctx.font = '20px Arial';
     ctx.fillText('Press Start or Enter to Play', canvas.width / 2, canvas.height / 2 + 20);
+    
+    // Listen for language changes to update grid button text
+    window.addEventListener('languageChanged', (e) => {
+        if (gridToggleBtn) {
+            const lang = e.detail.language;
+            gridToggleBtn.textContent = showGrid ? getTranslation('hide_grid', lang) : getTranslation('show_grid', lang);
+        }
+    });
 });
