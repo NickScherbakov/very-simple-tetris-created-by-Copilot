@@ -185,15 +185,24 @@ class AchievementSystem {
 
     // Show achievement notification
     showAchievementNotification(achievement) {
+        // Get current language
+        const lang = getCurrentLanguage ? getCurrentLanguage() : 'en';
+        
+        // Get translated name and description
+        const nameKey = `achievement_${achievement.id}`;
+        const descKey = `achievement_${achievement.id}_desc`;
+        const name = getTranslation ? getTranslation(nameKey, lang) : achievement.name;
+        const desc = getTranslation ? getTranslation(descKey, lang) : achievement.description;
+        
         // Create notification element
         const notification = document.createElement('div');
         notification.className = 'achievement-notification';
         notification.innerHTML = `
-            <div class="achievement-icon">${achievement.name.split(' ')[0]}</div>
+            <div class="achievement-icon">${name.split(' ')[0]}</div>
             <div class="achievement-content">
-                <div class="achievement-title">Достижение разблокировано!</div>
-                <div class="achievement-name">${achievement.name}</div>
-                <div class="achievement-desc">${achievement.description}</div>
+                <div class="achievement-title">Achievement Unlocked!</div>
+                <div class="achievement-name">${name}</div>
+                <div class="achievement-desc">${desc}</div>
                 ${achievement.reward > 0 ? `<div class="achievement-reward">+${achievement.reward} TC</div>` : ''}
             </div>
         `;

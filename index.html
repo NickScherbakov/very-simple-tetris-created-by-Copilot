@@ -22,91 +22,150 @@
     <!-- Stylesheets -->
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="css/betting-panel.css">
+    <link rel="stylesheet" href="css/language.css">
 </head>
 <body>
+    <!-- Language Selection Screen -->
+    <div class="language-screen" id="language-screen" style="display: none;">
+        <h1>🎮 Tetris Arena</h1>
+        <h2 data-i18n="select_language">Select Language / Выберите язык</h2>
+        <div class="language-options">
+            <button class="language-btn" data-lang="en">🇬🇧 English</button>
+            <button class="language-btn" data-lang="ar">🇸🇦 العربية</button>
+            <button class="language-btn" data-lang="zh">🇨🇳 中文</button>
+            <button class="language-btn" data-lang="ru">🇷🇺 Русский</button>
+        </div>
+    </div>
+
+    <!-- Rules Screen -->
+    <div class="rules-screen" id="rules-screen" style="display: none;">
+        <h1 data-i18n="rules_title">How to Play</h1>
+        <div class="rules-content">
+            <div class="rules-section">
+                <h3 data-i18n="rules_how_to_play">How to Play</h3>
+                <ul>
+                    <li data-i18n="rules_arrow_left_right">← → Arrow keys - Move pieces left/right</li>
+                    <li data-i18n="rules_arrow_up">↑ Arrow up - Rotate piece</li>
+                    <li data-i18n="rules_arrow_down">↓ Arrow down - Soft drop (speed up)</li>
+                    <li data-i18n="rules_space">Space - Hard drop (instant drop)</li>
+                    <li data-i18n="rules_mobile">Mobile: Swipes and taps for controls</li>
+                </ul>
+            </div>
+
+            <div class="rules-section">
+                <h3 data-i18n="rules_tetricoins">TetriCoins System:</h3>
+                <ul>
+                    <li data-i18n="rules_initial_balance">Starting balance: 1000 TC</li>
+                    <li data-i18n="rules_daily_bonus">Daily bonus: +100 TC</li>
+                    <li data-i18n="rules_line_rewards">Line rewards:</li>
+                    <li style="padding-left: 3rem;" data-i18n="rules_1_line">1 line = 10 TC</li>
+                    <li style="padding-left: 3rem;" data-i18n="rules_2_lines">2 lines = 30 TC</li>
+                    <li style="padding-left: 3rem;" data-i18n="rules_3_lines">3 lines = 100 TC</li>
+                    <li style="padding-left: 3rem;" data-i18n="rules_4_lines">4 lines (Tetris) = 500 TC</li>
+                </ul>
+            </div>
+
+            <div class="rules-section">
+                <h3 data-i18n="rules_ai_mode">AI vs AI Mode:</h3>
+                <ul>
+                    <li data-i18n="rules_ai_betting">Place bets on the winner</li>
+                    <li data-i18n="rules_ai_bet_types">4 bet types with different odds</li>
+                    <li data-i18n="rules_ai_tournament">Tournament mode with jackpot</li>
+                </ul>
+            </div>
+
+            <div class="rules-disclaimer">
+                <p><strong data-i18n="rules_disclaimer">Disclaimer:</strong></p>
+                <p data-i18n="rules_disclaimer_text">This is a game with virtual currency. No real money is used. For entertainment only!</p>
+            </div>
+        </div>
+        <button class="start-game-btn" id="start-playing-btn" data-i18n="start_playing">Start Playing!</button>
+    </div>
+
     <div class="game-container">
         <div class="score-section">
-            <div class="score">Score: <span id="score">0</span></div>
-            <div class="level">Level: <span id="level">1</span></div>
-            <div class="lines">Lines: <span id="lines">0</span></div>
-            <div class="high-score">High Score: <span id="high-score">0</span></div>
-            <div class="balance">💰 Balance: <span id="tetricoins-balance">1000</span> TC</div>
+            <div class="score"><span data-i18n="score">Score:</span> <span id="score">0</span></div>
+            <div class="level"><span data-i18n="level">Level:</span> <span id="level">1</span></div>
+            <div class="lines"><span data-i18n="lines">Lines:</span> <span id="lines">0</span></div>
+            <div class="high-score"><span data-i18n="high_score">High Score:</span> <span id="high-score">0</span></div>
+            <div class="balance"><span data-i18n="balance">💰 Balance:</span> <span id="tetricoins-balance">1000</span> TC</div>
         </div>
 
         <canvas id="tetris-canvas" width="300" height="600"></canvas>
 
         <div class="next-piece">
-            <h3>Next:</h3>
+            <h3 data-i18n="next">Next:</h3>
             <canvas id="next-piece-canvas" width="100" height="100"></canvas>
         </div>
 
         <div class="controls-instructions">
-            <h3>Controls:</h3>
-            <p>Enter/S: Start Game | Arrow Keys: Move/Drop | Space: Hard Drop | P: Pause | G: Toggle Grid | T: Take Control (AI Mode)</p>
+            <h3 data-i18n="controls">Controls:</h3>
+            <p data-i18n="controls_text">Enter/S: Start Game | Arrow Keys: Move/Drop | Space: Hard Drop | P: Pause | G: Toggle Grid | T: Take Control (AI Mode)</p>
         </div>
 
         <div class="game-buttons">
-            <button id="start-btn" class="button">Start Game</button>
-            <button id="ai-vs-ai-btn" class="button button-primary">AI vs AI Mode</button>
-            <button id="tournament-btn" class="button button-tournament">Tournament Mode</button>
-            <button id="grid-toggle" class="button button-secondary">Hide Grid</button>
-            <button id="install-pwa-btn" class="button button-install" style="display: none;">Install App</button>
-            <button id="achievements-btn" class="button button-achievements">🏆 Achievements</button>
-            <button id="share-btn" class="button button-share">📤 Share</button>
+            <button id="start-btn" class="button" data-i18n="start_game">Start Game</button>
+            <button id="ai-vs-ai-btn" class="button button-primary" data-i18n="ai_vs_ai_mode">AI vs AI Mode</button>
+            <button id="tournament-btn" class="button button-tournament" data-i18n="tournament_mode">Tournament Mode</button>
+            <button id="grid-toggle" class="button button-secondary" data-i18n="hide_grid">Hide Grid</button>
+            <button id="install-pwa-btn" class="button button-install" style="display: none;" data-i18n="install_app">Install App</button>
+            <button id="achievements-btn" class="button button-achievements" data-i18n="achievements">🏆 Achievements</button>
+            <button id="share-btn" class="button button-share" data-i18n="share">📤 Share</button>
+            <button id="language-change-btn" class="button button-secondary" data-i18n="language_btn">🌐 Language</button>
         </div>
 
         <div class="ai-insight">
-            <h3>AI Insight:</h3>
-            <p id="ai-summary">The adaptive engine is observing your moves.</p>
+            <h3 data-i18n="ai_insight">AI Insight:</h3>
+            <p id="ai-summary" data-i18n="ai_observing">The adaptive engine is observing your moves.</p>
         </div>
 
         <div class="ai-vs-ai-panel" id="ai-vs-ai-panel" style="display: none;">
             <div class="ai-player ai-player-1">
-                <h4>AI Player 1 (Red)</h4>
-                <div class="ai-thinking" id="ai1-thinking">AI 1 is analyzing...</div>
-                <div class="ai-plan" id="ai1-plan">Planning next move...</div>
+                <h4 data-i18n="ai_player_1">AI Player 1 (Red)</h4>
+                <div class="ai-thinking" id="ai1-thinking" data-i18n="ai_analyzing">AI is analyzing...</div>
+                <div class="ai-plan" id="ai1-plan" data-i18n="ai_planning">Planning next move...</div>
             </div>
             <div class="ai-player ai-player-2">
-                <h4>AI Player 2 (Blue)</h4>
-                <div class="ai-thinking" id="ai2-thinking">AI 2 is analyzing...</div>
-                <div class="ai-plan" id="ai2-plan">Planning next move...</div>
+                <h4 data-i18n="ai_player_2">AI Player 2 (Blue)</h4>
+                <div class="ai-thinking" id="ai2-thinking" data-i18n="ai_analyzing">AI is analyzing...</div>
+                <div class="ai-plan" id="ai2-plan" data-i18n="ai_planning">Planning next move...</div>
             </div>
             <div class="game-controls">
-                <button id="take-control-btn" class="button button-warning">Take Control</button>
-                <button id="exit-ai-mode-btn" class="button button-secondary">Exit AI Mode</button>
-                <div class="current-turn" id="current-turn">AI 1's Turn</div>
+                <button id="take-control-btn" class="button button-warning" data-i18n="take_control">Take Control</button>
+                <button id="exit-ai-mode-btn" class="button button-secondary" data-i18n="exit_ai_mode">Exit AI Mode</button>
+                <div class="current-turn" id="current-turn" data-i18n="ai_1_turn">AI 1's Turn</div>
             </div>
         </div>
         
         <footer class="game-footer">
-            <p>🎮 Это игра на виртуальную валюту. Реальные деньги не используются. Только для развлечения!</p>
+            <p data-i18n="footer_disclaimer">🎮 This is a game with virtual currency. No real money is used. For entertainment only!</p>
         </footer>
     </div>
     
     <!-- Betting Panel -->
     <div id="betting-panel" class="betting-panel">
         <div class="betting-header">
-            <h2>🎲 Сделайте ставку!</h2>
+            <h2 data-i18n="place_bet">🎲 Place Your Bet!</h2>
             <div class="betting-countdown-wrapper">
-                <p>Времени осталось: <span id="betting-countdown" class="betting-countdown">15</span> сек</p>
+                <p><span data-i18n="time_remaining">Time remaining:</span> <span id="betting-countdown" class="betting-countdown">15</span> <span data-i18n="seconds">sec</span></p>
             </div>
         </div>
         
         <div id="tournament-progress" class="tournament-progress" style="display: none;">
-            <h3>🏆 Турнир</h3>
-            <div class="match-counter">Матч <span id="current-match">1</span> из 5</div>
+            <h3 data-i18n="tournament">🏆 Tournament</h3>
+            <div class="match-counter"><span data-i18n="match">Match</span> <span id="current-match">1</span> <span data-i18n="of">of</span> 5</div>
             <div class="jackpot-display">
-                Джекпот: <span class="amount" id="jackpot-amount">0</span> TC
+                <span data-i18n="jackpot">Jackpot:</span> <span class="amount" id="jackpot-amount">0</span> TC
             </div>
         </div>
         
         <div class="bet-types" id="bet-types">
             <div class="bet-type-card" data-bet-type="winner">
                 <div class="bet-type-title">
-                    <h3>🏆 Победитель</h3>
+                    <h3 data-i18n="bet_winner">🏆 Winner</h3>
                     <span class="bet-odds">2.0x</span>
                 </div>
-                <div class="bet-type-desc">Ставка на победителя матча</div>
+                <div class="bet-type-desc" data-i18n="bet_winner_desc">Bet on the match winner</div>
                 <div class="bet-options">
                     <button class="bet-option-btn" data-target="1">AI 1</button>
                     <button class="bet-option-btn" data-target="2">AI 2</button>
@@ -115,10 +174,10 @@
             
             <div class="bet-type-card" data-bet-type="first_tetris">
                 <div class="bet-type-title">
-                    <h3>⚡ Первый Tetris</h3>
+                    <h3 data-i18n="bet_first_tetris">⚡ First Tetris</h3>
                     <span class="bet-odds">5.0x</span>
                 </div>
-                <div class="bet-type-desc">Кто первым соберёт 4 линии</div>
+                <div class="bet-type-desc" data-i18n="bet_first_tetris_desc">Who gets 4 lines first</div>
                 <div class="bet-options">
                     <button class="bet-option-btn" data-target="1">AI 1</button>
                     <button class="bet-option-btn" data-target="2">AI 2</button>
@@ -127,10 +186,10 @@
             
             <div class="bet-type-card" data-bet-type="score_range">
                 <div class="bet-type-title">
-                    <h3>🎯 Диапазон очков</h3>
+                    <h3 data-i18n="bet_score_range">🎯 Score Range</h3>
                     <span class="bet-odds">3-10x</span>
                 </div>
-                <div class="bet-type-desc">Угадайте диапазон финального счёта</div>
+                <div class="bet-type-desc" data-i18n="bet_score_range_desc">Guess the final score range</div>
                 <div class="bet-options">
                     <button class="bet-option-btn" data-target="0-1000">0-1000</button>
                     <button class="bet-option-btn" data-target="1001-2000">1001-2000</button>
@@ -141,10 +200,10 @@
             
             <div class="bet-type-card" data-bet-type="score_race">
                 <div class="bet-type-title">
-                    <h3>🏃 Гонка очков</h3>
+                    <h3 data-i18n="bet_score_race">🏃 Score Race</h3>
                     <span class="bet-odds">1.5x</span>
                 </div>
-                <div class="bet-type-desc">Кто первым достигнет 1000 очков</div>
+                <div class="bet-type-desc" data-i18n="bet_score_race_desc">Who reaches 1000 points first</div>
                 <div class="bet-options">
                     <button class="bet-option-btn" data-target="1">AI 1</button>
                     <button class="bet-option-btn" data-target="2">AI 2</button>
@@ -153,7 +212,7 @@
         </div>
         
         <div class="bet-amount-section">
-            <h3>💰 Сумма ставки:</h3>
+            <h3 data-i18n="bet_amount">💰 Bet Amount:</h3>
             <div class="quick-bet-buttons">
                 <button class="quick-bet-btn" data-amount="10">10 TC</button>
                 <button class="quick-bet-btn" data-amount="50">50 TC</button>
@@ -162,31 +221,33 @@
                 <button class="quick-bet-btn" data-amount="500">500 TC</button>
             </div>
             <div class="custom-bet-input">
-                <input type="number" id="custom-bet-amount" placeholder="Своя сумма" min="10" max="500">
+                <input type="number" id="custom-bet-amount" placeholder="Custom amount" data-i18n="custom_amount" min="10" max="500">
             </div>
         </div>
         
         <div id="current-bet-display"></div>
         
-        <button id="place-bet-btn" class="place-bet-btn" disabled>Сделать ставку</button>
-        <button id="cancel-bet-btn" class="cancel-bet-btn">Пропустить</button>
+        <button id="place-bet-btn" class="place-bet-btn" disabled data-i18n="place_bet_btn">Place Bet</button>
+        <button id="cancel-bet-btn" class="cancel-bet-btn" data-i18n="skip">Skip</button>
     </div>
     
     <!-- Achievements Modal -->
     <div id="achievements-modal" class="modal" style="display: none;">
         <div class="modal-content">
             <span class="close-modal" id="close-achievements">&times;</span>
-            <h2>🏆 Достижения</h2>
+            <h2 data-i18n="achievements_title">🏆 Achievements</h2>
             <div class="achievements-progress">
-                <p>Прогресс: <span id="achievements-progress">0</span>%</p>
+                <p><span data-i18n="achievements_progress">Progress:</span> <span id="achievements-progress">0</span>%</p>
             </div>
             <div id="achievements-list" class="achievements-list"></div>
-            <h3>📊 Таблица лидеров</h3>
+            <h3 data-i18n="leaderboard">📊 Leaderboard</h3>
             <div id="leaderboard" class="leaderboard"></div>
         </div>
     </div>
     
     <!-- Scripts -->
+    <script src="js/i18n.js"></script>
+    <script src="js/language-selector.js"></script>
     <script src="js/currency.js"></script>
     <script src="js/betting.js"></script>
     <script src="js/achievements.js"></script>
