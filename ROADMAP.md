@@ -245,7 +245,15 @@ Transform this classic Tetris game into a comprehensive, feature-rich Progressiv
 
 ## 🤝 How to Contribute
 
-We welcome contributions to help achieve these roadmap goals! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+We welcome contributions to help achieve these roadmap goals! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for general contribution guidelines.
+
+### How to Pick a Roadmap Item
+1. Browse the roadmap sections (Short-term, Medium-term, Long-term)
+2. Find an unchecked item that matches your skill level and interests
+3. Check existing issues to see if work has started
+4. Open a new issue referencing the roadmap item you want to work on
+5. Wait for maintainer approval before starting work
+6. Submit a pull request when ready
 
 ### Priority Areas for Contributors
 1. **Beginner-friendly**: Sound effects, themes, translations
