@@ -1,40 +1,40 @@
-# Рефакторинг tetris.js — Итоги
+# Refactoring tetris.js — Summary
 
-## ✅ Что было сделано
+## ✅ What Was Done
 
-Монолитный файл **tetris.js** (1724 строк) был разбит на **5 модулей** с чистой архитектурой:
+The monolithic **tetris.js** file (1724 lines) has been split into **5 modules** with clean architecture:
 
-### Модули (1-5)
+### Modules (1-5)
 
-| № | Модуль | Назначение | Методы |
-|---|--------|-----------|--------|
-| 1 | **PieceModule** | Управление тетромино | create, getAdaptive, rotate |
-| 2 | **BoardModule** | Логика доски | createEmpty, isValidPosition, mergePieceInto, findCompletedLines, clearLines, computeMetrics |
-| 3 | **InputManager** | Клавиатура + тач | handleKeydown, handleTouchStart, handleTouchMove, handleTouchEnd |
-| 4 | **Renderer** | Отрисовка | drawBlock, drawPiece, drawNextPiece, drawBoard, drawGrid, clear |
-| 5 | **GameLoopManager** | Жизненный цикл | reset, start, pause, stop |
+| # | Module | Purpose | Methods |
+|---|--------|---------|---------|
+| 1 | **PieceModule** | Tetromino management | create, getAdaptive, rotate |
+| 2 | **BoardModule** | Board logic | createEmpty, isValidPosition, mergePieceInto, findCompletedLines, clearLines, computeMetrics |
+| 3 | **InputManager** | Keyboard + touch | handleKeydown, handleTouchStart, handleTouchMove, handleTouchEnd |
+| 4 | **Renderer** | Rendering | drawBlock, drawPiece, drawNextPiece, drawBoard, drawGrid, clear |
+| 5 | **GameLoopManager** | Lifecycle | reset, start, pause, stop |
 
-## 📊 Метрики
+## 📊 Metrics
 
-- **Строк кода**: 1724 (без изменений в размере)
-- **Модулей**: 5 (вместо 1 монолита)
-- **Вызовов функций**: обновлены для использования модулей
-- **Синтаксис**: ✅ Проверен (node -c tetris.js)
-- **Обратная совместимость**: ✅ Все функции сохранены
+- **Lines of code**: 1724 (no change in size)
+- **Modules**: 5 (instead of 1 monolith)
+- **Function calls**: updated to use modules
+- **Syntax**: ✅ Checked (node -c tetris.js)
+- **Backward compatibility**: ✅ All functions preserved
 
-## 🎯 Преимущества
+## 🎯 Benefits
 
-✅ **Чистая архитектура** — каждый модуль отвечает за одно  
-✅ **Тестируемость** — модули изолированы друг от друга  
-✅ **Масштабируемость** — легко добавить новые модули (AI, Effects и т.д.)  
-✅ **Читаемость** — код разделён по смыслу, не по размеру  
+✅ **Clean architecture** — each module is responsible for one thing  
+✅ **Testability** — modules are isolated from each other  
+✅ **Scalability** — easy to add new modules (AI, Effects, etc.)  
+✅ **Readability** — code is divided by meaning, not by size  
 
-## 🚀 Следующие шаги
+## 🚀 Next Steps
 
-Остальные модули (AdaptiveEngine, AiVsAi, Betting, Achievements) находятся в `tetris.js` 
-как встроенные функции и могут быть выделены по аналогичной схеме.
+Other modules (AdaptiveEngine, AiVsAi, Betting, Achievements) remain in `tetris.js` 
+as embedded functions and can be extracted following the same pattern.
 
 ---
 
-**Дата**: 30 декабря 2025  
-**Статус**: ✅ Завершено
+**Date**: December 30, 2025  
+**Status**: ✅ Completed
