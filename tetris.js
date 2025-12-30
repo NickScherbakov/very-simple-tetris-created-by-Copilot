@@ -106,138 +106,260 @@ document.addEventListener('DOMContentLoaded', () => {
     let consecutiveTetris = 0;
     let lastLinesClearedWas4 = false;
     
+    // Board Module - handles game board state
+    const BoardModule = (() => {
+        function createEmpty() {
+            return Array.from({ length: ROWS }, () => Array(COLS).fill(0));
+        }
+
+        function isValidPosition(piece, boardState, offsetX = 0, offsetY = 0) {
+            return !piece.shape.some((row, y) => {
+                return row.some((value, x) => {
+                    if (!value) return false;
+                    const nextX = piece.x + x + offsetX;
+                    const nextY = piece.y + y + offsetY;
+                    
+                    return (
+                        nextX < 0 ||
+                        nextX >= COLS ||
+                        nextY >= ROWS ||
+                        (nextY >= 0 && boardState[nextY][nextX])
+                    );
+                });
+            });
+        }
+
+        function mergePieceInto(boardState, piece) {
+            piece.shape.forEach((row, y) => {
+                row.forEach((value, x) => {
+                    if (value) {
+                        const boardY = piece.y + y;
+                        const boardX = piece.x + x;
+                        if (boardY >= 0) {
+                            boardState[boardY][boardX] = COLORS.indexOf(piece.color) + 1;
+                        }
+                    }
+                });
+            });
+        }
+
+        function findCompletedLines(boardState) {
+            const linesToClear = [];
+            outer: for (let y = ROWS - 1; y >= 0; y--) {
+                for (let x = 0; x < COLS; x++) {
+                    if (!boardState[y][x]) {
+                        continue outer;
+                    }
+                }
+                linesToClear.push(y);
+            }
+            return linesToClear;
+        }
+
+        function clearLines(boardState, linesToClear) {
+            let linesCleared = 0;
+            if (linesToClear.length > 0) {
+                linesToClear.sort((a, b) => b - a).forEach(y => {
+                    boardState.splice(y, 1);
+                    boardState.unshift(Array(COLS).fill(0));
+                });
+                linesCleared = linesToClear.length;
+            }
+            return linesCleared;
+        }
+
+        function computeMetrics(boardState) {
+            const heights = Array(COLS).fill(0);
+            const holes = Array(COLS).fill(0);
+
+            for (let x = 0; x < COLS; x++) {
+                let seenBlock = false;
+                let columnHeight = 0;
+                for (let y = 0; y < ROWS; y++) {
+                    if (boardState[y][x]) {
+                        if (!seenBlock) {
+                            columnHeight = ROWS - y;
+                            seenBlock = true;
+                        }
+                    } else if (seenBlock) {
+                        holes[x]++;
+                    }
+                }
+                heights[x] = columnHeight;
+            }
+
+            const totalHoles = holes.reduce((sum, value) => sum + value, 0);
+            const maxHeight = heights.reduce((max, value) => Math.max(max, value), 0);
+            const aggregateHeight = heights.reduce((sum, value) => sum + value, 0);
+            let bumpiness = 0;
+            for (let x = 0; x < COLS - 1; x++) {
+                bumpiness += Math.abs(heights[x] - heights[x + 1]);
+            }
+
+            return {
+                heights,
+                holes,
+                totalHoles,
+                maxHeight,
+                aggregateHeight,
+                bumpiness
+            };
+        }
+
+        return { createEmpty, isValidPosition, mergePieceInto, findCompletedLines, clearLines, computeMetrics };
+    })();
+    
     // Create empty game board
     function createBoard() {
-        return Array.from({ length: ROWS }, () => Array(COLS).fill(0));
+        return BoardModule.createEmpty();
     }
     
-    // Generate a random tetromino
+    // Piece Module - handles tetromino management
+    const PieceModule = (() => {
+        function create(shapeIndex) {
+            const template = SHAPES[shapeIndex];
+            const shape = template.map((row) => row.slice());
+            return {
+                shape,
+                color: COLORS[shapeIndex],
+                shapeIndex,
+                x: Math.floor(COLS / 2) - Math.floor(template[0].length / 2),
+                y: 0
+            };
+        }
+
+        function getAdaptive() {
+            const shapeIndex = aiTrainer.selectShapeIndex();
+            return create(shapeIndex);
+        }
+
+        function rotate(piece) {
+            const originalShape = piece.shape;
+            const size = originalShape.length;
+            const rotated = Array.from({ length: size }, () => Array(size).fill(0));
+
+            // Rotate 90 degrees clockwise
+            for (let y = 0; y < size; y++) {
+                for (let x = 0; x < size; x++) {
+                    rotated[x][size - 1 - y] = originalShape[y][x];
+                }
+            }
+
+            return rotated;
+        }
+
+        return { create, getAdaptive, rotate };
+    })();
+
+    // Generate a random tetromino (wrapper for backward compatibility)
     function createPiece(shapeIndex) {
-        const template = SHAPES[shapeIndex];
-        const shape = template.map((row) => row.slice());
-        return {
-            shape,
-            color: COLORS[shapeIndex],
-            shapeIndex,
-            x: Math.floor(COLS / 2) - Math.floor(template[0].length / 2),
-            y: 0
-        };
+        return PieceModule.create(shapeIndex);
     }
 
     function getAdaptivePiece() {
-        const shapeIndex = aiTrainer.selectShapeIndex();
-        return createPiece(shapeIndex);
+        return PieceModule.getAdaptive();
     }
     
-    // Draw a single square on the game board
+    // Renderer Module - handles all drawing operations
+    const Renderer = (() => {
+        function drawBlock(x, y, color, context = null) {
+            const ctx_to_use = context || ctx;
+            ctx_to_use.fillStyle = color;
+            ctx_to_use.fillRect(x * BLOCK_SIZE, y * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE);
+            ctx_to_use.strokeStyle = '#000';
+            ctx_to_use.strokeRect(x * BLOCK_SIZE, y * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE);
+        }
+
+        function drawPiece(piece, context = null) {
+            const ctx_to_use = context || ctx;
+            piece.shape.forEach((row, y) => {
+                row.forEach((value, x) => {
+                    if (value) {
+                        drawBlock(piece.x + x, piece.y + y, piece.color, ctx_to_use);
+                    }
+                });
+            });
+        }
+
+        function drawNextPiece(piece) {
+            nextPieceCtx.clearRect(0, 0, nextPieceCanvas.width, nextPieceCanvas.height);
+            
+            // Center the piece in the preview canvas
+            const offsetX = (nextPieceCanvas.width / BLOCK_SIZE - piece.shape[0].length) / 2;
+            const offsetY = (nextPieceCanvas.height / BLOCK_SIZE - piece.shape.length) / 2;
+            
+            piece.shape.forEach((row, y) => {
+                row.forEach((value, x) => {
+                    if (value) {
+                        drawBlock(offsetX + x, offsetY + y, piece.color, nextPieceCtx);
+                    }
+                });
+            });
+        }
+
+        function drawBoard(boardState) {
+            boardState.forEach((row, y) => {
+                row.forEach((value, x) => {
+                    if (value) {
+                        drawBlock(x, y, COLORS[value - 1]);
+                    }
+                });
+            });
+        }
+
+        function drawGrid(enableGrid) {
+            if (!enableGrid) return;
+            
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+            ctx.lineWidth = 0.5;
+            
+            // Vertical lines
+            for (let i = 0; i <= COLS; i++) {
+                ctx.beginPath();
+                ctx.moveTo(i * BLOCK_SIZE, 0);
+                ctx.lineTo(i * BLOCK_SIZE, canvas.height);
+                ctx.stroke();
+            }
+            
+            // Horizontal lines
+            for (let i = 0; i <= ROWS; i++) {
+                ctx.beginPath();
+                ctx.moveTo(0, i * BLOCK_SIZE);
+                ctx.lineTo(canvas.width, i * BLOCK_SIZE);
+                ctx.stroke();
+            }
+        }
+
+        function clear() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        return { drawBlock, drawPiece, drawNextPiece, drawBoard, drawGrid, clear };
+    })();
+
+    // Draw a single square on the game board (wrapper for backward compatibility)
     function drawBlock(x, y, color, context = null) {
-        const ctx_to_use = context || ctx;
-        ctx_to_use.fillStyle = color;
-        ctx_to_use.fillRect(x * BLOCK_SIZE, y * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE);
-        ctx_to_use.strokeStyle = '#000';
-        ctx_to_use.strokeRect(x * BLOCK_SIZE, y * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE);
+        Renderer.drawBlock(x, y, color, context);
     }
     
     // Draw the current piece on the game board
     function drawPiece(piece, context = null) {
-        const ctx_to_use = context || ctx;
-        piece.shape.forEach((row, y) => {
-            row.forEach((value, x) => {
-                if (value) {
-                    drawBlock(piece.x + x, piece.y + y, piece.color, ctx_to_use);
-                }
-            });
-        });
+        Renderer.drawPiece(piece, context);
     }
     
     // Draw the next piece preview
     function drawNextPiece() {
-        nextPieceCtx.clearRect(0, 0, nextPieceCanvas.width, nextPieceCanvas.height);
-        
-        // Center the piece in the preview canvas
-        const offsetX = (nextPieceCanvas.width / BLOCK_SIZE - nextPiece.shape[0].length) / 2;
-        const offsetY = (nextPieceCanvas.height / BLOCK_SIZE - nextPiece.shape.length) / 2;
-        
-        nextPiece.shape.forEach((row, y) => {
-            row.forEach((value, x) => {
-                if (value) {
-                    drawBlock(offsetX + x, offsetY + y, nextPiece.color, nextPieceCtx);
-                }
-            });
-        });
+        Renderer.drawNextPiece(nextPiece);
     }
     
     // Draw the game board
     function drawBoard() {
-        board.forEach((row, y) => {
-            row.forEach((value, x) => {
-                if (value) {
-                    drawBlock(x, y, COLORS[value - 1]);
-                }
-            });
-        });
+        Renderer.drawBoard(board);
     }
     
     // Draw grid lines
     function drawGrid() {
-        if (!showGrid) return;
-        
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
-        ctx.lineWidth = 0.5;
-        
-        // Vertical lines
-        for (let i = 0; i <= COLS; i++) {
-            ctx.beginPath();
-            ctx.moveTo(i * BLOCK_SIZE, 0);
-            ctx.lineTo(i * BLOCK_SIZE, canvas.height);
-            ctx.stroke();
-        }
-        
-        // Horizontal lines
-        for (let i = 0; i <= ROWS; i++) {
-            ctx.beginPath();
-            ctx.moveTo(0, i * BLOCK_SIZE);
-            ctx.lineTo(canvas.width, i * BLOCK_SIZE);
-            ctx.stroke();
-        }
-    }
-
-    function computeBoardMetrics(boardState) {
-        const heights = Array(COLS).fill(0);
-        const holes = Array(COLS).fill(0);
-
-        for (let x = 0; x < COLS; x++) {
-            let seenBlock = false;
-            let columnHeight = 0;
-            for (let y = 0; y < ROWS; y++) {
-                if (boardState[y][x]) {
-                    if (!seenBlock) {
-                        columnHeight = ROWS - y;
-                        seenBlock = true;
-                    }
-                } else if (seenBlock) {
-                    holes[x]++;
-                }
-            }
-            heights[x] = columnHeight;
-        }
-
-        const totalHoles = holes.reduce((sum, value) => sum + value, 0);
-        const maxHeight = heights.reduce((max, value) => Math.max(max, value), 0);
-        const aggregateHeight = heights.reduce((sum, value) => sum + value, 0);
-        let bumpiness = 0;
-        for (let x = 0; x < COLS - 1; x++) {
-            bumpiness += Math.abs(heights[x] - heights[x + 1]);
-        }
-
-        return {
-            heights,
-            holes,
-            totalHoles,
-            maxHeight,
-            aggregateHeight,
-            bumpiness
-        };
+        Renderer.drawGrid(showGrid);
     }
 
     function createAdaptiveEngine() {
@@ -293,7 +415,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         function resetForNewGame(boardState) {
-            lastMetrics = computeBoardMetrics(boardState);
+            lastMetrics = BoardModule.computeMetrics(boardState);
             recentHighlights = [];
             sessionHolesByShape = Array(SHAPES.length).fill(0);
         }
@@ -558,35 +680,12 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Check if the current piece collides with anything
     function checkCollision(piece, offsetX = 0, offsetY = 0) {
-        return piece.shape.some((row, y) => {
-            return row.some((value, x) => {
-                if (!value) return false;
-                const nextX = piece.x + x + offsetX;
-                const nextY = piece.y + y + offsetY;
-                
-                return (
-                    nextX < 0 ||
-                    nextX >= COLS ||
-                    nextY >= ROWS ||
-                    (nextY >= 0 && board[nextY][nextX])
-                );
-            });
-        });
+        return !BoardModule.isValidPosition(piece, board, offsetX, offsetY);
     }
     
     // Merge the current piece with the board
     function mergePiece() {
-        currentPiece.shape.forEach((row, y) => {
-            row.forEach((value, x) => {
-                if (value) {
-                    const boardY = currentPiece.y + y;
-                    const boardX = currentPiece.x + x;
-                    if (boardY >= 0) {
-                        board[boardY][boardX] = COLORS.indexOf(currentPiece.color) + 1;
-                    }
-                }
-            });
-        });
+        BoardModule.mergePieceInto(board, currentPiece);
     }
     
     // Move the current piece down
@@ -594,10 +693,10 @@ document.addEventListener('DOMContentLoaded', () => {
         currentPiece.y++;
         if (checkCollision(currentPiece)) {
             currentPiece.y--;
-            const beforeMetrics = computeBoardMetrics(board);
+            const beforeMetrics = BoardModule.computeMetrics(board);
             mergePiece();
             const linesCleared = clearLines();
-            const afterMetrics = computeBoardMetrics(board);
+            const afterMetrics = BoardModule.computeMetrics(board);
             if (typeof currentPiece.shapeIndex === 'number') {
                 aiTrainer.registerPlacement(currentPiece.shapeIndex, beforeMetrics, afterMetrics, linesCleared);
                 updateAiInsight(aiTrainer.getLiveHint());
@@ -626,19 +725,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // Rotate the current piece
     function rotatePiece() {
         const originalShape = currentPiece.shape;
-        const size = originalShape.length;
-        const rotated = Array.from({ length: size }, () => Array(size).fill(0));
-
-        // Rotate 90 degrees clockwise
-        for (let y = 0; y < size; y++) {
-            for (let x = 0; x < size; x++) {
-                rotated[x][size - 1 - y] = originalShape[y][x];
-            }
-        }
-
         const originalX = currentPiece.x;
-        currentPiece.shape = rotated;
+        currentPiece.shape = PieceModule.rotate(currentPiece);
 
+        const size = originalShape.length;
         const offsets = [0];
         for (let i = 1; i <= size; i++) {
             offsets.push(i, -i);
@@ -668,25 +758,12 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Clear completed lines and update score
     function clearLines() {
+        const linesToClear = BoardModule.findCompletedLines(board);
         let linesCleared = 0;
-        const linesToClear = [];
 
-        outer: for (let y = ROWS - 1; y >= 0; y--) {
-            for (let x = 0; x < COLS; x++) {
-                if (!board[y][x]) {
-                    continue outer;
-                }
-            }
-            linesToClear.push(y);
-            linesCleared++;
-        }
-
-        if (linesCleared > 0) {
+        if (linesToClear.length > 0) {
             // Remove completed lines
-            linesToClear.sort((a, b) => b - a).forEach(y => {
-                board.splice(y, 1);
-                board.unshift(Array(COLS).fill(0));
-            });
+            linesCleared = BoardModule.clearLines(board, linesToClear);
 
             lines += linesCleared;
 
@@ -785,7 +862,7 @@ document.addEventListener('DOMContentLoaded', () => {
             ctx.font = '20px Arial';
             ctx.fillText('Press Start or Enter to Play Again', canvas.width / 2, canvas.height / 2 + 40);
             startBtn.textContent = 'Play Again';
-            const finalMetrics = computeBoardMetrics(board);
+            const finalMetrics = BoardModule.computeMetrics(board);
             updateAiInsight(aiTrainer.getSummary(finalMetrics));
             
             // Handle AI vs AI mode game over
@@ -859,7 +936,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Draw everything
     function draw() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        Renderer.clear();
         drawGrid();
         drawBoard();
         if (currentPiece) {
@@ -886,32 +963,70 @@ document.addEventListener('DOMContentLoaded', () => {
         gameLoop = requestAnimationFrame(update);
     }
     
-    // Start the game
-    function startGame() {
-        board = createBoard();
-        score = 0;
-        lines = 0;
-        level = 1;
-        dropInterval = 1000;
-        gameOver = false;
-        isPaused = false;
-        currentPiece = null;
-        nextPiece = null;
-
-        aiTrainer.resetForNewGame(board);
-        updateScore();
-        updateAiInsight(aiTrainer.getLiveHint());
-        spawnPiece();
-        draw();
-
-        if (gameLoop) {
-            cancelAnimationFrame(gameLoop);
+    // GameLoop Module - manages game lifecycle
+    const GameLoopManager = (() => {
+        function reset() {
+            board = createBoard();
+            score = 0;
+            lines = 0;
+            level = 1;
+            dropInterval = 1000;
+            gameOver = false;
+            isPaused = false;
+            currentPiece = null;
+            nextPiece = null;
         }
 
-        lastTime = performance.now();
-        dropCounter = 0;
-        gameLoop = requestAnimationFrame(update);
-        startBtn.textContent = 'Restart';
+        function start(onStart, onReset) {
+            onReset();
+            aiTrainer.resetForNewGame(board);
+            updateScore();
+            updateAiInsight(aiTrainer.getLiveHint());
+            spawnPiece();
+            draw();
+
+            if (gameLoop) {
+                cancelAnimationFrame(gameLoop);
+            }
+
+            lastTime = performance.now();
+            dropCounter = 0;
+            gameLoop = requestAnimationFrame(update);
+            onStart();
+        }
+
+        function pause(isPaused) {
+            if (isPaused) {
+                cancelAnimationFrame(gameLoop);
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = 'white';
+                ctx.font = '30px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('PAUSED', canvas.width / 2, canvas.height / 2);
+                ctx.font = '20px Arial';
+                ctx.fillText('Press P to Resume', canvas.width / 2, canvas.height / 2 + 40);
+            } else {
+                lastTime = performance.now();
+                gameLoop = requestAnimationFrame(update);
+            }
+        }
+
+        function stop() {
+            if (gameLoop) {
+                cancelAnimationFrame(gameLoop);
+            }
+        }
+
+        return { reset, start, pause, stop };
+    })();
+
+    // Start the game
+    function startGame() {
+        GameLoopManager.start(
+            () => { startBtn.textContent = 'Restart'; },
+            () => { GameLoopManager.reset(); }
+        );
     }
     
     // Pause the game
@@ -919,153 +1034,167 @@ document.addEventListener('DOMContentLoaded', () => {
         if (gameOver) return;
 
         isPaused = !isPaused;
-        if (isPaused) {
-            cancelAnimationFrame(gameLoop);
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = 'white';
-            ctx.font = '30px Arial';
-            ctx.textAlign = 'center';
-            ctx.fillText('PAUSED', canvas.width / 2, canvas.height / 2);
-            ctx.font = '20px Arial';
-            ctx.fillText('Press P to Resume', canvas.width / 2, canvas.height / 2 + 40);
-        } else {
-            lastTime = performance.now();
-            gameLoop = requestAnimationFrame(update);
-        }
+        GameLoopManager.pause(isPaused);
     }
     
-    // Handle keyboard input
-    document.addEventListener('keydown', (e) => {
-        // Allow starting the game with Enter or Space when game is over
-        if (gameOver && (e.key === 'Enter' || e.key === ' ')) {
-            e.preventDefault();
-            startGame();
-            return;
-        }
-        
-        // Block other controls when game is over
-        if (gameOver) return;
-        
-        // Block movement controls when game is not active (no current piece and not game over)
-        if (!currentPiece && !gameOver && ['ArrowLeft', 'ArrowRight', 'ArrowDown', 'ArrowUp', ' '].includes(e.key)) {
-            return;
-        }
-        
-        // If game is paused, only allow unpause
-        if (isPaused && e.key !== 'p' && e.key !== 'P') {
-            return;
-        }
-        
-        switch (e.key) {
-            case 'ArrowLeft':
-                movePieceLeft();
-                draw();
-                break;
-            case 'ArrowRight':
-                movePieceRight();
-                draw();
-                break;
-            case 'ArrowDown':
-                movePieceDown();
-                score++;
-                updateScore();
-                draw();
-                break;
-            case 'ArrowUp':
-                rotatePiece();
-                draw();
-                break;
-            case ' ':
-                e.preventDefault(); // Prevent page scrolling
-                hardDrop();
-                break;
-            case 'p':
-            case 'P':
-                togglePause();
-                break;
-            case 'g':
-            case 'G':
-                toggleGrid();
-                break;
-            case 't':
-            case 'T':
-                if (aiVsAiMode) {
-                    takeControl();
-                }
-                break;
-            case 'Enter':
-            case 's':
-            case 'S':
-                if (!currentPiece && !gameOver) {
-                    startGame();
-                }
-                break;
-        }
-    });
+    // InputManager Module - handles keyboard and touch input
+    const InputManager = (() => {
+        const minSwipeDistance = 30;
+        let touchStartX = 0;
+        let touchStartY = 0;
 
-    // Touch controls for mobile
-    let touchStartX = 0;
-    let touchStartY = 0;
-    let touchEndX = 0;
-    let touchEndY = 0;
-    const minSwipeDistance = 30;
-    
-    canvas.addEventListener('touchstart', (e) => {
-        if (gameOver || isPaused || !currentPiece) return;
-        e.preventDefault();
-        
-        const touch = e.touches[0];
-        touchStartX = touch.clientX;
-        touchStartY = touch.clientY;
-    }, { passive: false });
-    
-    canvas.addEventListener('touchmove', (e) => {
-        e.preventDefault();
-    }, { passive: false });
-    
-    canvas.addEventListener('touchend', (e) => {
-        if (gameOver || isPaused || !currentPiece) return;
-        e.preventDefault();
-        
-        const touch = e.changedTouches[0];
-        touchEndX = touch.clientX;
-        touchEndY = touch.clientY;
-        
-        const deltaX = touchEndX - touchStartX;
-        const deltaY = touchEndY - touchStartY;
-        const absDeltaX = Math.abs(deltaX);
-        const absDeltaY = Math.abs(deltaY);
-        
-        // Swipe detection
-        if (absDeltaX > minSwipeDistance || absDeltaY > minSwipeDistance) {
-            if (absDeltaX > absDeltaY) {
-                // Horizontal swipe
-                if (deltaX > 0) {
-                    movePieceRight();
+        function handleKeydown(e, callbacks) {
+            // Allow starting the game with Enter or Space when game is over
+            if (callbacks.isGameOver && (e.key === 'Enter' || e.key === ' ')) {
+                e.preventDefault();
+                callbacks.onStart();
+                return;
+            }
+            
+            // Block other controls when game is over
+            if (callbacks.isGameOver) return;
+            
+            // Block movement controls when game is not active
+            if (!callbacks.hasCurrentPiece && !callbacks.isGameOver && ['ArrowLeft', 'ArrowRight', 'ArrowDown', 'ArrowUp', ' '].includes(e.key)) {
+                return;
+            }
+            
+            // If game is paused, only allow unpause
+            if (callbacks.isPaused && e.key !== 'p' && e.key !== 'P') {
+                return;
+            }
+            
+            switch (e.key) {
+                case 'ArrowLeft':
+                    callbacks.onMoveLeft();
+                    break;
+                case 'ArrowRight':
+                    callbacks.onMoveRight();
+                    break;
+                case 'ArrowDown':
+                    callbacks.onMoveDown();
+                    break;
+                case 'ArrowUp':
+                    callbacks.onRotate();
+                    break;
+                case ' ':
+                    e.preventDefault();
+                    callbacks.onHardDrop();
+                    break;
+                case 'p':
+                case 'P':
+                    callbacks.onTogglePause();
+                    break;
+                case 'g':
+                case 'G':
+                    callbacks.onToggleGrid();
+                    break;
+                case 't':
+                case 'T':
+                    if (callbacks.isAiVsAiMode) {
+                        callbacks.onTakeControl();
+                    }
+                    break;
+                case 'Enter':
+                case 's':
+                case 'S':
+                    if (!callbacks.hasCurrentPiece && !callbacks.isGameOver) {
+                        callbacks.onStart();
+                    }
+                    break;
+            }
+        }
+
+        function handleTouchStart(e, isActive) {
+            if (!isActive) return;
+            e.preventDefault();
+            const touch = e.touches[0];
+            touchStartX = touch.clientX;
+            touchStartY = touch.clientY;
+        }
+
+        function handleTouchMove(e) {
+            e.preventDefault();
+        }
+
+        function handleTouchEnd(e, isActive, callbacks) {
+            if (!isActive) return;
+            e.preventDefault();
+            
+            const touch = e.changedTouches[0];
+            const touchEndX = touch.clientX;
+            const touchEndY = touch.clientY;
+            
+            const deltaX = touchEndX - touchStartX;
+            const deltaY = touchEndY - touchStartY;
+            const absDeltaX = Math.abs(deltaX);
+            const absDeltaY = Math.abs(deltaY);
+            
+            // Swipe detection
+            if (absDeltaX > minSwipeDistance || absDeltaY > minSwipeDistance) {
+                if (absDeltaX > absDeltaY) {
+                    // Horizontal swipe
+                    if (deltaX > 0) {
+                        callbacks.onMoveRight();
+                    } else {
+                        callbacks.onMoveLeft();
+                    }
                 } else {
-                    movePieceLeft();
+                    // Vertical swipe
+                    if (deltaY > 0) {
+                        callbacks.onHardDrop();
+                    }
                 }
             } else {
-                // Vertical swipe
-                if (deltaY > 0) {
-                    // Swipe down - hard drop
-                    hardDrop();
-                }
+                // Tap - rotate piece
+                callbacks.onRotate();
             }
-        } else {
-            // Tap - rotate piece
-            rotatePiece();
         }
-        
-        draw();
+
+        return { handleKeydown, handleTouchStart, handleTouchMove, handleTouchEnd };
+    })();
+
+    // Register input handlers
+    document.addEventListener('keydown', (e) => {
+        InputManager.handleKeydown(e, {
+            isGameOver: gameOver,
+            hasCurrentPiece: !!currentPiece,
+            isPaused: isPaused,
+            isAiVsAiMode: aiVsAiMode,
+            onStart: startGame,
+            onMoveLeft: () => { movePieceLeft(); draw(); },
+            onMoveRight: () => { movePieceRight(); draw(); },
+            onMoveDown: () => { movePieceDown(); score++; updateScore(); draw(); },
+            onRotate: () => { rotatePiece(); draw(); },
+            onHardDrop: hardDrop,
+            onTogglePause: togglePause,
+            onToggleGrid: toggleGrid,
+            onTakeControl: takeControl
+        });
+    });
+
+    canvas.addEventListener('touchstart', (e) => {
+        InputManager.handleTouchStart(e, !gameOver && !isPaused && currentPiece);
+    }, { passive: false });
+
+    canvas.addEventListener('touchmove', (e) => {
+        InputManager.handleTouchMove(e);
+    }, { passive: false });
+
+    canvas.addEventListener('touchend', (e) => {
+        InputManager.handleTouchEnd(e, !gameOver && !isPaused && currentPiece, {
+            onMoveLeft: () => { movePieceLeft(); draw(); },
+            onMoveRight: () => { movePieceRight(); draw(); },
+            onHardDrop: hardDrop,
+            onRotate: () => { rotatePiece(); draw(); }
+        });
     }, { passive: false });
 
     // AI vs AI Mode Functions
     
     // AI Strategy: Evaluate board position and return score
     function evaluatePosition(testBoard, aiPlayerNum) {
-        const metrics = computeBoardMetrics(testBoard);
+        const metrics = BoardModule.computeMetrics(testBoard);
         
         // Different strategies for AI 1 (aggressive) vs AI 2 (defensive)
         if (aiPlayerNum === 1) {
