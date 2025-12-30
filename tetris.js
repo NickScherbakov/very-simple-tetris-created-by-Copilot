@@ -1,30 +1,22 @@
-// Tetris Game
+// Tetris Game - Modular Architecture
+import { BoardModule } from './js/modules/core/BoardModule.js';
+import { PieceModule } from './js/modules/core/PieceModule.js';
+import { GameLoopManager } from './js/modules/core/GameLoopManager.js';
+import { Renderer } from './js/modules/rendering/Renderer.js';
+import { InputManager } from './js/modules/input/InputManager.js';
+import { createAdaptiveEngine } from './js/modules/ai/AdaptiveEngine.js';
+import { AiVsAi } from './js/modules/ai/AiVsAi.js';
+import { ScoringSystem } from './js/modules/game/ScoringSystem.js';
+import { UIController } from './js/modules/game/UIController.js';
+
 document.addEventListener('DOMContentLoaded', () => {
     // Game constants
-    const COLS = 10;
-    const ROWS = 20;
     const BLOCK_SIZE = 30;
-    const COLORS = [
-        'cyan',   // I
-        'blue',   // J
-        'orange', // L
-        'yellow', // O
-        'green',  // S
-        'purple', // T
-        'red'     // Z
-    ];
-    const SHAPE_NAMES = ['I', 'J', 'L', 'O', 'S', 'T', 'Z'];
-    
-    // Tetromino shapes (I, J, L, O, S, T, Z)
-    const SHAPES = [
-        [[0, 0, 0, 0], [1, 1, 1, 1], [0, 0, 0, 0], [0, 0, 0, 0]], // I
-        [[1, 0, 0], [1, 1, 1], [0, 0, 0]],                         // J
-        [[0, 0, 1], [1, 1, 1], [0, 0, 0]],                         // L
-        [[1, 1], [1, 1]],                                          // O
-        [[0, 1, 1], [1, 1, 0], [0, 0, 0]],                         // S
-        [[0, 1, 0], [1, 1, 1], [0, 0, 0]],                         // T
-        [[1, 1, 0], [0, 1, 1], [0, 0, 0]]                          // Z
-    ];
+    const STORAGE_KEYS = {
+        highScore: 'tetrisHighScore',
+        grid: 'tetrisShowGrid',
+        aiState: 'tetrisAiStateV1'
+    };
     
     // Get canvases and contexts
     const canvas = document.getElementById('tetris-canvas');
@@ -33,39 +25,33 @@ document.addEventListener('DOMContentLoaded', () => {
     const nextPieceCtx = nextPieceCanvas.getContext('2d');
     
     // Get DOM elements
-    const scoreElement = document.getElementById('score');
-    const highScoreElement = document.getElementById('high-score');
-    const levelElement = document.getElementById('level');
-    const linesElement = document.getElementById('lines');
-    const startBtn = document.getElementById('start-btn');
-    const gridToggleBtn = document.getElementById('grid-toggle');
-    const aiSummaryElement = document.getElementById('ai-summary');
-    const aiInsightContainer = document.querySelector('.ai-insight');
-    const aiVsAiBtn = document.getElementById('ai-vs-ai-btn');
-    const aiVsAiPanel = document.getElementById('ai-vs-ai-panel');
-    const ai1ThinkingElement = document.getElementById('ai1-thinking');
-    const ai1PlanElement = document.getElementById('ai1-plan');
-    const ai2ThinkingElement = document.getElementById('ai2-thinking');
-    const ai2PlanElement = document.getElementById('ai2-plan');
-    const takeControlBtn = document.getElementById('take-control-btn');
-    const exitAiModeBtn = document.getElementById('exit-ai-mode-btn');
-    const currentTurnElement = document.getElementById('current-turn');
-    
-    // New UI elements for PWA features
-    const balanceElement = document.getElementById('tetricoins-balance');
-    const tournamentBtn = document.getElementById('tournament-btn');
-    const achievementsBtn = document.getElementById('achievements-btn');
-    const shareBtn = document.getElementById('share-btn');
-    const achievementsModal = document.getElementById('achievements-modal');
-    const closeAchievementsBtn = document.getElementById('close-achievements');
-
-    const STORAGE_KEYS = {
-        highScore: 'tetrisHighScore',
-        grid: 'tetrisShowGrid',
-        aiState: 'tetrisAiStateV1'
+    const elements = {
+        scoreElement: document.getElementById('score'),
+        highScoreElement: document.getElementById('high-score'),
+        levelElement: document.getElementById('level'),
+        linesElement: document.getElementById('lines'),
+        startBtn: document.getElementById('start-btn'),
+        gridToggleBtn: document.getElementById('grid-toggle'),
+        aiSummaryElement: document.getElementById('ai-summary'),
+        aiInsightContainer: document.querySelector('.ai-insight'),
+        aiVsAiBtn: document.getElementById('ai-vs-ai-btn'),
+        aiVsAiPanel: document.getElementById('ai-vs-ai-panel'),
+        ai1ThinkingElement: document.getElementById('ai1-thinking'),
+        ai1PlanElement: document.getElementById('ai1-plan'),
+        ai2ThinkingElement: document.getElementById('ai2-thinking'),
+        ai2PlanElement: document.getElementById('ai2-plan'),
+        takeControlBtn: document.getElementById('take-control-btn'),
+        exitAiModeBtn: document.getElementById('exit-ai-mode-btn'),
+        currentTurnElement: document.getElementById('current-turn'),
+        balanceElement: document.getElementById('tetricoins-balance'),
+        tournamentBtn: document.getElementById('tournament-btn'),
+        achievementsBtn: document.getElementById('achievements-btn'),
+        shareBtn: document.getElementById('share-btn'),
+        achievementsModal: document.getElementById('achievements-modal'),
+        closeAchievementsBtn: document.getElementById('close-achievements')
     };
     
-    // Game variables
+    // Game state variables
     let board = null;
     let currentPiece = null;
     let nextPiece = null;
@@ -76,25 +62,14 @@ document.addEventListener('DOMContentLoaded', () => {
     let gameOver = false;
     let isPaused = false;
     let dropInterval = 1000;
-    let dropCounter = 0;
-    let lastTime = 0;
-    let gameLoop = null;
-    let showGrid = true;  // Новая переменная для отображения сетки
-
-    const aiTrainer = createAdaptiveEngine();
+    let showGrid = true;
+    let consecutiveTetris = 0;
+    let lastLinesClearedWas4 = false;
     
     // AI vs AI mode variables
     let aiVsAiMode = false;
-    let currentAiPlayer = 1; // 1 or 2
-    let aiPlayer1 = null;
-    let aiPlayer2 = null;
+    let currentAiPlayer = 1;
     let playerTakingControl = false;
-    
-    // Betting and tournament variables
-    let bettingEnabled = false;
-    let currentBet = null;
-    let tournamentMode = false;
-    let tournamentMatchCount = 0;
     let matchStats = {
         ai1Score: 0,
         ai2Score: 0,
@@ -102,661 +77,216 @@ document.addEventListener('DOMContentLoaded', () => {
         firstToReach1000: null
     };
     
-    // Achievement tracking
-    let consecutiveTetris = 0;
-    let lastLinesClearedWas4 = false;
-    
-    // Board Module - handles game board state
-    const BoardModule = (() => {
-        function createEmpty() {
-            return Array.from({ length: ROWS }, () => Array(COLS).fill(0));
-        }
+    // Betting and tournament variables
+    let bettingEnabled = false;
+    let currentBet = null;
+    let tournamentMode = false;
+    let tournamentMatchCount = 0;
 
-        function isValidPosition(piece, boardState, offsetX = 0, offsetY = 0) {
-            return !piece.shape.some((row, y) => {
-                return row.some((value, x) => {
-                    if (!value) return false;
-                    const nextX = piece.x + x + offsetX;
-                    const nextY = piece.y + y + offsetY;
-                    
-                    return (
-                        nextX < 0 ||
-                        nextX >= COLS ||
-                        nextY >= ROWS ||
-                        (nextY >= 0 && boardState[nextY][nextX])
-                    );
-                });
-            });
-        }
+    // Initialize modules
+    Renderer.initialize({
+        ctx,
+        canvas,
+        nextPieceCtx,
+        nextPieceCanvas,
+        blockSize: BLOCK_SIZE,
+        colors: PieceModule.COLORS
+    });
 
-        function mergePieceInto(boardState, piece) {
-            piece.shape.forEach((row, y) => {
-                row.forEach((value, x) => {
-                    if (value) {
-                        const boardY = piece.y + y;
-                        const boardX = piece.x + x;
-                        if (boardY >= 0) {
-                            boardState[boardY][boardX] = COLORS.indexOf(piece.color) + 1;
-                        }
-                    }
-                });
-            });
-        }
+    AiVsAi.initialize({
+        boardModule: BoardModule,
+        colors: PieceModule.COLORS,
+        cols: BoardModule.COLS,
+        rows: BoardModule.ROWS
+    });
 
-        function findCompletedLines(boardState) {
-            const linesToClear = [];
-            outer: for (let y = ROWS - 1; y >= 0; y--) {
-                for (let x = 0; x < COLS; x++) {
-                    if (!boardState[y][x]) {
-                        continue outer;
-                    }
-                }
-                linesToClear.push(y);
-            }
-            return linesToClear;
-        }
+    const aiTrainer = createAdaptiveEngine(
+        BoardModule,
+        PieceModule.SHAPE_NAMES,
+        STORAGE_KEYS.aiState
+    );
 
-        function clearLines(boardState, linesToClear) {
-            let linesCleared = 0;
-            if (linesToClear.length > 0) {
-                linesToClear.sort((a, b) => b - a).forEach(y => {
-                    boardState.splice(y, 1);
-                    boardState.unshift(Array(COLS).fill(0));
-                });
-                linesCleared = linesToClear.length;
-            }
-            return linesCleared;
-        }
+    const uiController = UIController.create(elements);
 
-        function computeMetrics(boardState) {
-            const heights = Array(COLS).fill(0);
-            const holes = Array(COLS).fill(0);
-
-            for (let x = 0; x < COLS; x++) {
-                let seenBlock = false;
-                let columnHeight = 0;
-                for (let y = 0; y < ROWS; y++) {
-                    if (boardState[y][x]) {
-                        if (!seenBlock) {
-                            columnHeight = ROWS - y;
-                            seenBlock = true;
-                        }
-                    } else if (seenBlock) {
-                        holes[x]++;
-                    }
-                }
-                heights[x] = columnHeight;
-            }
-
-            const totalHoles = holes.reduce((sum, value) => sum + value, 0);
-            const maxHeight = heights.reduce((max, value) => Math.max(max, value), 0);
-            const aggregateHeight = heights.reduce((sum, value) => sum + value, 0);
-            let bumpiness = 0;
-            for (let x = 0; x < COLS - 1; x++) {
-                bumpiness += Math.abs(heights[x] - heights[x + 1]);
-            }
-
-            return {
-                heights,
-                holes,
-                totalHoles,
-                maxHeight,
-                aggregateHeight,
-                bumpiness
-            };
-        }
-
-        return { createEmpty, isValidPosition, mergePieceInto, findCompletedLines, clearLines, computeMetrics };
-    })();
-    
-    // Create empty game board
+    // Create game board
     function createBoard() {
         return BoardModule.createEmpty();
     }
-    
-    // Piece Module - handles tetromino management
-    const PieceModule = (() => {
-        function create(shapeIndex) {
-            const template = SHAPES[shapeIndex];
-            const shape = template.map((row) => row.slice());
-            return {
-                shape,
-                color: COLORS[shapeIndex],
-                shapeIndex,
-                x: Math.floor(COLS / 2) - Math.floor(template[0].length / 2),
-                y: 0
-            };
-        }
 
-        function getAdaptive() {
-            const shapeIndex = aiTrainer.selectShapeIndex();
-            return create(shapeIndex);
-        }
-
-        function rotate(piece) {
-            const originalShape = piece.shape;
-            const size = originalShape.length;
-            const rotated = Array.from({ length: size }, () => Array(size).fill(0));
-
-            // Rotate 90 degrees clockwise
-            for (let y = 0; y < size; y++) {
-                for (let x = 0; x < size; x++) {
-                    rotated[x][size - 1 - y] = originalShape[y][x];
-                }
-            }
-
-            return rotated;
-        }
-
-        return { create, getAdaptive, rotate };
-    })();
-
-    // Generate a random tetromino (wrapper for backward compatibility)
+    // Create piece functions
     function createPiece(shapeIndex) {
-        return PieceModule.create(shapeIndex);
+        return PieceModule.create(shapeIndex, BoardModule.COLS);
     }
 
     function getAdaptivePiece() {
-        return PieceModule.getAdaptive();
-    }
-    
-    // Renderer Module - handles all drawing operations
-    const Renderer = (() => {
-        function drawBlock(x, y, color, context = null) {
-            const ctx_to_use = context || ctx;
-            ctx_to_use.fillStyle = color;
-            ctx_to_use.fillRect(x * BLOCK_SIZE, y * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE);
-            ctx_to_use.strokeStyle = '#000';
-            ctx_to_use.strokeRect(x * BLOCK_SIZE, y * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE);
-        }
-
-        function drawPiece(piece, context = null) {
-            const ctx_to_use = context || ctx;
-            piece.shape.forEach((row, y) => {
-                row.forEach((value, x) => {
-                    if (value) {
-                        drawBlock(piece.x + x, piece.y + y, piece.color, ctx_to_use);
-                    }
-                });
-            });
-        }
-
-        function drawNextPiece(piece) {
-            nextPieceCtx.clearRect(0, 0, nextPieceCanvas.width, nextPieceCanvas.height);
-            
-            // Center the piece in the preview canvas
-            const offsetX = (nextPieceCanvas.width / BLOCK_SIZE - piece.shape[0].length) / 2;
-            const offsetY = (nextPieceCanvas.height / BLOCK_SIZE - piece.shape.length) / 2;
-            
-            piece.shape.forEach((row, y) => {
-                row.forEach((value, x) => {
-                    if (value) {
-                        drawBlock(offsetX + x, offsetY + y, piece.color, nextPieceCtx);
-                    }
-                });
-            });
-        }
-
-        function drawBoard(boardState) {
-            boardState.forEach((row, y) => {
-                row.forEach((value, x) => {
-                    if (value) {
-                        drawBlock(x, y, COLORS[value - 1]);
-                    }
-                });
-            });
-        }
-
-        function drawGrid(enableGrid) {
-            if (!enableGrid) return;
-            
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
-            ctx.lineWidth = 0.5;
-            
-            // Vertical lines
-            for (let i = 0; i <= COLS; i++) {
-                ctx.beginPath();
-                ctx.moveTo(i * BLOCK_SIZE, 0);
-                ctx.lineTo(i * BLOCK_SIZE, canvas.height);
-                ctx.stroke();
-            }
-            
-            // Horizontal lines
-            for (let i = 0; i <= ROWS; i++) {
-                ctx.beginPath();
-                ctx.moveTo(0, i * BLOCK_SIZE);
-                ctx.lineTo(canvas.width, i * BLOCK_SIZE);
-                ctx.stroke();
-            }
-        }
-
-        function clear() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-        }
-
-        return { drawBlock, drawPiece, drawNextPiece, drawBoard, drawGrid, clear };
-    })();
-
-    // Draw a single square on the game board (wrapper for backward compatibility)
-    function drawBlock(x, y, color, context = null) {
-        Renderer.drawBlock(x, y, color, context);
-    }
-    
-    // Draw the current piece on the game board
-    function drawPiece(piece, context = null) {
-        Renderer.drawPiece(piece, context);
-    }
-    
-    // Draw the next piece preview
-    function drawNextPiece() {
-        Renderer.drawNextPiece(nextPiece);
-    }
-    
-    // Draw the game board
-    function drawBoard() {
-        Renderer.drawBoard(board);
-    }
-    
-    // Draw grid lines
-    function drawGrid() {
-        Renderer.drawGrid(showGrid);
+        const shapeIndex = aiTrainer.selectShapeIndex();
+        return createPiece(shapeIndex);
     }
 
-    function createAdaptiveEngine() {
-        const MIN_WEIGHT = 0.4;
-        const MAX_WEIGHT = 8;
-        const weights = Array(SHAPES.length).fill(1);
-        const holesByShape = Array(SHAPES.length).fill(0);
-    let sessionHolesByShape = Array(SHAPES.length).fill(0);
-        let totalTrackedMistakes = 0;
-        let recentHighlights = [];
-        let lastMetrics = null;
-
-        function loadFromStorage() {
-            try {
-                const raw = localStorage.getItem(STORAGE_KEYS.aiState);
-                if (!raw) {
-                    return;
-                }
-                const parsed = JSON.parse(raw);
-                if (Array.isArray(parsed.weights) && parsed.weights.length === SHAPES.length) {
-                    parsed.weights.forEach((value, index) => {
-                        const numeric = Number(value);
-                        if (Number.isFinite(numeric) && numeric > 0) {
-                            weights[index] = Math.min(MAX_WEIGHT, Math.max(MIN_WEIGHT, numeric));
-                        }
-                    });
-                }
-                if (Array.isArray(parsed.holesByShape) && parsed.holesByShape.length === SHAPES.length) {
-                    parsed.holesByShape.forEach((value, index) => {
-                        const numeric = Number(value);
-                        holesByShape[index] = Number.isFinite(numeric) && numeric > 0 ? numeric : 0;
-                    });
-                }
-                if (typeof parsed.totalTrackedMistakes === 'number' && parsed.totalTrackedMistakes >= 0) {
-                    totalTrackedMistakes = parsed.totalTrackedMistakes;
-                }
-            } catch (err) {
-                // Ignore corrupted state and fall back to defaults.
-            }
-        }
-
-        function persistState() {
-            try {
-                const payload = JSON.stringify({
-                    weights,
-                    holesByShape,
-                    totalTrackedMistakes
-                });
-                localStorage.setItem(STORAGE_KEYS.aiState, payload);
-            } catch (err) {
-                // Persistence is optional; ignore storage errors.
-            }
-        }
-
-        function resetForNewGame(boardState) {
-            lastMetrics = BoardModule.computeMetrics(boardState);
-            recentHighlights = [];
-            sessionHolesByShape = Array(SHAPES.length).fill(0);
-        }
-
-        function selectShapeIndex() {
-            const totalWeight = weights.reduce((sum, value) => sum + value, 0);
-            if (totalWeight <= 0) {
-                return Math.floor(Math.random() * SHAPES.length);
-            }
-            let threshold = Math.random() * totalWeight;
-            for (let i = 0; i < weights.length; i++) {
-                threshold -= weights[i];
-                if (threshold <= 0) {
-                    return i;
-                }
-            }
-            return weights.length - 1;
-        }
-
-        function registerPlacement(shapeIndex, beforeMetrics, afterMetrics, linesCleared) {
-            if (!beforeMetrics || !afterMetrics) {
-                return;
-            }
-
-            const insightReasons = [];
-            let positiveObservation = false;
-            const holesDelta = afterMetrics.totalHoles - beforeMetrics.totalHoles;
-            if (holesDelta > 0) {
-                const boost = holesDelta * 0.6 + 0.4;
-                weights[shapeIndex] = Math.min(MAX_WEIGHT, weights[shapeIndex] + boost);
-                holesByShape[shapeIndex] += holesDelta;
-                sessionHolesByShape[shapeIndex] += holesDelta;
-                totalTrackedMistakes += holesDelta;
-                insightReasons.push(`created ${holesDelta} new hole${holesDelta === 1 ? '' : 's'}`);
-                positiveObservation = true;
-            }
-
-            const maxHeightDelta = afterMetrics.maxHeight - beforeMetrics.maxHeight;
-            if (maxHeightDelta >= 3) {
-                const heightBoost = maxHeightDelta * 0.3;
-                weights[shapeIndex] = Math.min(MAX_WEIGHT, weights[shapeIndex] + heightBoost);
-                const tallestColumn = afterMetrics.heights.indexOf(afterMetrics.maxHeight);
-                if (tallestColumn >= 0) {
-                    insightReasons.push(`pushed column ${tallestColumn + 1} higher by ${maxHeightDelta}`);
-                    positiveObservation = true;
-                }
-            }
-
-            if (linesCleared > 0) {
-                const penalty = linesCleared > 1 ? linesCleared * 0.5 : 0.2;
-                weights[shapeIndex] = Math.max(MIN_WEIGHT, weights[shapeIndex] - penalty);
-            }
-
-            if (positiveObservation) {
-                recentHighlights.push({
-                    shapeIndex,
-                    reasons: insightReasons,
-                    afterMetrics: {
-                        maxHeight: afterMetrics.maxHeight,
-                        totalHoles: afterMetrics.totalHoles,
-                        heights: afterMetrics.heights.slice()
-                    }
-                });
-                if (recentHighlights.length > 6) {
-                    recentHighlights.shift();
-                }
-            }
-
-            lastMetrics = afterMetrics;
-            persistState();
-        }
-
-        function getLiveHint() {
-            const latest = recentHighlights[recentHighlights.length - 1];
-            if (!latest) {
-                return 'The adaptive engine is observing your moves.';
-            }
-            const reasonText = latest.reasons.join(' and ');
-            return `Recent pressure: more ${SHAPE_NAMES[latest.shapeIndex]} pieces because you ${reasonText}.`;
-        }
-
-        function getSummary(finalMetrics) {
-            const sessionMistakes = sessionHolesByShape.reduce((sum, value) => sum + value, 0);
-            const sentences = [];
-            if (sessionMistakes === 0) {
-                if (finalMetrics) {
-                    const columnIndex = finalMetrics.heights.indexOf(finalMetrics.maxHeight);
-                    const columnLabel = columnIndex >= 0 ? columnIndex + 1 : 'one column';
-                    sentences.push(`I could not exploit a repeating weakness, but your stack in column ${columnLabel} climbed to ${finalMetrics.maxHeight} blocks.`);
-                    if (finalMetrics.totalHoles > 0) {
-                        sentences.push(`Keeping ${finalMetrics.totalHoles} hidden hole${finalMetrics.totalHoles === 1 ? '' : 's'} made recovery harder.`);
-                    }
-                } else {
-                    sentences.push('I did not gather enough data to exploit a weakness this round.');
-                }
-                return sentences.join(' ');
-            }
-
-            const rankedShapes = sessionHolesByShape
-                .map((value, index) => ({ index, value }))
-                .filter((entry) => entry.value > 0)
-                .sort((a, b) => b.value - a.value);
-
-            if (rankedShapes.length > 0) {
-                const primary = rankedShapes[0];
-                sentences.push(`I boosted ${SHAPE_NAMES[primary.index]} pieces after they trapped ${primary.value} extra hole${primary.value === 1 ? '' : 's'}.`);
-                const secondary = rankedShapes[1];
-                if (secondary) {
-                    sentences.push(`I also leaned on ${SHAPE_NAMES[secondary.index]} pieces because they kept your board unstable.`);
-                }
-            }
-
-            const highlight = recentHighlights[recentHighlights.length - 1];
-            if (highlight) {
-                const columnIndex = highlight.afterMetrics.heights.indexOf(highlight.afterMetrics.maxHeight);
-                const columnLabel = columnIndex >= 0 ? columnIndex + 1 : 'a column';
-                sentences.push(`Near the end, extra ${SHAPE_NAMES[highlight.shapeIndex]} pieces ${highlight.reasons.join(' and ')} while column ${columnLabel} reached ${highlight.afterMetrics.maxHeight} blocks.`);
-            }
-
-            if (finalMetrics) {
-                const columnIndex = finalMetrics.heights.indexOf(finalMetrics.maxHeight);
-                const columnLabel = columnIndex >= 0 ? columnIndex + 1 : 'one column';
-                sentences.push(`You topped out with ${finalMetrics.totalHoles} hole${finalMetrics.totalHoles === 1 ? '' : 's'} and a skyline difference of ${finalMetrics.bumpiness}. Column ${columnLabel} was the first to break the ceiling.`);
-            }
-
-            return sentences.join(' ');
-        }
-
-        return {
-            loadFromStorage,
-            resetForNewGame,
-            selectShapeIndex,
-            registerPlacement,
-            getLiveHint,
-            getSummary
-        };
-    }
-
-    function updateHighScoreDisplay() {
-        if (highScoreElement) {
-            highScoreElement.textContent = highScore;
-        }
-    }
-
-    function updateAiInsight(message) {
-        if (aiSummaryElement) {
-            aiSummaryElement.textContent = message;
-        }
-    }
-
+    // Storage functions
     function persistHighScore() {
         try {
-            localStorage.setItem(STORAGE_KEYS.highScore, String(highScore));
+            localStorage.setItem(STORAGE_KEYS.highScore, highScore.toString());
         } catch (err) {
-            // localStorage might be unavailable; ignore persist errors.
+            // Ignore storage errors
         }
     }
 
     function persistGridPreference() {
         try {
-            localStorage.setItem(STORAGE_KEYS.grid, showGrid ? 'true' : 'false');
+            localStorage.setItem(STORAGE_KEYS.grid, showGrid ? '1' : '0');
         } catch (err) {
-            // Ignore storage errors; the preference simply will not persist.
+            // Ignore storage errors
         }
     }
 
     function loadPreferences() {
-        aiTrainer.loadFromStorage();
         try {
             const storedHighScore = localStorage.getItem(STORAGE_KEYS.highScore);
-            if (storedHighScore !== null) {
-                const parsedScore = parseInt(storedHighScore, 10);
-                if (!Number.isNaN(parsedScore)) {
-                    highScore = parsedScore;
-                }
+            if (storedHighScore) {
+                highScore = parseInt(storedHighScore, 10);
+                if (isNaN(highScore)) highScore = 0;
             }
+            uiController.updateHighScoreDisplay(highScore);
+
             const storedGrid = localStorage.getItem(STORAGE_KEYS.grid);
             if (storedGrid !== null) {
-                showGrid = storedGrid === 'true';
+                showGrid = storedGrid === '1';
             }
-        } catch (err) {
-            // Storage access failed; keep defaults in memory only.
-        }
+            uiController.updateGridButton(showGrid);
 
-        updateHighScoreDisplay();
-        if (gridToggleBtn) {
-            const lang = getCurrentLanguage ? getCurrentLanguage() : 'en';
-            gridToggleBtn.textContent = showGrid ? getTranslation('hide_grid', lang) : getTranslation('show_grid', lang);
+            aiTrainer.loadFromStorage();
+        } catch (err) {
+            // Ignore storage errors
         }
-        updateAiInsight(aiTrainer.getLiveHint());
-        
-        // Initialize balance display and check daily bonus
-        updateBalanceDisplay();
-        checkDailyBonus();
-        
-        // Check balance achievement
-        window.achievementSystem.checkBalanceAchievement(window.tetriCoins.getBalance());
     }
-    
-    // Update balance display
-    function updateBalanceDisplay() {
-        if (balanceElement) {
-            balanceElement.textContent = window.tetriCoins.formatCoins();
-        }
-        // Check for rich achievement
-        window.achievementSystem.checkBalanceAchievement(window.tetriCoins.getBalance());
-    }
-    
-    // Check and award daily bonus
+
     function checkDailyBonus() {
-        const gotBonus = window.tetriCoins.checkDailyBonus();
-        if (gotBonus) {
-            showMessage('🎁 Ежедневный бонус: +100 TC!');
-            updateBalanceDisplay();
+        if (window.tetriCoins) {
+            const bonus = window.tetriCoins.checkDailyBonus();
+            if (bonus > 0) {
+                uiController.showMessage(`Daily bonus: +${bonus} TC!`);
+                uiController.updateBalanceDisplay();
+            }
         }
     }
-    
-    // Show coin reward animation
-    function showCoinReward(amount) {
-        const msg = document.createElement('div');
-        msg.className = 'temp-message';
-        msg.textContent = `+${amount} TC`;
-        msg.style.color = '#ffd700';
-        msg.style.fontWeight = 'bold';
-        document.body.appendChild(msg);
-        
-        setTimeout(() => {
-            msg.classList.add('show');
-        }, 100);
-        
-        setTimeout(() => {
-            msg.classList.remove('show');
-            setTimeout(() => msg.remove(), 300);
-        }, 2000);
-    }
-    
-    // Show temporary message
-    function showMessage(message) {
-        const msg = document.createElement('div');
-        msg.className = 'temp-message';
-        msg.textContent = message;
-        document.body.appendChild(msg);
-        
-        setTimeout(() => {
-            msg.classList.add('show');
-        }, 100);
-        
-        setTimeout(() => {
-            msg.classList.remove('show');
-            setTimeout(() => msg.remove(), 300);
-        }, 3000);
-    }
-    
-    // Toggle grid visibility
-    function toggleGrid() {
-        showGrid = !showGrid;
-        const lang = getCurrentLanguage ? getCurrentLanguage() : 'en';
-        gridToggleBtn.textContent = showGrid ? getTranslation('hide_grid', lang) : getTranslation('show_grid', lang);
-        persistGridPreference();
-        draw();
-    }
-    
-    // Check if the current piece collides with anything
+
+    // Piece movement and collision
     function checkCollision(piece, offsetX = 0, offsetY = 0) {
         return !BoardModule.isValidPosition(piece, board, offsetX, offsetY);
     }
-    
-    // Merge the current piece with the board
+
     function mergePiece() {
-        BoardModule.mergePieceInto(board, currentPiece);
+        BoardModule.mergePieceInto(board, currentPiece, PieceModule.COLORS);
     }
-    
-    // Move the current piece down
+
     function movePieceDown() {
-        currentPiece.y++;
-        if (checkCollision(currentPiece)) {
-            currentPiece.y--;
+        if (!currentPiece) return false;
+        
+        if (!checkCollision(currentPiece, 0, 1)) {
+            currentPiece.y++;
+            return true;
+        } else {
+            // Piece has landed
             const beforeMetrics = BoardModule.computeMetrics(board);
             mergePiece();
             const linesCleared = clearLines();
             const afterMetrics = BoardModule.computeMetrics(board);
-            if (typeof currentPiece.shapeIndex === 'number') {
-                aiTrainer.registerPlacement(currentPiece.shapeIndex, beforeMetrics, afterMetrics, linesCleared);
-                updateAiInsight(aiTrainer.getLiveHint());
+            
+            // Register placement with adaptive engine
+            if (!aiVsAiMode || playerTakingControl) {
+                aiTrainer.registerPlacement(
+                    currentPiece.shapeIndex,
+                    beforeMetrics,
+                    afterMetrics,
+                    linesCleared
+                );
+                uiController.updateAiInsight(aiTrainer.getLiveHint());
             }
+            
             spawnPiece();
+            return false;
         }
-        dropCounter = 0;
     }
-    
-    // Move the current piece left
+
     function movePieceLeft() {
-        currentPiece.x--;
-        if (checkCollision(currentPiece)) {
-            currentPiece.x++;
-        }
-    }
-    
-    // Move the current piece right
-    function movePieceRight() {
-        currentPiece.x++;
-        if (checkCollision(currentPiece)) {
+        if (!currentPiece) return;
+        if (!checkCollision(currentPiece, -1, 0)) {
             currentPiece.x--;
+            draw();
         }
     }
-    
-    // Rotate the current piece
-    function rotatePiece() {
-        const originalShape = currentPiece.shape;
-        const originalX = currentPiece.x;
-        currentPiece.shape = PieceModule.rotate(currentPiece);
 
-        const size = originalShape.length;
-        const offsets = [0];
-        for (let i = 1; i <= size; i++) {
-            offsets.push(i, -i);
+    function movePieceRight() {
+        if (!currentPiece) return;
+        if (!checkCollision(currentPiece, 1, 0)) {
+            currentPiece.x++;
+            draw();
         }
+    }
 
-        for (const offset of offsets) {
-            currentPiece.x = originalX + offset;
-            if (!checkCollision(currentPiece)) {
-                return;
+    function rotatePiece() {
+        if (!currentPiece) return;
+        
+        const rotated = PieceModule.rotate(currentPiece);
+        const originalShape = currentPiece.shape;
+        currentPiece.shape = rotated;
+        
+        // Check if rotation is valid
+        if (checkCollision(currentPiece)) {
+            // Try wall kicks
+            const offsets = [
+                { x: 1, y: 0 },
+                { x: -1, y: 0 },
+                { x: 2, y: 0 },
+                { x: -2, y: 0 },
+                { x: 0, y: -1 }
+            ];
+            
+            let validRotation = false;
+            for (const offset of offsets) {
+                if (!checkCollision(currentPiece, offset.x, offset.y)) {
+                    currentPiece.x += offset.x;
+                    currentPiece.y += offset.y;
+                    validRotation = true;
+                    break;
+                }
+            }
+            
+            if (!validRotation) {
+                currentPiece.shape = originalShape;
             }
         }
-
-        // Revert rotation and horizontal shift when no valid kick is found
-        currentPiece.shape = originalShape;
-        currentPiece.x = originalX;
+        draw();
     }
-    
-    // Hard drop the current piece
+
     function hardDrop() {
+        if (!currentPiece) return;
+        
         while (!checkCollision(currentPiece, 0, 1)) {
             currentPiece.y++;
-            score += 2;
         }
-        movePieceDown();
-        updateScore();
+        
+        const beforeMetrics = BoardModule.computeMetrics(board);
+        mergePiece();
+        const linesCleared = clearLines();
+        const afterMetrics = BoardModule.computeMetrics(board);
+        
+        // Register placement with adaptive engine
+        if (!aiVsAiMode || playerTakingControl) {
+            aiTrainer.registerPlacement(
+                currentPiece.shapeIndex,
+                beforeMetrics,
+                afterMetrics,
+                linesCleared
+            );
+            uiController.updateAiInsight(aiTrainer.getLiveHint());
+        }
+        
+        draw();
+        spawnPiece();
     }
-    
-    // Clear completed lines and update score
+
     function clearLines() {
         const linesToClear = BoardModule.findCompletedLines(board);
         let linesCleared = 0;
@@ -768,21 +298,20 @@ document.addEventListener('DOMContentLoaded', () => {
             lines += linesCleared;
 
             // Calculate score based on lines cleared
-            const lineScores = [40, 100, 300, 1200];
-            score += lineScores[linesCleared - 1] * level;
+            score += ScoringSystem.calculateLineScore(linesCleared, level);
 
             // Update level every 10 lines
-            level = Math.floor(lines / 10) + 1;
+            level = ScoringSystem.calculateLevel(lines);
 
             // Adjust drop speed based on level
-            dropInterval = Math.max(1000 - (level - 1) * 100, 100);
+            dropInterval = ScoringSystem.calculateDropInterval(level);
 
             // Award TetriCoins if not in AI vs AI mode or if player is taking control
             if (!aiVsAiMode || playerTakingControl) {
                 const reward = window.tetriCoins.awardLinesCleared(linesCleared);
                 if (reward > 0) {
-                    updateBalanceDisplay();
-                    showCoinReward(reward);
+                    uiController.updateBalanceDisplay();
+                    uiController.showCoinReward(reward);
                 }
                 
                 // Track Tetris streak for achievement
@@ -815,157 +344,99 @@ document.addEventListener('DOMContentLoaded', () => {
                 matchStats.firstToReach1000 = currentAiPlayer;
             }
 
-            updateScore();
+            // Update score display
+            uiController.updateScoreDisplay(score, level, lines);
+            if (score > highScore) {
+                highScore = score;
+                uiController.updateHighScoreDisplay(highScore);
+                persistHighScore();
+            }
         }
 
         return linesCleared;
     }
-    
-    // Update score display
-    function updateScore() {
-        scoreElement.textContent = score;
-        levelElement.textContent = level;
-        linesElement.textContent = lines;
 
-        if (score > highScore) {
-            highScore = score;
-            updateHighScoreDisplay();
-            persistHighScore();
-        }
-    }
-    
-    // Spawn a new piece
     function spawnPiece() {
         if (!nextPiece) {
             nextPiece = getAdaptivePiece();
         }
+        
         currentPiece = nextPiece;
         nextPiece = getAdaptivePiece();
-        drawNextPiece();
         
-        // Check if game is over
+        Renderer.drawNextPiece(nextPiece);
+        
         if (checkCollision(currentPiece)) {
             gameOver = true;
-            cancelAnimationFrame(gameLoop);
             
-            // Vibrate on game over
-            if (navigator.vibrate) {
-                navigator.vibrate([200, 100, 200, 100, 200]);
+            // Check achievements
+            if (window.achievementSystem) {
+                window.achievementSystem.checkScoreAchievement(score);
+                window.achievementSystem.checkLinesAchievement(lines);
             }
             
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = 'red';
-            ctx.font = '30px Arial';
-            ctx.textAlign = 'center';
-            ctx.fillText('GAME OVER', canvas.width / 2, canvas.height / 2);
-            ctx.font = '20px Arial';
-            ctx.fillText('Press Start or Enter to Play Again', canvas.width / 2, canvas.height / 2 + 40);
-            startBtn.textContent = 'Play Again';
+            // Handle bet result if in AI vs AI mode
+            if (aiVsAiMode && currentBet && window.bettingSystem) {
+                const result = window.bettingSystem.processBetResult({
+                    winner: currentAiPlayer === 1 ? 2 : 1,
+                    finalScore: score,
+                    firstTetris: matchStats.firstTetris,
+                    firstToReach1000: matchStats.firstToReach1000
+                });
+                
+                if (result) {
+                    showBetResult(result);
+                }
+            }
+            
+            // Show game over message
             const finalMetrics = BoardModule.computeMetrics(board);
-            updateAiInsight(aiTrainer.getSummary(finalMetrics));
+            uiController.updateAiInsight(aiTrainer.getSummary(finalMetrics));
             
-            // Handle AI vs AI mode game over
-            if (aiVsAiMode) {
-                const winner = currentAiPlayer === 1 ? 2 : 1;
-                const winnerScore = score;
-                
-                // Store match stats
-                if (currentAiPlayer === 1) {
-                    matchStats.ai2Score = winnerScore;
+            gameLoopManager.stop();
+            
+            // In AI vs AI mode, handle tournament continuation
+            if (aiVsAiMode && tournamentMode) {
+                tournamentMatchCount++;
+                if (tournamentMatchCount < 5) {
+                    setTimeout(() => {
+                        startAiVsAiMode();
+                    }, 2000);
                 } else {
-                    matchStats.ai1Score = winnerScore;
+                    const jackpot = window.bettingSystem.finishTournament();
+                    if (jackpot > 0) {
+                        uiController.showMessage(`Tournament complete! Jackpot: ${jackpot} TC`);
+                    }
+                    exitAiVsAiMode();
                 }
-                
-                setTimeout(() => {
-                    if (ai1ThinkingElement) ai1ThinkingElement.textContent = 'Game Over!';
-                    if (ai2ThinkingElement) ai2ThinkingElement.textContent = 'Game Over!';
-                    if (ai1PlanElement) ai1PlanElement.textContent = `AI ${winner} wins!`;
-                    if (ai2PlanElement) ai2PlanElement.textContent = `Score: ${winnerScore}`;
-                    
-                    // Resolve bet if exists
-                    if (currentBet) {
-                        const matchResult = {
-                            winner: winner,
-                            loser: currentAiPlayer,
-                            winnerScore: winnerScore,
-                            firstTetris: matchStats.firstTetris,
-                            firstToReach: matchStats.firstToReach1000
-                        };
-                        
-                        const result = window.bettingSystem.resolveBet(matchResult);
-                        if (result) {
-                            setTimeout(() => {
-                                showBetResult(result);
-                            }, 1000);
-                        }
-                        
-                        // Check sniper achievement
-                        if (result.won && currentBet.type === 'score_range') {
-                            window.achievementSystem.checkSniperAchievement(true, 'score_range');
-                        }
-                    }
-                    
-                    // Handle tournament mode
-                    if (tournamentMode) {
-                        const isLastMatch = window.bettingSystem.nextTournamentMatch();
-                        if (isLastMatch) {
-                            const jackpotWin = window.bettingSystem.endTournament();
-                            if (jackpotWin > 0) {
-                                setTimeout(() => {
-                                    showMessage(`🎉 Турнир окончен! Вы выиграли джекпот: ${jackpotWin} TC!`);
-                                    updateBalanceDisplay();
-                                }, 2000);
-                            }
-                            tournamentMode = false;
-                        }
-                    }
-                    
-                    currentBet = null;
-                }, 500);
             }
-        } else if (aiVsAiMode && !playerTakingControl) {
-            // AI makes move automatically
-            setTimeout(() => {
-                if (!gameOver && aiVsAiMode && !playerTakingControl) {
-                    executeAiMove();
-                }
-            }, 500);
+            
+            // Auto-execute AI move in AI vs AI mode
+            if (aiVsAiMode && !gameOver && !playerTakingControl) {
+                setTimeout(() => executeAiMove(), 500);
+            }
         }
     }
-    
-    // Draw everything
+
     function draw() {
         Renderer.clear();
-        drawGrid();
-        drawBoard();
+        Renderer.drawGrid(showGrid, BoardModule.COLS, BoardModule.ROWS);
+        Renderer.drawBoard(board);
         if (currentPiece) {
-            drawPiece(currentPiece);
+            Renderer.drawPiece(currentPiece);
         }
     }
-    
-    // Game update function
-    function update(time = 0) {
-        if (gameOver || isPaused) return;
-        
-        const deltaTime = lastTime === 0 ? 0 : time - lastTime;
-        lastTime = time;
-        
-        // In AI vs AI mode, AI controls the pieces, so we don't auto-drop unless player takes control
-        if (!aiVsAiMode || playerTakingControl) {
-            dropCounter += deltaTime;
-            if (dropCounter > dropInterval) {
-                movePieceDown();
-            }
-        }
-        
+
+    function toggleGrid() {
+        showGrid = !showGrid;
+        uiController.updateGridButton(showGrid);
+        persistGridPreference();
         draw();
-        gameLoop = requestAnimationFrame(update);
     }
-    
-    // GameLoop Module - manages game lifecycle
-    const GameLoopManager = (() => {
-        function reset() {
+
+    // Game loop manager
+    const gameLoopManager = GameLoopManager.create({
+        resetState: () => {
             board = createBoard();
             score = 0;
             lines = 0;
@@ -975,310 +446,40 @@ document.addEventListener('DOMContentLoaded', () => {
             isPaused = false;
             currentPiece = null;
             nextPiece = null;
-        }
-
-        function start(onStart, onReset) {
-            onReset();
+            consecutiveTetris = 0;
+            lastLinesClearedWas4 = false;
+        },
+        isGameOver: () => gameOver,
+        isPaused: () => isPaused,
+        isAiVsAiMode: () => aiVsAiMode,
+        isPlayerControl: () => playerTakingControl,
+        getDropInterval: () => dropInterval,
+        movePieceDown: () => movePieceDown(),
+        draw: () => draw(),
+        onGameStart: () => {
             aiTrainer.resetForNewGame(board);
-            updateScore();
-            updateAiInsight(aiTrainer.getLiveHint());
+            uiController.updateScoreDisplay(score, level, lines);
+            uiController.updateAiInsight(aiTrainer.getLiveHint());
             spawnPiece();
             draw();
-
-            if (gameLoop) {
-                cancelAnimationFrame(gameLoop);
-            }
-
-            lastTime = performance.now();
-            dropCounter = 0;
-            gameLoop = requestAnimationFrame(update);
-            onStart();
-        }
-
-        function pause(isPaused) {
-            if (isPaused) {
-                cancelAnimationFrame(gameLoop);
-                ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-                ctx.fillStyle = 'white';
-                ctx.font = '30px Arial';
-                ctx.textAlign = 'center';
-                ctx.fillText('PAUSED', canvas.width / 2, canvas.height / 2);
-                ctx.font = '20px Arial';
-                ctx.fillText('Press P to Resume', canvas.width / 2, canvas.height / 2 + 40);
-            } else {
-                lastTime = performance.now();
-                gameLoop = requestAnimationFrame(update);
-            }
-        }
-
-        function stop() {
-            if (gameLoop) {
-                cancelAnimationFrame(gameLoop);
-            }
-        }
-
-        return { reset, start, pause, stop };
-    })();
-
-    // Start the game
-    function startGame() {
-        GameLoopManager.start(
-            () => { startBtn.textContent = 'Restart'; },
-            () => { GameLoopManager.reset(); }
-        );
-    }
-    
-    // Pause the game
-    function togglePause() {
-        if (gameOver) return;
-
-        isPaused = !isPaused;
-        GameLoopManager.pause(isPaused);
-    }
-    
-    // InputManager Module - handles keyboard and touch input
-    const InputManager = (() => {
-        const minSwipeDistance = 30;
-        let touchStartX = 0;
-        let touchStartY = 0;
-
-        function handleKeydown(e, callbacks) {
-            // Allow starting the game with Enter or Space when game is over
-            if (callbacks.isGameOver && (e.key === 'Enter' || e.key === ' ')) {
-                e.preventDefault();
-                callbacks.onStart();
-                return;
-            }
-            
-            // Block other controls when game is over
-            if (callbacks.isGameOver) return;
-            
-            // Block movement controls when game is not active
-            if (!callbacks.hasCurrentPiece && !callbacks.isGameOver && ['ArrowLeft', 'ArrowRight', 'ArrowDown', 'ArrowUp', ' '].includes(e.key)) {
-                return;
-            }
-            
-            // If game is paused, only allow unpause
-            if (callbacks.isPaused && e.key !== 'p' && e.key !== 'P') {
-                return;
-            }
-            
-            switch (e.key) {
-                case 'ArrowLeft':
-                    callbacks.onMoveLeft();
-                    break;
-                case 'ArrowRight':
-                    callbacks.onMoveRight();
-                    break;
-                case 'ArrowDown':
-                    callbacks.onMoveDown();
-                    break;
-                case 'ArrowUp':
-                    callbacks.onRotate();
-                    break;
-                case ' ':
-                    e.preventDefault();
-                    callbacks.onHardDrop();
-                    break;
-                case 'p':
-                case 'P':
-                    callbacks.onTogglePause();
-                    break;
-                case 'g':
-                case 'G':
-                    callbacks.onToggleGrid();
-                    break;
-                case 't':
-                case 'T':
-                    if (callbacks.isAiVsAiMode) {
-                        callbacks.onTakeControl();
-                    }
-                    break;
-                case 'Enter':
-                case 's':
-                case 'S':
-                    if (!callbacks.hasCurrentPiece && !callbacks.isGameOver) {
-                        callbacks.onStart();
-                    }
-                    break;
-            }
-        }
-
-        function handleTouchStart(e, isActive) {
-            if (!isActive) return;
-            e.preventDefault();
-            const touch = e.touches[0];
-            touchStartX = touch.clientX;
-            touchStartY = touch.clientY;
-        }
-
-        function handleTouchMove(e) {
-            e.preventDefault();
-        }
-
-        function handleTouchEnd(e, isActive, callbacks) {
-            if (!isActive) return;
-            e.preventDefault();
-            
-            const touch = e.changedTouches[0];
-            const touchEndX = touch.clientX;
-            const touchEndY = touch.clientY;
-            
-            const deltaX = touchEndX - touchStartX;
-            const deltaY = touchEndY - touchStartY;
-            const absDeltaX = Math.abs(deltaX);
-            const absDeltaY = Math.abs(deltaY);
-            
-            // Swipe detection
-            if (absDeltaX > minSwipeDistance || absDeltaY > minSwipeDistance) {
-                if (absDeltaX > absDeltaY) {
-                    // Horizontal swipe
-                    if (deltaX > 0) {
-                        callbacks.onMoveRight();
-                    } else {
-                        callbacks.onMoveLeft();
-                    }
-                } else {
-                    // Vertical swipe
-                    if (deltaY > 0) {
-                        callbacks.onHardDrop();
-                    }
-                }
-            } else {
-                // Tap - rotate piece
-                callbacks.onRotate();
-            }
-        }
-
-        return { handleKeydown, handleTouchStart, handleTouchMove, handleTouchEnd };
-    })();
-
-    // Register input handlers
-    document.addEventListener('keydown', (e) => {
-        InputManager.handleKeydown(e, {
-            isGameOver: gameOver,
-            hasCurrentPiece: !!currentPiece,
-            isPaused: isPaused,
-            isAiVsAiMode: aiVsAiMode,
-            onStart: startGame,
-            onMoveLeft: () => { movePieceLeft(); draw(); },
-            onMoveRight: () => { movePieceRight(); draw(); },
-            onMoveDown: () => { movePieceDown(); score++; updateScore(); draw(); },
-            onRotate: () => { rotatePiece(); draw(); },
-            onHardDrop: hardDrop,
-            onTogglePause: togglePause,
-            onToggleGrid: toggleGrid,
-            onTakeControl: takeControl
-        });
+        },
+        drawPauseOverlay: () => Renderer.drawPauseOverlay()
     });
 
-    canvas.addEventListener('touchstart', (e) => {
-        InputManager.handleTouchStart(e, !gameOver && !isPaused && currentPiece);
-    }, { passive: false });
-
-    canvas.addEventListener('touchmove', (e) => {
-        InputManager.handleTouchMove(e);
-    }, { passive: false });
-
-    canvas.addEventListener('touchend', (e) => {
-        InputManager.handleTouchEnd(e, !gameOver && !isPaused && currentPiece, {
-            onMoveLeft: () => { movePieceLeft(); draw(); },
-            onMoveRight: () => { movePieceRight(); draw(); },
-            onHardDrop: hardDrop,
-            onRotate: () => { rotatePiece(); draw(); }
-        });
-    }, { passive: false });
-
-    // AI vs AI Mode Functions
-    
-    // AI Strategy: Evaluate board position and return score
-    function evaluatePosition(testBoard, aiPlayerNum) {
-        const metrics = BoardModule.computeMetrics(testBoard);
-        
-        // Different strategies for AI 1 (aggressive) vs AI 2 (defensive)
-        if (aiPlayerNum === 1) {
-            // AI 1: Aggressive - minimize height, clear lines
-            return -metrics.aggregateHeight * 0.5 - metrics.totalHoles * 3 - metrics.bumpiness * 0.3;
-        } else {
-            // AI 2: Defensive - focus on stability
-            return -metrics.maxHeight * 1.2 - metrics.totalHoles * 2 - metrics.bumpiness * 0.5;
-        }
-    }
-    
-    // Find best move for current piece
-    function findBestMove(piece, aiPlayerNum) {
-        let bestScore = -Infinity;
-        let bestMove = { x: piece.x, rotation: 0 };
-        
-        // Try all rotations (0, 1, 2, 3)
-        for (let rotation = 0; rotation < 4; rotation++) {
-            const testPiece = JSON.parse(JSON.stringify(piece));
-            
-            // Rotate piece
-            for (let r = 0; r < rotation; r++) {
-                const size = testPiece.shape.length;
-                const rotated = Array.from({ length: size }, () => Array(size).fill(0));
-                for (let y = 0; y < size; y++) {
-                    for (let x = 0; x < size; x++) {
-                        rotated[x][size - 1 - y] = testPiece.shape[y][x];
-                    }
-                }
-                testPiece.shape = rotated;
-            }
-            
-            // Try all horizontal positions
-            for (let x = -2; x < COLS + 2; x++) {
-                testPiece.x = x;
-                testPiece.y = piece.y;
-                
-                // Drop piece down
-                while (!checkCollision(testPiece, 0, 1)) {
-                    testPiece.y++;
-                }
-                
-                // Check if this position is valid
-                if (!checkCollision(testPiece)) {
-                    // Simulate placing the piece
-                    const testBoard = board.map(row => [...row]);
-                    testPiece.shape.forEach((row, py) => {
-                        row.forEach((value, px) => {
-                            if (value) {
-                                const boardY = testPiece.y + py;
-                                const boardX = testPiece.x + px;
-                                if (boardY >= 0 && boardY < ROWS && boardX >= 0 && boardX < COLS) {
-                                    testBoard[boardY][boardX] = COLORS.indexOf(testPiece.color) + 1;
-                                }
-                            }
-                        });
-                    });
-                    
-                    // Evaluate this position
-                    const score = evaluatePosition(testBoard, aiPlayerNum);
-                    if (score > bestScore) {
-                        bestScore = score;
-                        bestMove = { x, rotation };
-                    }
-                }
-            }
-        }
-        
-        return bestMove;
-    }
-    
-    // Execute AI move
+    // AI vs AI execution function
     function executeAiMove() {
         if (!currentPiece || gameOver || !aiVsAiMode || playerTakingControl) return;
         
         // Update AI thinking display
-        const thinkingEl = currentAiPlayer === 1 ? ai1ThinkingElement : ai2ThinkingElement;
-        const planEl = currentAiPlayer === 1 ? ai1PlanElement : ai2PlanElement;
-        
-        if (thinkingEl) thinkingEl.textContent = `AI ${currentAiPlayer} is analyzing...`;
-        if (planEl) planEl.textContent = 'Calculating optimal position...';
+        uiController.updateAiThinking(currentAiPlayer, `AI ${currentAiPlayer} is analyzing...`, 'Calculating optimal position...');
         
         // Find best move
-        const bestMove = findBestMove(currentPiece, currentAiPlayer);
+        const bestMove = AiVsAi.findBestMove(
+            currentPiece, 
+            board, 
+            currentAiPlayer,
+            checkCollision
+        );
         
         // Apply rotations
         for (let r = 0; r < bestMove.rotation; r++) {
@@ -1289,9 +490,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const targetX = bestMove.x;
         const moveSteps = Math.abs(targetX - currentPiece.x);
         
-        if (planEl) {
-            planEl.textContent = `Moving to column ${targetX + 1}, ${bestMove.rotation} rotation(s)`;
-        }
+        uiController.updateAiThinking(currentAiPlayer, null, `Moving to column ${targetX + 1}, ${bestMove.rotation} rotation(s)`);
         
         // Animate movement
         let movesMade = 0;
@@ -1304,9 +503,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         hardDrop();
                         // Switch AI player
                         currentAiPlayer = currentAiPlayer === 1 ? 2 : 1;
-                        if (currentTurnElement) {
-                            currentTurnElement.textContent = `AI ${currentAiPlayer}'s Turn`;
-                        }
+                        uiController.updateTurnDisplay(currentAiPlayer);
                     }
                 }, 100);
                 return;
@@ -1321,7 +518,31 @@ document.addEventListener('DOMContentLoaded', () => {
             draw();
         }, 50);
     }
-    
+
+    // Game control functions
+    function startGame() {
+        gameLoopManager.start(
+            () => {
+                elements.startBtn.textContent = 'Restart';
+                checkDailyBonus();
+            },
+            () => {
+                gameLoopManager.reset();
+                score = 0;
+                lines = 0;
+                level = 1;
+                dropInterval = 1000;
+                uiController.updateScoreDisplay(score, level, lines);
+            }
+        );
+    }
+
+    function togglePause() {
+        if (gameOver || !currentPiece) return;
+        isPaused = !isPaused;
+        gameLoopManager.pause(isPaused);
+    }
+
     function startAiVsAiMode() {
         // Reset match stats
         matchStats = {
@@ -1335,39 +556,26 @@ document.addEventListener('DOMContentLoaded', () => {
         bettingEnabled = true;
         window.bettingSystem.startBetting(
             (bet) => {
-                // Betting completed with a bet
                 currentBet = bet;
                 bettingEnabled = false;
                 startAiMatch();
             },
             () => {
-                // Betting completed without a bet
                 currentBet = null;
                 bettingEnabled = false;
                 startAiMatch();
             }
         );
     }
-    
+
     function startAiMatch() {
         aiVsAiMode = true;
         currentAiPlayer = 1;
         playerTakingControl = false;
         
-        // Show AI panel and hide regular buttons
-        if (aiVsAiPanel) aiVsAiPanel.style.display = 'block';
-        if (aiInsightContainer) aiInsightContainer.style.display = 'none';
-        if (startBtn) startBtn.style.display = 'none';
-        if (aiVsAiBtn) aiVsAiBtn.style.display = 'none';
-        if (tournamentBtn) tournamentBtn.style.display = 'none';
-        
-        // Initialize game
+        uiController.toggleAiVsAiPanel(true);
         startGame();
-        
-        // Update turn display
-        if (currentTurnElement) {
-            currentTurnElement.textContent = `AI ${currentAiPlayer}'s Turn`;
-        }
+        uiController.updateTurnDisplay(currentAiPlayer);
         
         // Start AI moves
         setTimeout(() => {
@@ -1376,59 +584,35 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }, 1000);
     }
-    
+
     function exitAiVsAiMode() {
         aiVsAiMode = false;
         playerTakingControl = false;
         
-        // Hide AI panel and show regular buttons
-    if (aiVsAiPanel) aiVsAiPanel.style.display = 'none';
-    if (aiInsightContainer) aiInsightContainer.style.display = '';
-        if (startBtn) startBtn.style.display = 'inline-block';
-        if (aiVsAiBtn) aiVsAiBtn.style.display = 'inline-block';
-        
-        // Stop game
-        if (gameLoop) {
-            cancelAnimationFrame(gameLoop);
-        }
+        uiController.toggleAiVsAiPanel(false);
+        gameLoopManager.stop();
         gameOver = true;
         
         // Show start screen
         draw();
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = 'white';
-        ctx.font = '30px Arial';
-        ctx.textAlign = 'center';
-        ctx.fillText('TETRIS', canvas.width / 2, canvas.height / 2 - 30);
-        ctx.font = '20px Arial';
-        ctx.fillText('Press Start or Enter to Play', canvas.width / 2, canvas.height / 2 + 20);
+        Renderer.drawStartScreen();
     }
-    
+
     function takeControl() {
         playerTakingControl = !playerTakingControl;
+        uiController.updateTakeControlButton(playerTakingControl);
         
-        if (takeControlBtn) {
-            if (playerTakingControl) {
-                takeControlBtn.textContent = 'Release Control';
-                takeControlBtn.classList.add('active');
-                // Reset drop counter when player takes control
-                dropCounter = 0;
-                lastTime = performance.now();
-                if (ai1ThinkingElement) ai1ThinkingElement.textContent = 'Player in control!';
-                if (ai2ThinkingElement) ai2ThinkingElement.textContent = 'Waiting...';
-            } else {
-                takeControlBtn.textContent = 'Take Control';
-                takeControlBtn.classList.remove('active');
-                // AI takes back control
-                if (currentPiece && !gameOver) {
-                    executeAiMove();
-                }
+        if (playerTakingControl) {
+            gameLoopManager.resetDropCounter();
+            uiController.updateAiThinking(1, 'Player in control!', null);
+            uiController.updateAiThinking(2, 'Waiting...', null);
+        } else {
+            if (currentPiece && !gameOver) {
+                executeAiMove();
             }
         }
     }
 
-    // Show bet result overlay
     function showBetResult(result) {
         const overlay = document.createElement('div');
         overlay.className = 'bet-result-overlay';
@@ -1438,95 +622,63 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const icon = document.createElement('div');
         icon.className = 'result-icon';
-        icon.textContent = result.won ? '🎉' : '😔';
+        icon.textContent = result.won ? '🎉' : '😢';
         
-        const text = document.createElement('div');
-        text.className = `result-text ${result.won ? 'win' : 'lose'}`;
-        text.textContent = result.won ? 'ВЫИГРЫШ!' : 'Проигрыш';
-        
-        const amount = document.createElement('div');
-        amount.className = 'result-amount';
-        if (result.won) {
-            amount.textContent = `+${result.payout} TC (${result.profit > 0 ? '+' : ''}${result.profit} TC прибыль)`;
-        } else {
-            amount.textContent = `Ставка не сыграла`;
-        }
-        
-        const closeBtn = document.createElement('button');
-        closeBtn.className = 'place-bet-btn';
-        closeBtn.textContent = 'OK';
-        closeBtn.onclick = () => {
-            overlay.remove();
-            updateBalanceDisplay();
-        };
+        const message = document.createElement('div');
+        message.className = 'result-message';
+        message.innerHTML = `
+            <h2>${result.won ? 'You Won!' : 'You Lost'}</h2>
+            <p>${result.message}</p>
+            ${result.won ? `<p class="winnings">+${result.payout} TC</p>` : ''}
+        `;
         
         content.appendChild(icon);
-        content.appendChild(text);
-        content.appendChild(amount);
-        content.appendChild(closeBtn);
+        content.appendChild(message);
         overlay.appendChild(content);
         document.body.appendChild(overlay);
         
-        // Confetti animation for wins
         if (result.won) {
             createConfetti();
         }
         
-        // Vibrate
-        if (navigator.vibrate) {
-            if (result.won) {
-                navigator.vibrate([100, 50, 100, 50, 200]);
-            } else {
-                navigator.vibrate(200);
-            }
-        }
+        setTimeout(() => overlay.remove(), 5000);
     }
-    
-    // Create confetti animation
+
     function createConfetti() {
-        const colors = ['#ffd700', '#ff6b6b', '#7b68ee', '#28a745', '#17a2b8'];
         for (let i = 0; i < 50; i++) {
-            setTimeout(() => {
-                const confetti = document.createElement('div');
-                confetti.className = 'confetti';
-                confetti.style.left = Math.random() * 100 + '%';
-                confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
-                confetti.style.animationDelay = Math.random() * 0.5 + 's';
-                document.body.appendChild(confetti);
-                setTimeout(() => confetti.remove(), 3000);
-            }, i * 30);
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.animationDelay = Math.random() * 3 + 's';
+            confetti.style.backgroundColor = ['#ff0', '#f0f', '#0ff', '#f00', '#0f0'][Math.floor(Math.random() * 5)];
+            document.body.appendChild(confetti);
+            setTimeout(() => confetti.remove(), 4000);
         }
     }
-    
-    // Tournament mode functions
+
     function startTournament() {
         tournamentMode = true;
         tournamentMatchCount = 0;
         window.bettingSystem.startTournament();
         
-        // Update UI
         const tournamentProgress = document.getElementById('tournament-progress');
         if (tournamentProgress) {
             tournamentProgress.style.display = 'block';
         }
         
-        // Start first match
         startAiVsAiMode();
     }
-    
-    // Show achievements modal
+
     function showAchievementsModal() {
-        if (!achievementsModal) return;
+        if (!elements.achievementsModal) return;
         
-        achievementsModal.style.display = 'flex';
+        elements.achievementsModal.style.display = 'flex';
         
-        // Update progress
         const progressElement = document.getElementById('achievements-progress');
         if (progressElement) {
             progressElement.textContent = window.achievementSystem.getProgress();
         }
         
-        // Populate achievements list
         const listElement = document.getElementById('achievements-list');
         if (listElement) {
             listElement.innerHTML = '';
@@ -1540,7 +692,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <h3>${achievement.name}</h3>
                         <p>${achievement.description}</p>
                         ${achievement.progress !== undefined && !achievement.unlocked ? 
-                            `<p>Прогресс: ${achievement.progress}/${achievement.target}</p>` : ''}
+                            `<p>Progress: ${achievement.progress}/${achievement.target}</p>` : ''}
                     </div>
                     ${achievement.reward > 0 ? `<div class="achievement-reward">+${achievement.reward} TC</div>` : ''}
                 `;
@@ -1548,20 +700,19 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
         
-        // Populate leaderboard
         const leaderboardElement = document.getElementById('leaderboard');
         if (leaderboardElement) {
             leaderboardElement.innerHTML = '';
             const leaderboard = window.achievementSystem.getLeaderboard();
             if (leaderboard.length === 0) {
-                leaderboardElement.innerHTML = '<p style="text-align: center; color: rgba(255,255,255,0.5);">Нет записей</p>';
+                leaderboardElement.innerHTML = '<p style="text-align: center; color: rgba(255,255,255,0.5);">No entries</p>';
             } else {
                 leaderboard.forEach((entry, index) => {
                     const item = document.createElement('div');
                     item.className = 'leaderboard-item';
                     item.innerHTML = `
                         <div class="leaderboard-rank">#${index + 1}</div>
-                        <div class="leaderboard-name">${entry.name || 'Игрок'}</div>
+                        <div class="leaderboard-name">${entry.name || 'Player'}</div>
                         <div class="leaderboard-balance">${window.tetriCoins.formatCoins(entry.balance)} TC</div>
                     `;
                     leaderboardElement.appendChild(item);
@@ -1569,67 +720,51 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
     }
-    
-    // Initialize betting UI
+
     function initBettingUI() {
-        // Bet type selection
-        const betTypeCards = document.querySelectorAll('.bet-type-card');
+        // Betting UI initialization (keep existing logic)
         let selectedBetType = null;
         let selectedTarget = null;
         let selectedAmount = null;
-        
+
+        const betTypeCards = document.querySelectorAll('.bet-type-card');
         betTypeCards.forEach(card => {
-            card.addEventListener('click', (e) => {
-                if (e.target.classList.contains('bet-option-btn')) return;
-                
-                betTypeCards.forEach(c => c.classList.remove('selected'));
-                card.classList.add('selected');
-                selectedBetType = card.dataset.betType;
-                updatePlaceBetButton();
-            });
+            const betType = card.dataset.betType;
+            const buttons = card.querySelectorAll('.bet-option-btn');
             
-            // Bet option buttons
-            const optionBtns = card.querySelectorAll('.bet-option-btn');
-            optionBtns.forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    optionBtns.forEach(b => b.classList.remove('selected'));
+            buttons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.bet-option-btn').forEach(b => b.classList.remove('selected'));
                     btn.classList.add('selected');
-                    
-                    betTypeCards.forEach(c => c.classList.remove('selected'));
-                    card.classList.add('selected');
-                    
-                    selectedBetType = card.dataset.betType;
+                    selectedBetType = betType;
                     selectedTarget = btn.dataset.target;
                     updatePlaceBetButton();
                 });
             });
         });
-        
-        // Quick bet buttons
-        const quickBetBtns = document.querySelectorAll('.quick-bet-btn');
-        quickBetBtns.forEach(btn => {
+
+        const quickBetButtons = document.querySelectorAll('.quick-bet-btn');
+        quickBetButtons.forEach(btn => {
             btn.addEventListener('click', () => {
-                quickBetBtns.forEach(b => b.classList.remove('selected'));
+                quickBetButtons.forEach(b => b.classList.remove('selected'));
                 btn.classList.add('selected');
                 selectedAmount = parseInt(btn.dataset.amount);
-                document.getElementById('custom-bet-amount').value = '';
+                const customBetInput = document.getElementById('custom-bet-amount');
+                if (customBetInput) customBetInput.value = '';
                 updatePlaceBetButton();
             });
         });
-        
-        // Custom bet amount
+
         const customBetInput = document.getElementById('custom-bet-amount');
         if (customBetInput) {
             customBetInput.addEventListener('input', () => {
-                quickBetBtns.forEach(b => b.classList.remove('selected'));
+                quickBetButtons.forEach(b => b.classList.remove('selected'));
                 const value = parseInt(customBetInput.value);
                 selectedAmount = isNaN(value) ? null : value;
                 updatePlaceBetButton();
             });
         }
-        
-        // Place bet button
+
         const placeBetBtn = document.getElementById('place-bet-btn');
         if (placeBetBtn) {
             placeBetBtn.addEventListener('click', () => {
@@ -1637,23 +772,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 const result = window.bettingSystem.placeBet(selectedBetType, selectedTarget, selectedAmount);
                 if (result.success) {
-                    showMessage(`Ставка принята: ${selectedAmount} TC`);
+                    uiController.showMessage(`Bet placed: ${selectedAmount} TC`);
                     placeBetBtn.disabled = true;
-                    updateBalanceDisplay();
+                    uiController.updateBalanceDisplay();
                 } else {
-                    showMessage(`Ошибка: ${result.message}`);
+                    uiController.showMessage(`Error: ${result.message}`);
                 }
             });
         }
-        
-        // Cancel bet button
+
         const cancelBetBtn = document.getElementById('cancel-bet-btn');
         if (cancelBetBtn) {
             cancelBetBtn.addEventListener('click', () => {
                 window.bettingSystem.stopBetting();
             });
         }
-        
+
         function updatePlaceBetButton() {
             if (placeBetBtn) {
                 placeBetBtn.disabled = !(selectedBetType && selectedTarget && selectedAmount);
@@ -1661,65 +795,85 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Touch controls removed to fix keyboard input issues
-    
+    // Input handlers
+    document.addEventListener('keydown', (e) => {
+        InputManager.handleKeydown(e, {
+            isGameOver: gameOver,
+            hasCurrentPiece: !!currentPiece,
+            isPaused: isPaused,
+            isAiVsAiMode: aiVsAiMode,
+            onStart: () => startGame(),
+            onMoveLeft: () => movePieceLeft(),
+            onMoveRight: () => movePieceRight(),
+            onMoveDown: () => movePieceDown(),
+            onRotate: () => rotatePiece(),
+            onHardDrop: () => hardDrop(),
+            onTogglePause: () => togglePause(),
+            onToggleGrid: () => toggleGrid(),
+            onTakeControl: () => takeControl()
+        });
+    });
+
+    canvas.addEventListener('touchstart', (e) => {
+        InputManager.handleTouchStart(e, !!currentPiece && !gameOver);
+    });
+
+    canvas.addEventListener('touchmove', (e) => {
+        InputManager.handleTouchMove(e);
+    });
+
+    canvas.addEventListener('touchend', (e) => {
+        InputManager.handleTouchEnd(e, !!currentPiece && !gameOver, {
+            onMoveLeft: () => movePieceLeft(),
+            onMoveRight: () => movePieceRight(),
+            onRotate: () => rotatePiece(),
+            onHardDrop: () => hardDrop()
+        });
+    });
+
     // Button event listeners
-    startBtn.addEventListener('click', startGame);
-    if (gridToggleBtn) {
-        gridToggleBtn.addEventListener('click', toggleGrid);
+    elements.startBtn.addEventListener('click', startGame);
+    if (elements.gridToggleBtn) {
+        elements.gridToggleBtn.addEventListener('click', toggleGrid);
     }
-    if (aiVsAiBtn) {
-        aiVsAiBtn.addEventListener('click', startAiVsAiMode);
+    if (elements.aiVsAiBtn) {
+        elements.aiVsAiBtn.addEventListener('click', startAiVsAiMode);
     }
-    if (exitAiModeBtn) {
-        exitAiModeBtn.addEventListener('click', exitAiVsAiMode);
+    if (elements.exitAiModeBtn) {
+        elements.exitAiModeBtn.addEventListener('click', exitAiVsAiMode);
     }
-    if (takeControlBtn) {
-        takeControlBtn.addEventListener('click', takeControl);
+    if (elements.takeControlBtn) {
+        elements.takeControlBtn.addEventListener('click', takeControl);
     }
-    if (tournamentBtn) {
-        tournamentBtn.addEventListener('click', startTournament);
+    if (elements.tournamentBtn) {
+        elements.tournamentBtn.addEventListener('click', startTournament);
     }
-    if (achievementsBtn) {
-        achievementsBtn.addEventListener('click', showAchievementsModal);
+    if (elements.achievementsBtn) {
+        elements.achievementsBtn.addEventListener('click', showAchievementsModal);
     }
-    if (closeAchievementsBtn) {
-        closeAchievementsBtn.addEventListener('click', () => {
-            achievementsModal.style.display = 'none';
+    if (elements.closeAchievementsBtn) {
+        elements.closeAchievementsBtn.addEventListener('click', () => {
+            elements.achievementsModal.style.display = 'none';
         });
     }
-    if (shareBtn) {
-        shareBtn.addEventListener('click', () => {
+    if (elements.shareBtn) {
+        elements.shareBtn.addEventListener('click', () => {
             window.achievementSystem.shareResult(score, window.tetriCoins.getBalance());
         });
     }
-    
-    // Initialize betting UI
+
+    // Initialize
     initBettingUI();
-    
-    // Update balance listener
-    window.tetriCoins.addListener(updateBalanceDisplay);
-    
-    // Load stored settings and render initial board
+    window.tetriCoins.addListener(() => uiController.updateBalanceDisplay());
     board = createBoard();
     loadPreferences();
     draw();
+    Renderer.drawStartScreen();
 
-    // Show start screen
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = 'white';
-    ctx.font = '30px Arial';
-    ctx.textAlign = 'center';
-    ctx.fillText('TETRIS', canvas.width / 2, canvas.height / 2 - 30);
-    ctx.font = '20px Arial';
-    ctx.fillText('Press Start or Enter to Play', canvas.width / 2, canvas.height / 2 + 20);
-    
-    // Listen for language changes to update grid button text
+    // Listen for language changes
     window.addEventListener('languageChanged', (e) => {
-        if (gridToggleBtn) {
-            const lang = e.detail.language;
-            gridToggleBtn.textContent = showGrid ? getTranslation('hide_grid', lang) : getTranslation('show_grid', lang);
+        if (elements.gridToggleBtn) {
+            uiController.updateGridButton(showGrid);
         }
     });
 });
