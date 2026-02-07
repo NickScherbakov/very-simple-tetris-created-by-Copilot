@@ -356,6 +356,16 @@ button:active, .button:active {
     background: linear-gradient(135deg, #ffed4e, #ffd700);
 }
 
+/* Team Tournament button */
+.button-team-tournament {
+    background: linear-gradient(135deg, #9b59b6, #8e44ad);
+    color: #fff;
+}
+
+.button-team-tournament:hover {
+    background: linear-gradient(135deg, #8e44ad, #9b59b6);
+}
+
 /* Install button */
 .button-install {
     background-color: #28a745;

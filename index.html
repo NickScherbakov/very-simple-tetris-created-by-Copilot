@@ -23,6 +23,7 @@
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="css/betting-panel.css">
     <link rel="stylesheet" href="css/language.css">
+    <link rel="stylesheet" href="css/team-tournament.css">
 </head>
 <body>
     <!-- Language Selection Screen -->
@@ -107,6 +108,7 @@
             <button id="start-btn" class="button" data-i18n="start_game">Start Game</button>
             <button id="ai-vs-ai-btn" class="button button-primary" data-i18n="ai_vs_ai_mode">AI vs AI Mode</button>
             <button id="tournament-btn" class="button button-tournament" data-i18n="tournament_mode">Tournament Mode</button>
+            <button id="team-tournament-btn" class="button button-team-tournament" data-i18n="team_tournament_mode">Team Tournament</button>
             <button id="grid-toggle" class="button button-secondary" data-i18n="hide_grid">Hide Grid</button>
             <button id="install-pwa-btn" class="button button-install" style="display: none;" data-i18n="install_app">Install App</button>
             <button id="achievements-btn" class="button button-achievements" data-i18n="achievements">🏆 Achievements</button>
@@ -245,6 +247,67 @@
         </div>
     </div>
     
+    <!-- Team Tournament Modal -->
+    <div id="team-tournament-modal" class="team-tournament-modal">
+        <div class="team-tournament-content">
+            <button class="team-tournament-close" id="close-team-tournament">&times;</button>
+            <div class="team-tournament-header">
+                <h2 data-i18n="team_tournament_title">🏆 Team Tournament System</h2>
+            </div>
+            
+            <div class="team-tournament-tabs">
+                <button class="team-tournament-tab active" data-tab="teams" data-i18n="team_management">Team Management</button>
+                <button class="team-tournament-tab" data-tab="setup" data-i18n="tournament_setup">Tournament Setup</button>
+                <button class="team-tournament-tab" data-tab="active" data-i18n="active_tournament" style="display: none;">Active Tournament</button>
+            </div>
+            
+            <!-- Team Management Section -->
+            <div class="team-tournament-section active" id="teams-section">
+                <div class="team-creation-form">
+                    <h3 data-i18n="create_team">Create Team</h3>
+                    <div class="team-form-group">
+                        <label for="team-name-input" data-i18n="team_name">Team Name</label>
+                        <input type="text" id="team-name-input" placeholder="Enter team name">
+                    </div>
+                    <div class="team-form-group">
+                        <label for="team-size-input" data-i18n="team_size">Team Size</label>
+                        <select id="team-size-input">
+                            <option value="2">2 Players</option>
+                            <option value="3" selected>3 Players</option>
+                            <option value="4">4 Players</option>
+                        </select>
+                    </div>
+                    <button class="team-tournament-btn success" id="create-team-btn" data-i18n="create_team_btn">Create Team</button>
+                </div>
+                
+                <h3 data-i18n="my_teams">My Teams</h3>
+                <div class="team-list" id="team-list"></div>
+            </div>
+            
+            <!-- Tournament Setup Section -->
+            <div class="team-tournament-section" id="setup-section">
+                <div class="tournament-setup">
+                    <h3 data-i18n="select_teams">Select Teams for Tournament</h3>
+                    <p style="color: #aaa; margin-bottom: 15px;">Click on teams to select them for the tournament (minimum 2 teams)</p>
+                    
+                    <div class="selected-teams-display" id="selected-teams-display">
+                        <p style="color: #888;">No teams selected yet...</p>
+                    </div>
+                    
+                    <div class="team-list" id="team-selection-list"></div>
+                    
+                    <button class="team-tournament-btn success" id="start-team-tournament-btn" disabled data-i18n="start_tournament">Start Tournament</button>
+                </div>
+            </div>
+            
+            <!-- Active Tournament Section -->
+            <div class="team-tournament-section" id="active-section">
+                <div id="tournament-match-display"></div>
+                <div id="tournament-bracket-display"></div>
+            </div>
+        </div>
+    </div>
+    
     <!-- Scripts -->
     <script src="js/i18n.js"></script>
     <script src="js/language-selector.js"></script>
@@ -252,6 +315,8 @@
     <script src="js/betting.js"></script>
     <script src="js/achievements.js"></script>
     <script src="js/pwa.js"></script>
+    <script src="js/team-tournament.js"></script>
+    <script src="js/team-tournament-ui.js"></script>
     <script type="module" src="tetris.js"></script>
 </body>
 </html>

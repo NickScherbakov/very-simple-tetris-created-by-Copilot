@@ -1,0 +1,434 @@
+/* Team Tournament Styles */
+
+.team-tournament-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    z-index: 1000;
+    overflow-y: auto;
+}
+
+.team-tournament-modal.active {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.team-tournament-content {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    border: 3px solid #7b68ee;
+    border-radius: 20px;
+    padding: 30px;
+    max-width: 900px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 10px 40px rgba(123, 104, 238, 0.3);
+}
+
+.team-tournament-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.team-tournament-header h2 {
+    color: #7b68ee;
+    font-size: 2.5em;
+    margin: 0;
+    text-shadow: 0 0 10px rgba(123, 104, 238, 0.5);
+}
+
+.team-tournament-tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #333;
+}
+
+.team-tournament-tab {
+    padding: 12px 24px;
+    background: transparent;
+    border: none;
+    color: #aaa;
+    font-size: 1.1em;
+    cursor: pointer;
+    transition: all 0.3s;
+    border-bottom: 3px solid transparent;
+}
+
+.team-tournament-tab:hover {
+    color: #fff;
+}
+
+.team-tournament-tab.active {
+    color: #7b68ee;
+    border-bottom-color: #7b68ee;
+}
+
+.team-tournament-section {
+    display: none;
+}
+
+.team-tournament-section.active {
+    display: block;
+}
+
+/* Team Management */
+.team-creation-form {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+}
+
+.team-form-group {
+    margin-bottom: 15px;
+}
+
+.team-form-group label {
+    display: block;
+    color: #fff;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.team-form-group input,
+.team-form-group select {
+    width: 100%;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.5);
+    border: 2px solid #555;
+    border-radius: 5px;
+    color: #fff;
+    font-size: 1em;
+}
+
+.team-form-group input:focus,
+.team-form-group select:focus {
+    outline: none;
+    border-color: #7b68ee;
+    box-shadow: 0 0 10px rgba(123, 104, 238, 0.3);
+}
+
+.team-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.team-card {
+    background: linear-gradient(135deg, rgba(123, 104, 238, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
+    border: 2px solid #555;
+    border-radius: 10px;
+    padding: 15px;
+    transition: all 0.3s;
+}
+
+.team-card:hover {
+    border-color: #7b68ee;
+    transform: translateY(-5px);
+    box-shadow: 0 5px 20px rgba(123, 104, 238, 0.3);
+}
+
+.team-card.selected {
+    border-color: #4CAF50;
+    background: linear-gradient(135deg, rgba(76, 175, 80, 0.2) 0%, rgba(255, 255, 255, 0.05) 100%);
+}
+
+.team-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.team-name {
+    color: #7b68ee;
+    font-size: 1.3em;
+    font-weight: bold;
+}
+
+.team-delete-btn {
+    background: #e74c3c;
+    border: none;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.9em;
+}
+
+.team-delete-btn:hover {
+    background: #c0392b;
+}
+
+.team-players {
+    margin-top: 10px;
+    font-size: 0.9em;
+}
+
+.team-player {
+    display: flex;
+    justify-content: space-between;
+    padding: 5px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    color: #ddd;
+}
+
+.team-stats {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    font-size: 0.85em;
+    color: #aaa;
+}
+
+.team-stats div {
+    margin: 3px 0;
+}
+
+/* Tournament Setup */
+.tournament-setup {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 20px;
+    border-radius: 10px;
+}
+
+.tournament-team-selection {
+    margin-bottom: 20px;
+}
+
+.tournament-team-selection h3 {
+    color: #fff;
+    margin-bottom: 15px;
+}
+
+.selected-teams-display {
+    background: rgba(0, 0, 0, 0.3);
+    padding: 15px;
+    border-radius: 5px;
+    margin-top: 15px;
+    min-height: 60px;
+}
+
+.selected-team-chip {
+    display: inline-block;
+    background: #7b68ee;
+    color: white;
+    padding: 8px 15px;
+    border-radius: 20px;
+    margin: 5px;
+    font-size: 0.9em;
+}
+
+.selected-team-chip .remove-team {
+    margin-left: 10px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+/* Match Display */
+.team-match-display {
+    background: rgba(0, 0, 0, 0.5);
+    padding: 30px;
+    border-radius: 15px;
+    margin: 20px 0;
+}
+
+.match-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.match-header h3 {
+    color: #7b68ee;
+    font-size: 2em;
+    margin: 10px 0;
+}
+
+.match-teams {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    margin: 30px 0;
+}
+
+.match-team {
+    flex: 1;
+    text-align: center;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    border: 2px solid #555;
+}
+
+.match-team.winner {
+    border-color: #4CAF50;
+    background: rgba(76, 175, 80, 0.1);
+}
+
+.match-team-name {
+    font-size: 1.5em;
+    color: #fff;
+    font-weight: bold;
+    margin-bottom: 15px;
+}
+
+.match-team-score {
+    font-size: 3em;
+    color: #7b68ee;
+    font-weight: bold;
+    margin: 10px 0;
+}
+
+.match-vs {
+    font-size: 2em;
+    color: #888;
+    font-weight: bold;
+    margin: 0 20px;
+}
+
+.match-rounds {
+    margin-top: 20px;
+}
+
+.round-display {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 10px 15px;
+    border-radius: 5px;
+    margin: 10px 0;
+    border-left: 3px solid #7b68ee;
+}
+
+.round-display h4 {
+    color: #7b68ee;
+    margin: 0 0 10px 0;
+}
+
+.round-scores {
+    display: flex;
+    justify-content: space-between;
+    font-size: 1.1em;
+}
+
+.round-scores .team1 {
+    color: #ff6b6b;
+}
+
+.round-scores .team2 {
+    color: #4ecdc4;
+}
+
+/* Tournament Bracket */
+.tournament-bracket {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.bracket-match {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 15px;
+    border-radius: 10px;
+    border: 2px solid #555;
+}
+
+.bracket-match.completed {
+    border-color: #4CAF50;
+}
+
+.bracket-teams {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+}
+
+.bracket-team {
+    flex: 1;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 5px;
+    margin: 0 5px;
+}
+
+.bracket-team.winner {
+    background: rgba(76, 175, 80, 0.2);
+    border: 2px solid #4CAF50;
+}
+
+/* Buttons */
+.team-tournament-btn {
+    padding: 12px 24px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    border-radius: 8px;
+    color: white;
+    font-size: 1.1em;
+    cursor: pointer;
+    transition: all 0.3s;
+    margin: 5px;
+}
+
+.team-tournament-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(123, 104, 238, 0.4);
+}
+
+.team-tournament-btn:disabled {
+    background: #666;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.team-tournament-btn.success {
+    background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+}
+
+.team-tournament-btn.danger {
+    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+}
+
+.team-tournament-close {
+    position: absolute;
+    top: 20px;
+    right: 30px;
+    font-size: 2em;
+    color: #aaa;
+    cursor: pointer;
+    background: none;
+    border: none;
+    transition: color 0.3s;
+}
+
+.team-tournament-close:hover {
+    color: #fff;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .team-tournament-content {
+        padding: 20px;
+        margin: 10px;
+    }
+    
+    .team-list {
+        grid-template-columns: 1fr;
+    }
+    
+    .match-teams {
+        flex-direction: column;
+        gap: 20px;
+    }
+    
+    .match-vs {
+        transform: rotate(90deg);
+        margin: 20px 0;
+    }
+}
