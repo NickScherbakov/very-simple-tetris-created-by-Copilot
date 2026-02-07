@@ -58,7 +58,7 @@ class TeamTournamentSystem {
         }
         
         const team = {
-            id: Date.now() + Math.random(),
+            id: Date.now() + '-' + Math.random().toString(36).substr(2, 9),
             name: teamName,
             players: [],
             stats: {
@@ -245,7 +245,7 @@ class TeamTournamentSystem {
     }
     
     // Simulate a single player game (simplified)
-    async simulatePlayerGame(player, gameEngine) {
+    simulatePlayerGame(player, gameEngine) {
         // This is a simplified simulation
         // In real implementation, this would integrate with the actual game engine
         const baseScore = Math.floor(Math.random() * 3000) + 500;
