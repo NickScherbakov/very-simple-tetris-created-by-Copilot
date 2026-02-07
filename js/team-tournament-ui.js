@@ -196,7 +196,7 @@ class TeamTournamentUI {
         this.teamSelectionList.innerHTML = teams.map(team => `
             <div class="team-card ${this.selectedTeamIds.includes(team.id) ? 'selected' : ''}" 
                  data-team-id="${team.id}"
-                 onclick="teamTournamentUI.toggleTeamSelection('${team.id}')">
+                 onclick="teamTournamentUI.toggleTeamSelection(${team.id})">
                 <div class="team-card-header">
                     <div class="team-name">${this.escapeHtml(team.name)}</div>
                     <div style="color: #4CAF50;">${this.selectedTeamIds.includes(team.id) ? '✓ Selected' : ''}</div>
@@ -221,12 +221,14 @@ class TeamTournamentUI {
     }
     
     toggleTeamSelection(teamId) {
-        const index = this.selectedTeamIds.indexOf(teamId);
+        // Convert to number if it's a string
+        const numericId = typeof teamId === 'string' ? parseFloat(teamId) : teamId;
+        const index = this.selectedTeamIds.indexOf(numericId);
         
         if (index > -1) {
             this.selectedTeamIds.splice(index, 1);
         } else {
-            this.selectedTeamIds.push(teamId);
+            this.selectedTeamIds.push(numericId);
         }
         
         this.refreshTeamSelectionList();
@@ -247,7 +249,7 @@ class TeamTournamentUI {
         this.selectedTeamsDisplay.innerHTML = selectedTeams.map(team => `
             <span class="selected-team-chip">
                 ${this.escapeHtml(team.name)}
-                <span class="remove-team" onclick="teamTournamentUI.toggleTeamSelection('${team.id}')">×</span>
+                <span class="remove-team" onclick="teamTournamentUI.toggleTeamSelection(${team.id})">×</span>
             </span>
         `).join('');
         
