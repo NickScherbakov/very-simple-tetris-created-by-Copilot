@@ -1,5 +1,5 @@
 // Service Worker for Tetris PWA
-const CACHE_NAME = 'tetris-pwa-v1';
+const CACHE_NAME = 'tetris-pwa-v2';
 const ASSETS_TO_CACHE = [
     '/',
     '/index.html',
@@ -9,7 +9,12 @@ const ASSETS_TO_CACHE = [
     '/js/betting.js',
     '/js/achievements.js',
     '/js/pwa.js',
+    '/js/i18n.js',
+    '/js/language-selector.js',
     '/css/betting-panel.css',
+    '/css/language.css',
+    '/css/team-tournament.css',
+    '/css/share.css',
     '/manifest.json',
     '/icons/icon-192x192.png',
     '/icons/icon-512x512.png',

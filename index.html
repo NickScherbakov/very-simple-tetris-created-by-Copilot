@@ -24,6 +24,7 @@
     <link rel="stylesheet" href="css/betting-panel.css">
     <link rel="stylesheet" href="css/language.css">
     <link rel="stylesheet" href="css/team-tournament.css">
+    <link rel="stylesheet" href="css/share.css">
 </head>
 <body>
     <!-- Language Selection Screen -->
@@ -246,6 +247,40 @@
             <h3 data-i18n="leaderboard">📊 Leaderboard</h3>
             <div id="leaderboard" class="leaderboard"></div>
         </div>
+    </div>
+    
+    <!-- Share Modal -->
+    <div id="share-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close-modal" id="close-share">&times;</span>
+            <h2 data-i18n="share_title">📤 Share</h2>
+            
+            <div class="share-section">
+                <h3 data-i18n="share_score">Share Score</h3>
+                <div class="share-stats" id="share-stats"></div>
+                <button id="share-score-btn" class="button" data-i18n="share_copy_score">📋 Copy Score</button>
+            </div>
+            
+            <div class="share-section">
+                <h3 data-i18n="share_replay">Share Replay</h3>
+                <p data-i18n="share_replay_desc">Share a link to your last game replay</p>
+                <button id="share-replay-btn" class="button" data-i18n="share_copy_replay" disabled>🔗 Copy Replay Link</button>
+                <button id="share-replay-native" class="button" data-i18n="share_native" disabled>📱 Share...</button>
+            </div>
+            
+            <div class="share-section">
+                <h3 data-i18n="share_saved_replays">Saved Replays</h3>
+                <div id="saved-replays-list"></div>
+                <button id="save-replay-btn" class="button" data-i18n="share_save_replay" disabled>💾 Save Current Replay</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Replay Banner -->
+    <div id="replay-banner" class="replay-banner" style="display: none;">
+        <span data-i18n="replay_watching">🎬 Watching Replay</span>
+        <span id="replay-info"></span>
+        <button id="stop-replay-btn" class="button button-small" data-i18n="replay_stop">⏹ Stop</button>
     </div>
     
     <!-- Team Tournament Modal -->

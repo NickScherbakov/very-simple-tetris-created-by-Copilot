@@ -28,6 +28,9 @@ export const PieceModule = (() => {
 
     const SHAPE_NAMES = ['I', 'J', 'L', 'O', 'S', 'T', 'Z'];
 
+    // Custom RNG function for deterministic replays
+    let customRNG = null;
+
     /**
      * Creates a tetromino piece
      * @param {number} shapeIndex - Index of the shape to create
@@ -66,9 +69,27 @@ export const PieceModule = (() => {
         return rotated;
     }
 
+    /**
+     * Set a custom RNG function for deterministic piece generation
+     * @param {function|null} rng - Custom RNG function or null to use Math.random
+     */
+    function setRNG(rng) {
+        customRNG = rng;
+    }
+
+    /**
+     * Get current RNG function
+     * @returns {function} Current RNG function
+     */
+    function getRandom() {
+        return customRNG ? customRNG() : Math.random();
+    }
+
     return { 
         create, 
         rotate,
+        setRNG,
+        getRandom,
         SHAPES,
         COLORS,
         SHAPE_NAMES
