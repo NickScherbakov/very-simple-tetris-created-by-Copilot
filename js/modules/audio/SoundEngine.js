@@ -3,7 +3,6 @@ export class SoundEngine {
     constructor() {
         this.audioContext = null;
         this.enabled = true;
-        this.musicEnabled = true;
         this.volume = 0.3;
         this.initialized = false;
         
@@ -27,14 +26,10 @@ export class SoundEngine {
     
     loadPreferences() {
         const soundEnabled = localStorage.getItem('tetrisSoundEnabled');
-        const musicEnabled = localStorage.getItem('tetrisMusicEnabled');
         const volume = localStorage.getItem('tetrisVolume');
         
         if (soundEnabled !== null) {
             this.enabled = soundEnabled === 'true';
-        }
-        if (musicEnabled !== null) {
-            this.musicEnabled = musicEnabled === 'true';
         }
         if (volume !== null) {
             this.volume = parseFloat(volume);
@@ -43,7 +38,6 @@ export class SoundEngine {
     
     savePreferences() {
         localStorage.setItem('tetrisSoundEnabled', this.enabled.toString());
-        localStorage.setItem('tetrisMusicEnabled', this.musicEnabled.toString());
         localStorage.setItem('tetrisVolume', this.volume.toString());
     }
     
@@ -51,12 +45,6 @@ export class SoundEngine {
         this.enabled = !this.enabled;
         this.savePreferences();
         return this.enabled;
-    }
-    
-    toggleMusic() {
-        this.musicEnabled = !this.musicEnabled;
-        this.savePreferences();
-        return this.musicEnabled;
     }
     
     setVolume(value) {

@@ -267,6 +267,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const originalShape = currentPiece.shape;
         currentPiece.shape = rotated;
         
+        let rotationSuccessful = false;
+        
         // Check if rotation is valid
         if (checkCollision(currentPiece)) {
             // Try wall kicks
@@ -278,24 +280,26 @@ document.addEventListener('DOMContentLoaded', () => {
                 { x: 0, y: -1 }
             ];
             
-            let validRotation = false;
             for (const offset of offsets) {
                 if (!checkCollision(currentPiece, offset.x, offset.y)) {
                     currentPiece.x += offset.x;
                     currentPiece.y += offset.y;
-                    validRotation = true;
+                    rotationSuccessful = true;
                     break;
                 }
             }
             
-            if (!validRotation) {
+            if (!rotationSuccessful) {
                 currentPiece.shape = originalShape;
-            } else {
-                soundEngine.rotate();
             }
         } else {
+            rotationSuccessful = true;
+        }
+        
+        if (rotationSuccessful) {
             soundEngine.rotate();
         }
+        
         draw();
     }
 
