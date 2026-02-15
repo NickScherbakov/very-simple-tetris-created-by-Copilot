@@ -9,6 +9,7 @@ import { AiVsAi } from './js/modules/ai/AiVsAi.js';
 import { ScoringSystem } from './js/modules/game/ScoringSystem.js';
 import { UIController } from './js/modules/game/UIController.js';
 import { soundEngine } from './js/modules/audio/SoundEngine.js';
+import { ReplaySystem } from './js/modules/game/ReplaySystem.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     // Game constants
@@ -106,10 +107,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const aiTrainer = createAdaptiveEngine(
         BoardModule,
         PieceModule.SHAPE_NAMES,
-        STORAGE_KEYS.aiState
+        STORAGE_KEYS.aiState,
+        PieceModule
     );
 
     const uiController = UIController.create(elements);
+
+    // Create replay system
+    const replaySystem = new ReplaySystem();
 
     // Create game board
     function createBoard() {
@@ -215,6 +220,10 @@ document.addEventListener('DOMContentLoaded', () => {
     function movePieceDown() {
         if (!currentPiece) return false;
         
+        if (!replaySystem.isPlaying() && replaySystem.isRecording()) {
+            replaySystem.recordEvent('soft_drop');
+        }
+        
         if (!checkCollision(currentPiece, 0, 1)) {
             currentPiece.y++;
             soundEngine.drop();
@@ -244,6 +253,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function movePieceLeft() {
         if (!currentPiece) return;
+        if (!replaySystem.isPlaying() && replaySystem.isRecording()) {
+            replaySystem.recordEvent('left');
+        }
         if (!checkCollision(currentPiece, -1, 0)) {
             currentPiece.x--;
             soundEngine.move();
@@ -253,6 +265,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function movePieceRight() {
         if (!currentPiece) return;
+        if (!replaySystem.isPlaying() && replaySystem.isRecording()) {
+            replaySystem.recordEvent('right');
+        }
         if (!checkCollision(currentPiece, 1, 0)) {
             currentPiece.x++;
             soundEngine.move();
@@ -262,6 +277,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function rotatePiece() {
         if (!currentPiece) return;
+        
+        if (!replaySystem.isPlaying() && replaySystem.isRecording()) {
+            replaySystem.recordEvent('rotate');
+        }
         
         const rotated = PieceModule.rotate(currentPiece);
         const originalShape = currentPiece.shape;
@@ -305,6 +324,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function hardDrop() {
         if (!currentPiece) return;
+        
+        if (!replaySystem.isPlaying() && replaySystem.isRecording()) {
+            replaySystem.recordEvent('hard_drop');
+        }
         
         while (!checkCollision(currentPiece, 0, 1)) {
             currentPiece.y++;
@@ -423,6 +446,18 @@ document.addEventListener('DOMContentLoaded', () => {
         if (checkCollision(currentPiece)) {
             gameOver = true;
             soundEngine.gameOver();
+            
+            // Stop replay recording
+            if (replaySystem.isRecording() && !aiVsAiMode) {
+                replaySystem.stopRecording({
+                    score: score,
+                    level: level,
+                    lines: lines,
+                    theme: 'default'
+                });
+                // Reset RNG to use Math.random
+                PieceModule.setRNG(null);
+            }
             
             // Check achievements
             if (window.achievementSystem) {
@@ -606,6 +641,12 @@ document.addEventListener('DOMContentLoaded', () => {
             () => {
                 elements.startBtn.textContent = 'Restart';
                 checkDailyBonus();
+                
+                // Start recording replay (only for human player, not AI vs AI)
+                if (!aiVsAiMode && !replaySystem.isPlaying()) {
+                    const seed = replaySystem.startRecording();
+                    PieceModule.setRNG(replaySystem.getRNG());
+                }
             },
             () => {
                 gameLoopManager.reset();
@@ -621,6 +662,11 @@ document.addEventListener('DOMContentLoaded', () => {
     function togglePause() {
         if (gameOver || !currentPiece) return;
         isPaused = !isPaused;
+        
+        if (!replaySystem.isPlaying() && replaySystem.isRecording()) {
+            replaySystem.recordEvent(isPaused ? 'pause' : 'resume');
+        }
+        
         gameLoopManager.pause(isPaused);
     }
 
@@ -946,8 +992,297 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     if (elements.shareBtn) {
         elements.shareBtn.addEventListener('click', () => {
-            window.achievementSystem.shareResult(score, window.tetriCoins.getBalance());
+            showShareModal();
         });
+    }
+
+    // Share Modal functionality
+    const shareModal = document.getElementById('share-modal');
+    const closeShareBtn = document.getElementById('close-share');
+    const shareScoreBtn = document.getElementById('share-score-btn');
+    const shareReplayBtn = document.getElementById('share-replay-btn');
+    const shareReplayNative = document.getElementById('share-replay-native');
+    const saveReplayBtn = document.getElementById('save-replay-btn');
+    const savedReplaysList = document.getElementById('saved-replays-list');
+
+    function showShareModal() {
+        // Update share stats
+        const shareStats = document.getElementById('share-stats');
+        const lang = getCurrentLanguage ? getCurrentLanguage() : 'en';
+        shareStats.innerHTML = `
+            <div>${getTranslation ? getTranslation('score', lang) : 'Score:'} <strong>${score}</strong></div>
+            <div>${getTranslation ? getTranslation('level', lang) : 'Level:'} <strong>${level}</strong></div>
+            <div>${getTranslation ? getTranslation('lines', lang) : 'Lines:'} <strong>${lines}</strong></div>
+            <div>${getTranslation ? getTranslation('balance', lang) : 'Balance:'} <strong>${window.tetriCoins.getBalance()} TC</strong></div>
+        `;
+
+        // Enable/disable replay buttons based on whether a replay exists
+        const hasReplay = !replaySystem.isRecording() && replaySystem.metadata && replaySystem.metadata.score !== undefined;
+        shareReplayBtn.disabled = !hasReplay;
+        shareReplayNative.disabled = !hasReplay;
+        saveReplayBtn.disabled = !hasReplay;
+
+        // Load and display saved replays
+        updateSavedReplaysList();
+
+        shareModal.style.display = 'block';
+    }
+
+    function updateSavedReplaysList() {
+        const replays = replaySystem.loadReplays();
+        if (replays.length === 0) {
+            savedReplaysList.innerHTML = '<div class="no-replays">' + 
+                (getTranslation ? getTranslation('replay_no_data', getCurrentLanguage ? getCurrentLanguage() : 'en') : 'No saved replays') + 
+                '</div>';
+            return;
+        }
+
+        savedReplaysList.innerHTML = replays.map((replay, index) => {
+            const date = new Date(replay.savedAt);
+            return `
+                <div class="replay-item">
+                    <div class="replay-item-header">
+                        <div class="replay-item-name">${replay.name}</div>
+                        <div class="replay-item-date">${date.toLocaleDateString()}</div>
+                    </div>
+                    <div class="replay-item-stats">
+                        <div>Score: ${replay.metadata.score || 0}</div>
+                        <div>Level: ${replay.metadata.level || 1}</div>
+                        <div>Lines: ${replay.metadata.lines || 0}</div>
+                    </div>
+                    <div class="replay-item-actions">
+                        <button class="play-btn" data-index="${index}">▶️ Play</button>
+                        <button class="share-btn" data-index="${index}">🔗 Share</button>
+                        <button class="delete-btn" data-index="${index}">🗑️ Delete</button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        // Add event listeners to replay buttons
+        savedReplaysList.querySelectorAll('.play-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const index = parseInt(e.target.dataset.index);
+                playReplayByIndex(index);
+                shareModal.style.display = 'none';
+            });
+        });
+
+        savedReplaysList.querySelectorAll('.share-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const index = parseInt(e.target.dataset.index);
+                shareReplayByIndex(index);
+            });
+        });
+
+        savedReplaysList.querySelectorAll('.delete-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const index = parseInt(e.target.dataset.index);
+                const lang = getCurrentLanguage ? getCurrentLanguage() : 'en';
+                if (confirm(getTranslation ? getTranslation('replay_delete_confirm', lang) : 'Delete this replay?')) {
+                    replaySystem.deleteReplay(index);
+                    updateSavedReplaysList();
+                }
+            });
+        });
+    }
+
+    function playReplayByIndex(index) {
+        const replays = replaySystem.loadReplays();
+        if (index >= 0 && index < replays.length) {
+            const replayData = replaySystem.import(replays[index].data);
+            if (replayData) {
+                startReplayPlayback(replayData);
+            }
+        }
+    }
+
+    function shareReplayByIndex(index) {
+        const replays = replaySystem.loadReplays();
+        if (index >= 0 && index < replays.length) {
+            const url = new URL(window.location.href);
+            url.searchParams.set('replay', replays[index].data);
+            copyToClipboard(url.toString());
+            showTempMessage(getTranslation ? getTranslation('replay_shared', getCurrentLanguage ? getCurrentLanguage() : 'en') : 'Replay link copied!');
+        }
+    }
+
+    if (closeShareBtn) {
+        closeShareBtn.addEventListener('click', () => {
+            shareModal.style.display = 'none';
+        });
+    }
+
+    if (shareScoreBtn) {
+        shareScoreBtn.addEventListener('click', () => {
+            const lang = getCurrentLanguage ? getCurrentLanguage() : 'en';
+            const text = `🎮 Tetris PWA - ${getTranslation ? getTranslation('score', lang) : 'Score'}: ${score}\n` +
+                        `${getTranslation ? getTranslation('level', lang) : 'Level'}: ${level}\n` +
+                        `${getTranslation ? getTranslation('lines', lang) : 'Lines'}: ${lines}\n` +
+                        `${getTranslation ? getTranslation('balance', lang) : 'Balance'}: ${window.tetriCoins.getBalance()} TC\n\n` +
+                        window.location.href;
+            copyToClipboard(text);
+            shareScoreBtn.classList.add('success-flash');
+            setTimeout(() => shareScoreBtn.classList.remove('success-flash'), 600);
+        });
+    }
+
+    if (shareReplayBtn) {
+        shareReplayBtn.addEventListener('click', () => {
+            const url = replaySystem.generateShareURL();
+            if (url) {
+                copyToClipboard(url);
+                showTempMessage(getTranslation ? getTranslation('replay_shared', getCurrentLanguage ? getCurrentLanguage() : 'en') : 'Replay link copied!');
+                shareReplayBtn.classList.add('success-flash');
+                setTimeout(() => shareReplayBtn.classList.remove('success-flash'), 600);
+            }
+        });
+    }
+
+    if (shareReplayNative) {
+        shareReplayNative.addEventListener('click', () => {
+            const url = replaySystem.generateShareURL();
+            if (url && navigator.share) {
+                navigator.share({
+                    title: 'Tetris Replay',
+                    text: `Check out my Tetris game! Score: ${score}`,
+                    url: url
+                }).catch(err => console.log('Share cancelled'));
+            }
+        });
+    }
+
+    if (saveReplayBtn) {
+        saveReplayBtn.addEventListener('click', () => {
+            const lang = getCurrentLanguage ? getCurrentLanguage() : 'en';
+            const name = prompt(getTranslation ? getTranslation('replay_name_prompt', lang) : 'Enter a name for this replay:');
+            if (name) {
+                replaySystem.saveReplay(name);
+                updateSavedReplaysList();
+                
+                // Check achievement
+                const savedReplays = replaySystem.loadReplays();
+                if (window.achievementSystem) {
+                    window.achievementSystem.checkReplaySaveAchievement(savedReplays.length);
+                }
+                
+                showTempMessage('Replay saved!');
+            }
+        });
+    }
+
+    function copyToClipboard(text) {
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.select();
+        try {
+            document.execCommand('copy');
+        } catch (err) {
+            console.warn('Failed to copy:', err);
+        }
+        document.body.removeChild(textarea);
+    }
+
+    function showTempMessage(message) {
+        const msg = document.createElement('div');
+        msg.className = 'temp-message';
+        msg.textContent = message;
+        msg.style.cssText = 'position: fixed; top: 20px; right: 20px; background: #4CAF50; color: white; padding: 15px 20px; border-radius: 5px; z-index: 3000; box-shadow: 0 4px 10px rgba(0,0,0,0.3);';
+        document.body.appendChild(msg);
+        
+        setTimeout(() => {
+            msg.style.transition = 'opacity 0.3s';
+            msg.style.opacity = '0';
+            setTimeout(() => msg.remove(), 300);
+        }, 3000);
+    }
+
+    // Replay playback functionality
+    const replayBanner = document.getElementById('replay-banner');
+    const replayInfo = document.getElementById('replay-info');
+    const stopReplayBtn = document.getElementById('stop-replay-btn');
+
+    function startReplayPlayback(replayData) {
+        // Stop current game if running
+        gameLoopManager.stop();
+        gameOver = false;
+        
+        // Reset board
+        board = createBoard();
+        score = 0;
+        lines = 0;
+        level = 1;
+        currentPiece = null;
+        nextPiece = null;
+        
+        // Set RNG for replay
+        PieceModule.setRNG(replayData.s ? replaySystem.getRNG() : null);
+        
+        // Show replay banner
+        replayBanner.style.display = 'block';
+        const lang = getCurrentLanguage ? getCurrentLanguage() : 'en';
+        replayInfo.textContent = `${getTranslation ? getTranslation('score', lang) : 'Score'}: ${replayData.m.score || 0} | ` +
+                                 `${getTranslation ? getTranslation('level', lang) : 'Level'}: ${replayData.m.level || 1}`;
+        
+        // Start game
+        gameLoopManager.start(
+            () => {},
+            () => {
+                gameLoopManager.reset();
+                uiController.updateScoreDisplay(score, level, lines);
+            }
+        );
+        
+        // Start playback
+        replaySystem.startPlayback(replayData, {
+            left: () => movePieceLeft(),
+            right: () => movePieceRight(),
+            rotate: () => rotatePiece(),
+            soft_drop: () => movePieceDown(),
+            hard_drop: () => hardDrop(),
+            pause: () => togglePause(),
+            resume: () => togglePause(),
+            onComplete: () => {
+                setTimeout(() => {
+                    stopReplayPlayback();
+                    const lang = getCurrentLanguage ? getCurrentLanguage() : 'en';
+                    alert(getTranslation ? getTranslation('replay_finished', lang) : 'Replay finished!');
+                }, 1000);
+            }
+        });
+    }
+
+    function stopReplayPlayback() {
+        replaySystem.stopPlayback();
+        replayBanner.style.display = 'none';
+        PieceModule.setRNG(null);
+        gameLoopManager.stop();
+        gameOver = true;
+        draw();
+        Renderer.drawStartScreen();
+    }
+
+    if (stopReplayBtn) {
+        stopReplayBtn.addEventListener('click', stopReplayPlayback);
+    }
+
+    // Check for replay in URL on load
+    const urlReplayData = ReplaySystem.fromURL();
+    if (urlReplayData) {
+        const lang = getCurrentLanguage ? getCurrentLanguage() : 'en';
+        if (confirm(getTranslation ? getTranslation('replay_confirm', lang) : 'A replay was shared with you. Watch it?')) {
+            setTimeout(() => {
+                startReplayPlayback(urlReplayData);
+            }, 1000);
+        } else {
+            // Clear the replay parameter from URL
+            const url = new URL(window.location.href);
+            url.searchParams.delete('replay');
+            window.history.replaceState({}, '', url);
+        }
     }
 
     // Initialize
