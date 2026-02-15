@@ -8,6 +8,7 @@ import { createAdaptiveEngine } from './js/modules/ai/AdaptiveEngine.js';
 import { AiVsAi } from './js/modules/ai/AiVsAi.js';
 import { ScoringSystem } from './js/modules/game/ScoringSystem.js';
 import { UIController } from './js/modules/game/UIController.js';
+import { soundEngine } from './js/modules/audio/SoundEngine.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     // Game constants
@@ -32,6 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
         linesElement: document.getElementById('lines'),
         startBtn: document.getElementById('start-btn'),
         gridToggleBtn: document.getElementById('grid-toggle'),
+        soundToggleBtn: document.getElementById('sound-toggle'),
         aiSummaryElement: document.getElementById('ai-summary'),
         aiInsightContainer: document.querySelector('.ai-insight'),
         aiVsAiBtn: document.getElementById('ai-vs-ai-btn'),
@@ -63,6 +65,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let isPaused = false;
     let dropInterval = 1000;
     let showGrid = true;
+    let showGhost = true;
     let consecutiveTetris = 0;
     let lastLinesClearedWas4 = false;
     
@@ -154,6 +157,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 showGrid = storedGrid === '1';
             }
             uiController.updateGridButton(showGrid);
+            
+            const storedGhost = localStorage.getItem('tetrisShowGhost');
+            if (storedGhost !== null) {
+                showGhost = storedGhost === 'true';
+            }
 
             aiTrainer.loadFromStorage();
         } catch (err) {
@@ -179,12 +187,37 @@ document.addEventListener('DOMContentLoaded', () => {
     function mergePiece() {
         BoardModule.mergePieceInto(board, currentPiece, PieceModule.COLORS);
     }
+    
+    function calculateGhostPosition(piece) {
+        if (!piece) return null;
+        
+        // Create a copy of the piece
+        const ghostPiece = {
+            ...piece,
+            shape: piece.shape,
+            x: piece.x,
+            y: piece.y
+        };
+        
+        // Drop the ghost piece until it collides
+        while (!checkCollision(ghostPiece, 0, 1)) {
+            ghostPiece.y++;
+        }
+        
+        // Only return ghost if it's not at the same position as current piece
+        if (ghostPiece.y === piece.y) {
+            return null;
+        }
+        
+        return ghostPiece;
+    }
 
     function movePieceDown() {
         if (!currentPiece) return false;
         
         if (!checkCollision(currentPiece, 0, 1)) {
             currentPiece.y++;
+            soundEngine.drop();
             return true;
         } else {
             // Piece has landed
@@ -213,6 +246,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!currentPiece) return;
         if (!checkCollision(currentPiece, -1, 0)) {
             currentPiece.x--;
+            soundEngine.move();
             draw();
         }
     }
@@ -221,6 +255,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!currentPiece) return;
         if (!checkCollision(currentPiece, 1, 0)) {
             currentPiece.x++;
+            soundEngine.move();
             draw();
         }
     }
@@ -231,6 +266,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const rotated = PieceModule.rotate(currentPiece);
         const originalShape = currentPiece.shape;
         currentPiece.shape = rotated;
+        
+        let rotationSuccessful = false;
         
         // Check if rotation is valid
         if (checkCollision(currentPiece)) {
@@ -243,20 +280,26 @@ document.addEventListener('DOMContentLoaded', () => {
                 { x: 0, y: -1 }
             ];
             
-            let validRotation = false;
             for (const offset of offsets) {
                 if (!checkCollision(currentPiece, offset.x, offset.y)) {
                     currentPiece.x += offset.x;
                     currentPiece.y += offset.y;
-                    validRotation = true;
+                    rotationSuccessful = true;
                     break;
                 }
             }
             
-            if (!validRotation) {
+            if (!rotationSuccessful) {
                 currentPiece.shape = originalShape;
             }
+        } else {
+            rotationSuccessful = true;
         }
+        
+        if (rotationSuccessful) {
+            soundEngine.rotate();
+        }
+        
         draw();
     }
 
@@ -266,6 +309,8 @@ document.addEventListener('DOMContentLoaded', () => {
         while (!checkCollision(currentPiece, 0, 1)) {
             currentPiece.y++;
         }
+        
+        soundEngine.hardDrop();
         
         const beforeMetrics = BoardModule.computeMetrics(board);
         mergePiece();
@@ -296,12 +341,18 @@ document.addEventListener('DOMContentLoaded', () => {
             linesCleared = BoardModule.clearLines(board, linesToClear);
 
             lines += linesCleared;
+            const prevLevel = level;
 
             // Calculate score based on lines cleared
             score += ScoringSystem.calculateLineScore(linesCleared, level);
 
             // Update level every 10 lines
             level = ScoringSystem.calculateLevel(lines);
+            
+            // Check for level up
+            if (level > prevLevel) {
+                soundEngine.levelUp();
+            }
 
             // Adjust drop speed based on level
             dropInterval = ScoringSystem.calculateDropInterval(level);
@@ -312,6 +363,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (reward > 0) {
                     uiController.updateBalanceDisplay();
                     uiController.showCoinReward(reward);
+                    soundEngine.coinEarned();
                 }
                 
                 // Track Tetris streak for achievement
@@ -319,12 +371,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     consecutiveTetris++;
                     lastLinesClearedWas4 = true;
                     window.achievementSystem.checkTetrisStreak(consecutiveTetris);
+                    soundEngine.tetris();
                     
                     // Track first Tetris in AI vs AI match
                     if (aiVsAiMode && !matchStats.firstTetris) {
                         matchStats.firstTetris = currentAiPlayer;
                     }
                 } else {
+                    soundEngine.lineClear(linesCleared);
                     if (lastLinesClearedWas4) {
                         consecutiveTetris = 0;
                         window.achievementSystem.resetTetrisStreak();
@@ -368,6 +422,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         if (checkCollision(currentPiece)) {
             gameOver = true;
+            soundEngine.gameOver();
             
             // Check achievements
             if (window.achievementSystem) {
@@ -422,6 +477,12 @@ document.addEventListener('DOMContentLoaded', () => {
         Renderer.clear();
         Renderer.drawGrid(showGrid, BoardModule.COLS, BoardModule.ROWS);
         Renderer.drawBoard(board);
+        if (currentPiece && showGhost) {
+            const ghostPiece = calculateGhostPosition(currentPiece);
+            if (ghostPiece) {
+                Renderer.drawGhostPiece(ghostPiece);
+            }
+        }
         if (currentPiece) {
             Renderer.drawPiece(currentPiece);
         }
@@ -432,6 +493,26 @@ document.addEventListener('DOMContentLoaded', () => {
         uiController.updateGridButton(showGrid);
         persistGridPreference();
         draw();
+    }
+    
+    function toggleGhost() {
+        showGhost = !showGhost;
+        localStorage.setItem('tetrisShowGhost', showGhost.toString());
+        draw();
+    }
+    
+    function toggleSound() {
+        const enabled = soundEngine.toggleSound();
+        updateSoundButton(enabled);
+    }
+    
+    function updateSoundButton(enabled) {
+        if (elements.soundToggleBtn) {
+            const key = enabled ? 'sound_on' : 'sound_off';
+            const icon = enabled ? '🔊' : '🔇';
+            elements.soundToggleBtn.setAttribute('data-i18n', key);
+            elements.soundToggleBtn.textContent = `${icon} ${window.i18n ? window.i18n.t(key) : (enabled ? 'Sound' : 'Muted')}`;
+        }
     }
 
     // Game loop manager
@@ -810,6 +891,7 @@ document.addEventListener('DOMContentLoaded', () => {
             onHardDrop: () => hardDrop(),
             onTogglePause: () => togglePause(),
             onToggleGrid: () => toggleGrid(),
+            onToggleGhost: () => toggleGhost(),
             onTakeControl: () => takeControl()
         });
     });
@@ -832,9 +914,15 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Button event listeners
-    elements.startBtn.addEventListener('click', startGame);
+    elements.startBtn.addEventListener('click', () => {
+        soundEngine.init();
+        startGame();
+    });
     if (elements.gridToggleBtn) {
         elements.gridToggleBtn.addEventListener('click', toggleGrid);
+    }
+    if (elements.soundToggleBtn) {
+        elements.soundToggleBtn.addEventListener('click', toggleSound);
     }
     if (elements.aiVsAiBtn) {
         elements.aiVsAiBtn.addEventListener('click', startAiVsAiMode);
@@ -867,6 +955,7 @@ document.addEventListener('DOMContentLoaded', () => {
     window.tetriCoins.addListener(() => uiController.updateBalanceDisplay());
     board = createBoard();
     loadPreferences();
+    updateSoundButton(soundEngine.enabled);
     draw();
     Renderer.drawStartScreen();
 
@@ -875,5 +964,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (elements.gridToggleBtn) {
             uiController.updateGridButton(showGrid);
         }
+        updateSoundButton(soundEngine.enabled);
     });
 });

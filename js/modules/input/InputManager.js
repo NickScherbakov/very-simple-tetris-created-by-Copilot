@@ -60,6 +60,12 @@ export const InputManager = (() => {
             case 'G':
                 callbacks.onToggleGrid();
                 break;
+            case 'h':
+            case 'H':
+                if (callbacks.onToggleGhost) {
+                    callbacks.onToggleGhost();
+                }
+                break;
             case 't':
             case 'T':
                 if (callbacks.isAiVsAiMode) {

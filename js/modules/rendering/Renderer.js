@@ -55,6 +55,27 @@ export const Renderer = (() => {
             });
         });
     }
+    
+    /**
+     * Draws a ghost piece (semi-transparent preview)
+     * @param {Object} piece - The ghost piece to draw
+     */
+    function drawGhostPiece(piece) {
+        if (!piece) return;
+        
+        mainCtx.save();
+        mainCtx.globalAlpha = 0.25;
+        
+        piece.shape.forEach((row, y) => {
+            row.forEach((value, x) => {
+                if (value) {
+                    drawBlock(piece.x + x, piece.y + y, piece.color, mainCtx);
+                }
+            });
+        });
+        
+        mainCtx.restore();
+    }
 
     /**
      * Draws the next piece preview
@@ -157,7 +178,8 @@ export const Renderer = (() => {
     return { 
         initialize,
         drawBlock, 
-        drawPiece, 
+        drawPiece,
+        drawGhostPiece,
         drawNextPiece, 
         drawBoard, 
         drawGrid, 
