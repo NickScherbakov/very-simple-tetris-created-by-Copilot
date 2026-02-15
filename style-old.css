@@ -1,0 +1,746 @@
+:root {
+    --primary-color: #7b68ee;
+    --secondary-color: #4a4489;
+    --accent-color: #ff6b6b;
+    --background-color: #121212;
+    --text-color: #ffffff;
+    --grid-line-color: rgba(255, 255, 255, 0.1);
+    --button-hover-color: #9485f0;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+.game-container {
+    display: grid;
+    grid-template-areas:
+        "score next"
+        "canvas canvas"
+        "controls controls"
+        "buttons buttons"
+        "ai ai"
+        "footer footer";
+    gap: 10px;
+    max-width: 100%;
+    padding: 10px;
+    margin: 0 auto;
+    background: linear-gradient(145deg, var(--secondary-color), var(--background-color));
+    border-radius: 10px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+}
+
+.score-section {
+    grid-area: score;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    font-size: 1.2rem;
+    padding: 0.5rem;
+    background-color: rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+}
+
+.next-piece {
+    grid-area: next;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0.5rem;
+    background-color: rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+}
+
+.next-piece h3 {
+    margin-bottom: 0.5rem;
+    color: var(--text-color);
+}
+
+#tetris-canvas {
+    grid-area: canvas;
+    width: 300px;
+    height: 600px;
+    border-radius: 5px;
+    background-color: rgba(0, 0, 0, 0.5);
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
+    justify-self: center;
+}
+
+#next-piece-canvas {
+    width: 80px;
+    height: 80px;
+    margin-top: 0.5rem;
+}
+
+.controls-instructions {
+    grid-area: controls;
+    background-color: rgba(255, 255, 255, 0.08);
+    padding: 1rem;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.controls-instructions h3 {
+    margin-bottom: 0.5rem;
+    color: var(--text-color);
+}
+
+.controls-instructions p {
+    margin: 0;
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+.game-buttons {
+    grid-area: buttons;
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+}
+
+button, .button {
+    background-color: var(--primary-color);
+    color: var(--text-color);
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.15s, transform 0.15s;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+}
+
+button:hover, button:focus, .button:hover, .button:focus {
+    background-color: var(--button-hover-color);
+}
+
+button:active, .button:active {
+    transform: scale(0.95);
+}
+
+.button-primary {
+    background-color: #28a745;
+}
+
+.button-primary:hover, .button-primary:focus {
+    background-color: #218838;
+}
+
+.button-warning {
+    background-color: #ffc107;
+    color: #212529;
+}
+
+.button-warning:hover, .button-warning:focus {
+    background-color: #e0a800;
+}
+
+.ai-insight {
+    grid-area: ai;
+    background-color: rgba(255, 255, 255, 0.08);
+    padding: 1rem;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+.ai-insight h3 {
+    margin-bottom: 0.5rem;
+    color: var(--text-color);
+}
+
+.ai-vs-ai-panel {
+    grid-area: ai;
+    background-color: rgba(255, 255, 255, 0.08);
+    padding: 1rem;
+    border-radius: 8px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-top: 0.5rem;
+}
+
+.ai-player {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.75rem;
+    background-color: rgba(0, 0, 0, 0.3);
+    border-radius: 6px;
+    border-left: 4px solid;
+}
+
+.ai-player-1 {
+    border-left-color: #dc3545;
+}
+
+.ai-player-2 {
+    border-left-color: #007bff;
+}
+
+.ai-player h4 {
+    margin: 0 0 0.5rem 0;
+    color: var(--text-color);
+    font-size: 1rem;
+}
+
+.ai-thinking, .ai-plan {
+    font-size: 0.8rem;
+    line-height: 1.3;
+    min-height: 2.5rem;
+    padding: 0.5rem;
+    background-color: rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
+}
+
+.game-controls {
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.current-turn {
+    grid-column: 1 / -1;
+    text-align: center;
+    font-weight: bold;
+    padding: 0.5rem;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    margin-bottom: 0.5rem;
+}
+
+#ai1-thinking, #ai2-thinking {
+    color: #ffc107;
+}
+
+#ai1-plan, #ai2-plan {
+    color: #28a745;
+}
+
+/* Media queries for responsive design */
+@media (min-width: 768px) {
+    .game-container {
+        grid-template-areas:
+            "score canvas next"
+            "score canvas next"
+            "controls controls controls"
+            "buttons buttons buttons"
+            "ai ai ai"
+            "footer footer footer";
+        grid-template-columns: 200px 320px 150px;
+        justify-content: center;
+        gap: 15px;
+    }
+    
+    #tetris-canvas {
+        width: 320px;
+        height: 640px;
+        justify-self: center;
+    }
+}
+
+@media (max-width: 767px) {
+    .game-container {
+        grid-template-areas:
+            "score next"
+            "canvas canvas"
+            "controls controls"
+            "buttons buttons"
+            "ai ai"
+            "footer footer";
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        padding: 10px;
+        max-width: 100vw;
+        overflow-x: hidden;
+    }
+    
+    #tetris-canvas {
+        width: calc(100vw - 40px);
+        max-width: 300px;
+        height: auto;
+        aspect-ratio: 1/2;
+        justify-self: center;
+    }
+    
+    .game-buttons {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 8px;
+    }
+    
+    .game-buttons .button {
+        flex: 0 0 auto;
+        padding: 10px 15px;
+        font-size: 0.85rem;
+        min-width: 80px;
+    }
+    
+    .balance {
+        white-space: nowrap;
+        font-size: 1rem;
+    }
+    
+    .score-section {
+        font-size: 0.9rem;
+    }
+    
+    .ai-vs-ai-panel {
+        grid-template-columns: 1fr;
+    }
+
+    .game-controls {
+        flex-direction: column;
+        align-items: center;
+    }
+}
+
+/* Game over and pause overlays */
+.game-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    border-radius: 5px;
+    color: var(--text-color);
+}
+
+.game-overlay h2 {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+}
+
+.game-overlay p {
+    font-size: 1.2rem;
+    text-align: center;
+}
+
+/* Balance display */
+.balance {
+    color: #ffd700;
+    font-weight: bold;
+    font-size: 1.3rem;
+    margin-top: 0.5rem;
+    text-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
+}
+
+/* Tournament button */
+.button-tournament {
+    background: linear-gradient(135deg, #ffd700, #ffed4e);
+    color: #000;
+}
+
+.button-tournament:hover {
+    background: linear-gradient(135deg, #ffed4e, #ffd700);
+}
+
+/* Team Tournament button */
+.button-team-tournament {
+    background: linear-gradient(135deg, #9b59b6, #8e44ad);
+    color: #fff;
+}
+
+.button-team-tournament:hover {
+    background: linear-gradient(135deg, #8e44ad, #9b59b6);
+}
+
+/* Install button */
+.button-install {
+    background-color: #28a745;
+}
+
+.button-install:hover {
+    background-color: #218838;
+}
+
+/* Achievements button */
+.button-achievements {
+    background-color: #6f42c1;
+}
+
+.button-achievements:hover {
+    background-color: #5a32a3;
+}
+
+/* Share button */
+.button-share {
+    background-color: #17a2b8;
+}
+
+.button-share:hover {
+    background-color: #138496;
+}
+
+/* Modal styles */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+}
+
+.modal-content {
+    background: linear-gradient(145deg, var(--secondary-color), var(--background-color));
+    padding: 2rem;
+    border-radius: 15px;
+    max-width: 600px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    position: relative;
+    box-shadow: 0 10px 50px rgba(0, 0, 0, 0.5);
+}
+
+.close-modal {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    font-size: 2rem;
+    cursor: pointer;
+    color: var(--text-color);
+}
+
+.close-modal:hover {
+    color: var(--accent-color);
+}
+
+/* Achievements list */
+.achievements-progress {
+    text-align: center;
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+    color: #ffd700;
+}
+
+.achievements-list {
+    display: grid;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.achievement-item {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 1rem;
+    border-radius: 8px;
+    border-left: 4px solid;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.achievement-item.unlocked {
+    border-color: #28a745;
+    background: rgba(40, 167, 69, 0.1);
+}
+
+.achievement-item.locked {
+    border-color: #6c757d;
+    opacity: 0.6;
+}
+
+.achievement-icon-large {
+    font-size: 2.5rem;
+}
+
+.achievement-info h3 {
+    margin: 0 0 0.3rem 0;
+    color: var(--text-color);
+}
+
+.achievement-info p {
+    margin: 0;
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.achievement-reward {
+    margin-left: auto;
+    color: #ffd700;
+    font-weight: bold;
+}
+
+/* Achievement notification */
+.achievement-notification {
+    position: fixed;
+    top: -200px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(135deg, #1a0a2e, #0f0520);
+    border: 2px solid #ffd700;
+    border-radius: 15px;
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    z-index: 3000;
+    box-shadow: 0 10px 30px rgba(255, 215, 0, 0.5);
+    transition: top 0.5s ease-out;
+    max-width: 400px;
+}
+
+.achievement-notification.show {
+    top: 20px;
+}
+
+.achievement-notification .achievement-icon {
+    font-size: 3rem;
+}
+
+.achievement-content {
+    flex: 1;
+}
+
+.achievement-title {
+    color: #ffd700;
+    font-weight: bold;
+    margin-bottom: 0.3rem;
+}
+
+.achievement-name {
+    color: var(--text-color);
+    font-size: 1.1rem;
+    margin-bottom: 0.2rem;
+}
+
+.achievement-desc {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.9rem;
+}
+
+.achievement-reward {
+    color: #ffd700;
+    font-weight: bold;
+    margin-top: 0.3rem;
+}
+
+/* Leaderboard */
+.leaderboard {
+    background: rgba(0, 0, 0, 0.3);
+    padding: 1rem;
+    border-radius: 8px;
+}
+
+.leaderboard-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.7rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.leaderboard-item:last-child {
+    border-bottom: none;
+}
+
+.leaderboard-rank {
+    font-weight: bold;
+    color: #ffd700;
+    min-width: 30px;
+}
+
+.leaderboard-name {
+    flex: 1;
+    margin: 0 1rem;
+}
+
+.leaderboard-balance {
+    color: #ffd700;
+    font-weight: bold;
+}
+
+/* Temporary message */
+.temp-message {
+    position: fixed;
+    bottom: -100px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(123, 104, 238, 0.95);
+    color: white;
+    padding: 1rem 2rem;
+    border-radius: 10px;
+    z-index: 3000;
+    transition: bottom 0.3s ease-out;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
+}
+
+.temp-message.show {
+    bottom: 20px;
+}
+
+/* Footer */
+.game-footer {
+    grid-area: footer;
+    text-align: center;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.3);
+    color: rgba(255, 255, 255, 0.7);
+    border-radius: 8px;
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+    word-wrap: break-word;
+}
+
+.game-footer p {
+    margin: 0;
+    font-size: 0.8rem;
+    line-height: 1.3;
+}
+
+/* Touch-friendly improvements */
+@media (hover: none) and (pointer: coarse) {
+    button, .button {
+        min-height: 48px;
+        min-width: 48px;
+        font-size: 1.1rem;
+    }
+    
+    .bet-option-btn {
+        min-height: 44px;
+    }
+    
+    .quick-bet-btn {
+        min-height: 44px;
+    }
+}
+
+/* Responsive improvements */
+@media (max-width: 767px) {
+    body {
+        padding: 0.5rem;
+    }
+    
+    .game-container {
+        padding: 0.5rem;
+    }
+    
+    #tetris-canvas {
+        width: 280px;
+        height: 560px;
+    }
+    
+    .score-section {
+        font-size: 1rem;
+    }
+    
+    .balance {
+        font-size: 1.1rem;
+    }
+    
+    .controls-instructions {
+        display: none;
+    }
+    
+    .game-buttons {
+        gap: 0.5rem;
+    }
+    
+    button, .button {
+        padding: 10px 16px;
+        font-size: 0.95rem;
+    }
+    
+    .modal-content {
+        padding: 1.5rem;
+        width: 95%;
+    }
+    
+    .achievement-notification {
+        max-width: 90%;
+        padding: 1rem;
+    }
+}
+
+@media (min-width: 768px) and (max-width: 1024px) {
+    #tetris-canvas {
+        width: 300px;
+        height: 600px;
+    }
+}
+
+/* PWA mode specific styles */
+.pwa-mode .game-container {
+    margin-top: env(safe-area-inset-top);
+    margin-bottom: env(safe-area-inset-bottom);
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Loading state */
+.loading {
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+/* Vibration indicator (visual feedback) */
+@keyframes vibrate {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-2px); }
+    75% { transform: translateX(2px); }
+}
+
+.vibrating {
+    animation: vibrate 0.1s linear 3;
+}
+
+/* Scrollbar styling for modals */
+.modal-content::-webkit-scrollbar {
+    width: 8px;
+}
+
+.modal-content::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
+}
+
+.modal-content::-webkit-scrollbar-thumb {
+    background: rgba(123, 104, 238, 0.5);
+    border-radius: 4px;
+}
+
+.modal-content::-webkit-scrollbar-thumb:hover {
+    background: rgba(123, 104, 238, 0.7);
+}
