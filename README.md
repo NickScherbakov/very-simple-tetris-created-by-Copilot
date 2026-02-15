@@ -1,12 +1,20 @@
 # Classic Tetris
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) [![GitHub Stars](https://img.shields.io/github/stars/NickScherbakov/very-simple-tetris-created-by-Copilot?style=social)](https://github.com/NickScherbakov/very-simple-tetris-created-by-Copilot) [![GitHub Forks](https://img.shields.io/github/forks/NickScherbakov/very-simple-tetris-created-by-Copilot?style=social)](https://github.com/NickScherbakov/very-simple-tetris-created-by-Copilot/fork) [![GitHub Pages](https://img.shields.io/badge/Play%20Now-GitHub%20Pages-brightgreen)](https://nickscherbakov.github.io/very-simple-tetris-created-by-Copilot/) [![PWA Ready](https://img.shields.io/badge/PWA-Ready-blue)](https://nickscherbakov.github.io/very-simple-tetris-created-by-Copilot/) [![Languages](https://img.shields.io/badge/Languages-EN%20%7C%20RU%20%7C%20ZH%20%7C%20AR-orange)]() [![Made with Copilot](https://img.shields.io/badge/Made%20with-GitHub%20Copilot-8957e5)](https://github.com/features/copilot)
 
 A classic Tetris game implemented using HTML, CSS, JavaScript ... and little AI-trainer-mentor
 
 ## Screenshot
 
 ![Classic Tetris Gameplay](screenshot.jpg)
+
+## 📱 Play on Mobile
+
+Scan the QR code to play instantly on your phone:
+
+![Play Tetris](https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://nickscherbakov.github.io/very-simple-tetris-created-by-Copilot/)
+
+> 💡 **Tip:** Add the game to your home screen for a native app experience! The game works offline as a PWA.
 
 ## Description
 
@@ -22,33 +30,93 @@ This implementation of the classic Tetris game includes all the main elements of
 - Optional touch controls for mobile and tablet devices
 - Persistent high-score and grid preference storage
 
-## Features
+## ✨ Features
 
-- Smooth animation and responsive keyboard controls
-- **Ghost piece landing preview** - Semi-transparent shadow shows where piece will land
-- **Sound effects** - 8-bit procedural sounds for all game events (move, rotate, drop, line clear, etc.)
-- **Mute/volume controls** - Toggle sound on/off with persistent preferences
-- Ability to pause/resume play at any time
-- Real-time display of score, level, and cleared lines
-- Preview of the next tetromino
-- Customizable visual grid with shine effects for blocks
-- Adaptive AI insight panel explaining strategy shifts
-- On-screen touch controls for coarse-pointer (touch) devices
-- High-score persistence across sessions via local storage
+### 🎮 Core Gameplay
+- Classic Tetris with 7 standard tetrominos (I, J, L, O, S, T, Z)
+- Smooth canvas-based rendering at 60 FPS
+- Ghost piece showing where the active piece will land
+- Scoring system with soft/hard drop bonuses
+- Level progression with increasing speed (every 10 lines)
+- Next piece preview
+- Pause/resume functionality
+- Toggleable grid overlay
 
-## Controls
+### 🔊 Sound System
+- Procedural 8-bit sound effects via Web Audio API
+- Unique sounds for move, rotate, drop, line clear, Tetris, level up, game over
+- Volume control and mute toggle
+- Zero external audio files — all sounds generated programmatically
 
-- **← →** : Move left/right
-- **↑** : Rotate piece
-- **↓** : Soft drop (accelerated)
-- **Space** : Hard drop (instant)
-- **P** : Pause
-- **G** : Toggle grid display
-- **H** : Toggle ghost piece preview
-- **Sound button** : Toggle sound effects on/off
-- **Touch panel** : Buttons for move/rotate/drop/pause on mobile devices
+### 🤖 AI Features
+- Adaptive learning engine that analyzes player mistakes
+- AI Insight panel with real-time strategy feedback
+- **AI vs AI Mode** — watch two AI players compete
+- Dual AI system: aggressive (AI 1) vs defensive (AI 2)
+- Player intervention — take control from AI at any time
 
-For mobile users, add the game to your home screen or open it in full-screen mode for the best touch experience.
+### 🎨 Theme System & Shop
+- 8 purchasable visual themes (Classic, Ocean, Inferno, Matrix, Neon, Pastel, Gold, Rainbow)
+- TetriCoins shop for spending virtual currency
+- Multiple block rendering styles (flat, gradient, glossy)
+- Persistent theme preferences
+
+### 💰 Virtual Economy
+- TetriCoins (TC) virtual currency
+- Earn TC by clearing lines (10-500 TC based on lines cleared)
+- Daily bonus (+100 TC)
+- Betting system for AI vs AI matches (4 bet types with different odds)
+- Tournament mode with jackpot system
+
+### 📹 Replay System
+- Record game sessions as compact input logs
+- Share replays via URL links — recipients can watch your game
+- Save up to 10 replays locally
+- Deterministic playback using seeded random generation
+- Web Share API integration for mobile sharing
+
+### 🏆 Achievements & Social
+- Achievement system with TC rewards
+- Local leaderboard (Top 10)
+- Social sharing (score, replays)
+- Achievement notifications with animations
+
+### 📱 Progressive Web App
+- Installable on mobile devices (Add to Home Screen)
+- Full offline support via Service Worker
+- Responsive design for mobile, tablet, and desktop
+- Touch controls with swipe gestures
+- Haptic feedback (vibration API)
+
+### 🌍 Internationalization
+- 4 languages: English, Русский, 中文, العربية
+- Language selection screen on first visit
+- Full UI translation including achievements, shop, and replays
+
+## 🎮 Controls
+
+### Keyboard
+| Key | Action |
+|-----|--------|
+| ← → | Move piece left/right |
+| ↑ | Rotate piece |
+| ↓ | Soft drop (faster descent) |
+| Space | Hard drop (instant placement) |
+| P | Pause / Resume |
+| G | Toggle grid overlay |
+| M | Mute / Unmute sound |
+| T | Take control (AI vs AI mode) |
+
+### Touch (Mobile)
+- **Swipe left/right** — Move piece
+- **Tap** — Rotate
+- **Swipe down** — Hard drop
+- On-screen buttons for all controls
+
+### AI vs AI Mode
+- **AI vs AI Mode button** — Start AI competition
+- **T key / Take Control button** — Intervene in AI gameplay
+- **Exit AI Mode button** — Return to normal play
 
 ## Scoring System
 
@@ -59,17 +127,61 @@ For mobile users, add the game to your home screen or open it in full-screen mod
 - Soft drop: +1 point per cell
 - Hard drop: +2 points per cell
 
+## 🛠️ Technology Stack
+
+| Technology | Usage |
+|-----------|-------|
+| HTML5 Canvas | Game rendering |
+| CSS3 | Responsive UI, animations, themes |
+| Vanilla JavaScript | Game logic, ES modules |
+| Web Audio API | Procedural sound generation |
+| Service Worker | Offline PWA support |
+| LocalStorage | Persistent data (scores, themes, replays) |
+| Web Share API | Native sharing on mobile |
+| Vibration API | Haptic feedback |
+
+**Zero external dependencies** — everything is built with native web APIs.
+
 ## Installation and Launch
 
 1. Clone the repository or download the project files
 2. Open `index.html` in any modern web browser
 3. Click the "Start Game" button to begin playing
 
-## Technologies
+## 📁 Project Structure
 
-- HTML5
-- CSS3
-- JavaScript (using Canvas API for rendering)
+```
+├── index.html                  # Main HTML file
+├── tetris.js                   # Main game entry point (ES module)
+├── style.css                   # Core styles
+├── sw.js                       # Service Worker
+├── manifest.json               # PWA manifest
+├── css/
+│   ├── betting-panel.css       # Betting UI styles
+│   ├── language.css            # Language selection styles
+│   ├── share.css               # Share UI styles
+│   └── team-tournament.css     # Tournament styles
+├── js/
+│   ├── achievements.js         # Achievement system
+│   ├── betting.js              # Betting system
+│   ├── currency.js             # TetriCoins currency
+│   ├── i18n.js                 # Internationalization
+│   ├── language-selector.js    # Language UI
+│   ├── pwa.js                  # PWA registration
+│   ├── team-tournament.js      # Tournament logic
+│   ├── team-tournament-ui.js   # Tournament UI
+│   └── modules/
+│       ├── core/               # Core game logic
+│       ├── rendering/          # Canvas rendering
+│       ├── input/              # Input handling
+│       ├── ai/                 # AI systems
+│       ├── audio/              # Sound engine
+│       └── game/               # Game systems (scoring, UI, themes, replays)
+├── icons/                      # PWA icons
+├── tetris-textbook*.md         # Game tutorials
+├── tetris-strategist*.md       # Strategy guides
+└── README*.md                  # Documentation (EN, RU, CH)
+```
 
 ## AI vs AI Game Mode
 
@@ -152,6 +264,25 @@ Create a classic Tetris game implementation using HTML, CSS, and JavaScript with
    - 2 bonus points for each cell in hard drop
 
 Implement the game using vanilla JavaScript with the Canvas API for rendering, ensuring smooth gameplay with appropriate animation timing. The implementation should be responsive and work in modern browsers without external libraries.
+
+## 🤝 Contributing
+
+We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
+### Quick Start for Contributors
+1. Fork the repository
+2. Open `index.html` in a browser (no build step needed!)
+3. Make your changes
+4. Submit a Pull Request
+
+### Good First Issues
+- 🌐 Add translations for new languages (Japanese, Korean, Spanish, etc.)
+- 🎨 Create new visual themes
+- 🔊 Add new sound patterns
+- 📝 Improve documentation
+- 🐛 Report and fix bugs
+
+See the [ROADMAP.md](ROADMAP.md) for more ideas.
 
 ## Author
 
