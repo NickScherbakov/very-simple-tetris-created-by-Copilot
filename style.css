@@ -37,6 +37,13 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+}
+
+/* Smooth transitions for interactive elements */
+button, .button, a, 
+.panel, .modal, .modal-content,
+.achievement-item, .bet-type-card,
+input, select, textarea {
     transition-property: background-color, border-color, color, box-shadow, opacity, transform;
     transition-duration: 0.15s;
     transition-timing-function: ease;
@@ -169,6 +176,12 @@ body {
 
 .stat-value.balance {
     color: var(--accent-gold);
+}
+
+.stat-value.balance::after {
+    content: ' TC';
+    font-size: 0.9em;
+    opacity: 0.8;
 }
 
 .balance-item {
@@ -436,8 +449,8 @@ button:active, .button:active {
 /* Touch-friendly improvements */
 @media (hover: none) and (pointer: coarse) {
     button, .button {
-        min-height: 44px;
-        min-width: 44px;
+        min-height: 48px;
+        min-width: 48px;
     }
 }
 
