@@ -294,7 +294,7 @@ const translations = {
         replay_shared: "تم نسخ رابط الإعادة!",
         replay_name_prompt: "أدخل اسمًا لهذه الإعادة:",
         replay_finished: "انتهت الإعادة!",
-        replay_play_yourself: "!العب بنفسك",
+        replay_play_yourself: "العب بنفسك!",
         replay_confirm: "تمت مشاركة إعادة معك. هل تريد مشاهدتها؟",
         replay_no_data: "لا توجد إعادة متاحة",
         replay_delete_confirm: "حذف هذه الإعادة؟",

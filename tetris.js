@@ -1017,7 +1017,7 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
 
         // Enable/disable replay buttons based on whether a replay exists
-        const hasReplay = !replaySystem.isRecording() && replaySystem.metadata && replaySystem.metadata.score !== undefined;
+        const hasReplay = !replaySystem.isRecording() && replaySystem.metadata && Object.keys(replaySystem.metadata).length > 0 && replaySystem.metadata.score !== undefined;
         shareReplayBtn.disabled = !hasReplay;
         shareReplayNative.disabled = !hasReplay;
         saveReplayBtn.disabled = !hasReplay;
@@ -1172,6 +1172,18 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function copyToClipboard(text) {
+        // Use modern Clipboard API if available
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).catch(err => {
+                console.warn('Clipboard API failed, falling back to execCommand:', err);
+                fallbackCopyToClipboard(text);
+            });
+        } else {
+            fallbackCopyToClipboard(text);
+        }
+    }
+
+    function fallbackCopyToClipboard(text) {
         const textarea = document.createElement('textarea');
         textarea.value = text;
         textarea.style.position = 'fixed';
@@ -1249,7 +1261,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 setTimeout(() => {
                     stopReplayPlayback();
                     const lang = getCurrentLanguage ? getCurrentLanguage() : 'en';
-                    alert(getTranslation ? getTranslation('replay_finished', lang) : 'Replay finished!');
+                    showTempMessage(getTranslation ? getTranslation('replay_finished', lang) : 'Replay finished!');
                 }, 1000);
             }
         });

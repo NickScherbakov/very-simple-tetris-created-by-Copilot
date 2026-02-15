@@ -102,7 +102,8 @@ export class ReplaySystem {
 
         try {
             const jsonStr = JSON.stringify(data);
-            return btoa(encodeURIComponent(jsonStr));
+            // Properly encode UTF-8 to base64
+            return btoa(unescape(encodeURIComponent(jsonStr)));
         } catch (err) {
             console.error('Failed to export replay:', err);
             return null;
@@ -116,7 +117,8 @@ export class ReplaySystem {
      */
     import(encoded) {
         try {
-            const jsonStr = decodeURIComponent(atob(encoded));
+            // Properly decode base64 to UTF-8
+            const jsonStr = decodeURIComponent(escape(atob(encoded)));
             const data = JSON.parse(jsonStr);
 
             // Validate replay data
