@@ -1,10 +1,20 @@
 # 经典俄罗斯方块
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) [![GitHub Stars](https://img.shields.io/github/stars/NickScherbakov/very-simple-tetris-created-by-Copilot?style=social)](https://github.com/NickScherbakov/very-simple-tetris-created-by-Copilot) [![GitHub Forks](https://img.shields.io/github/forks/NickScherbakov/very-simple-tetris-created-by-Copilot?style=social)](https://github.com/NickScherbakov/very-simple-tetris-created-by-Copilot/fork) [![GitHub Pages](https://img.shields.io/badge/Play%20Now-GitHub%20Pages-brightgreen)](https://nickscherbakov.github.io/very-simple-tetris-created-by-Copilot/) [![PWA Ready](https://img.shields.io/badge/PWA-Ready-blue)](https://nickscherbakov.github.io/very-simple-tetris-created-by-Copilot/) [![Languages](https://img.shields.io/badge/Languages-EN%20%7C%20RU%20%7C%20ZH%20%7C%20AR-orange)]() [![Made with Copilot](https://img.shields.io/badge/Made%20with-GitHub%20Copilot-8957e5)](https://github.com/features/copilot)
+
 使用 HTML、CSS 和 JavaScript 实现的经典俄罗斯方块游戏。
 
 ![俄罗斯方块游戏](./Tetris_logo.png)
 
 [我们的线上版本](https://nickscherbakov.github.io/very-simple-tetris-created-by-Copilot/)
+
+## 📱 在移动设备上玩
+
+扫描二维码在手机上即刻开始游戏：
+
+![玩俄罗斯方块](https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://nickscherbakov.github.io/very-simple-tetris-created-by-Copilot/)
+
+> 💡 **提示：** 将游戏添加到主屏幕以获得原生应用体验！游戏支持离线 PWA。
 
 ## 描述
 
@@ -30,17 +40,30 @@
 - 针对触控设备的屏幕按键
 - 通过 localStorage 保留高分和网格偏好
 
-## 操作控制
+## 🎮 操作控制
 
-- **← →** : 左/右移动
-- **↑** : 旋转方块
-- **↓** : 软降落（加速）
-- **空格键** : 硬降落（立即放置）
-- **P** : 暂停
-- **G** : 切换网格显示
-- **触控面板** : 在移动设备上使用按钮进行移动、旋转、下落和暂停
+### 键盘
+| 按键 | 动作 |
+|-----|------|
+| ← → | 左右移动方块 |
+| ↑ | 旋转方块 |
+| ↓ | 软降（更快下降） |
+| 空格 | 硬降（瞬间放置） |
+| P | 暂停 / 恢复 |
+| G | 切换网格覆盖 |
+| M | 静音 / 取消静音 |
+| T | 接管控制（AI 对战 AI 模式） |
 
-移动端玩家可将游戏添加到主屏幕，或以全屏方式打开以获得最佳触控体验。
+### 触控（移动设备）
+- **左右滑动** — 移动方块
+- **点击** — 旋转
+- **向下滑动** — 硬降
+- 所有控制的屏幕按钮
+
+### AI 对战 AI 模式
+- **AI 对战 AI 模式按钮** — 开始 AI 竞争
+- **T 键 / 接管控制按钮** — 干预 AI 游戏
+- **退出 AI 模式按钮** — 返回正常游戏
 
 ## 计分系统
 
@@ -50,6 +73,21 @@
 - 4 行：1200 × 级别
 - 软降落：每个格子 +1 分
 - 硬降落：每个格子 +2 分
+
+## 🛠️ 技术栈
+
+| 技术 | 用途 |
+|-----|------|
+| HTML5 Canvas | 游戏渲染 |
+| CSS3 | 响应式 UI、动画、主题 |
+| Vanilla JavaScript | 游戏逻辑、ES 模块 |
+| Web Audio API | 程序化声音生成 |
+| Service Worker | 离线 PWA 支持 |
+| LocalStorage | 持久化数据（分数、主题、回放） |
+| Web Share API | 移动设备上的原生分享 |
+| Vibration API | 触觉反馈 |
+
+**零外部依赖** — 所有内容都使用原生 Web API 构建。
 
 ## AI 对战 AI 游戏模式
 
@@ -93,11 +131,59 @@
 2. 在任何现代浏览器中打开 `index.html`
 3. 点击 "开始游戏" 按钮开始玩
 
-## 技术
+## 📁 项目结构
 
-- HTML5
-- CSS3
-- JavaScript（使用 Canvas API 进行渲染）
+```
+├── index.html                  # 主 HTML 文件
+├── tetris.js                   # 主游戏入口点（ES 模块）
+├── style.css                   # 核心样式
+├── sw.js                       # Service Worker
+├── manifest.json               # PWA 清单
+├── css/
+│   ├── betting-panel.css       # 投注 UI 样式
+│   ├── language.css            # 语言选择样式
+│   ├── share.css               # 分享 UI 样式
+│   └── team-tournament.css     # 锦标赛样式
+├── js/
+│   ├── achievements.js         # 成就系统
+│   ├── betting.js              # 投注系统
+│   ├── currency.js             # TetriCoins 货币
+│   ├── i18n.js                 # 国际化
+│   ├── language-selector.js    # 语言 UI
+│   ├── pwa.js                  # PWA 注册
+│   ├── team-tournament.js      # 锦标赛逻辑
+│   ├── team-tournament-ui.js   # 锦标赛 UI
+│   └── modules/
+│       ├── core/               # 核心游戏逻辑
+│       ├── rendering/          # Canvas 渲染
+│       ├── input/              # 输入处理
+│       ├── ai/                 # AI 系统
+│       ├── audio/              # 声音引擎
+│       └── game/               # 游戏系统（计分、UI、主题、回放）
+├── icons/                      # PWA 图标
+├── tetris-textbook*.md         # 游戏教程
+├── tetris-strategist*.md       # 策略指南
+└── README*.md                  # 文档（EN、RU、CH）
+```
+
+## 🤝 贡献
+
+我们欢迎贡献！请参阅 [CONTRIBUTING.md](CONTRIBUTING.md) 获取指南。
+
+### 贡献者快速入门
+1. Fork 此仓库
+2. 在浏览器中打开 `index.html`（无需构建步骤！）
+3. 进行更改
+4. 提交 Pull Request
+
+### 适合新手的任务
+- 🌐 为新语言添加翻译（日语、韩语、西班牙语等）
+- 🎨 创建新的视觉主题
+- 🔊 添加新的声音模式
+- 📝 改进文档
+- 🐛 报告和修复错误
+
+查看 [ROADMAP.md](ROADMAP.md) 获取更多想法。
 
 ## AI 重建提示
 
