@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitHub Repository Counter</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        input {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        button {
+            padding: 12px 30px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        button:hover {
+            background: #5568d3;
+        }
+        
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .result {
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 5px;
+            display: none;
+        }
+        
+        .result.success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        
+        .result.error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        
+        .profile-info {
+            margin-top: 15px;
+        }
+        
+        .profile-info p {
+            margin: 8px 0;
+        }
+        
+        .profile-info strong {
+            display: inline-block;
+            width: 180px;
+        }
+        
+        .repo-count {
+            font-size: 48px;
+            font-weight: bold;
+            text-align: center;
+            margin: 20px 0;
+            color: #667eea;
+        }
+        
+        .loading {
+            text-align: center;
+            color: #666;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            color: white;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 GitHub Repository Counter</h1>
+        
+        <div class="input-group">
+            <input type="text" id="username" placeholder="Enter GitHub username" value="NickScherbakov">
+            <button onclick="countRepositories()">Count</button>
+        </div>
+        
+        <div id="loading" class="loading" style="display: none;">
+            Loading...
+        </div>
+        
+        <div id="result" class="result"></div>
+    </div>
+    
+    <div class="footer">
+        Part of the Classic Tetris project
+    </div>
+    
+    <script>
+        async function countRepositories() {
+            const username = document.getElementById('username').value.trim();
+            const resultDiv = document.getElementById('result');
+            const loadingDiv = document.getElementById('loading');
+            
+            if (!username) {
+                showError('Please enter a GitHub username');
+                return;
+            }
+            
+            resultDiv.style.display = 'none';
+            loadingDiv.style.display = 'block';
+            
+            try {
+                const response = await fetch(`https://api.github.com/users/${username}`, {
+                    headers: {
+                        'Accept': 'application/vnd.github.v3+json'
+                    }
+                });
+                
+                loadingDiv.style.display = 'none';
+                
+                if (!response.ok) {
+                    if (response.status === 404) {
+                        showError(`User '${username}' not found`);
+                    } else {
+                        showError(`GitHub API returned status ${response.status}`);
+                    }
+                    return;
+                }
+                
+                const userData = await response.json();
+                showSuccess(userData);
+                
+            } catch (error) {
+                loadingDiv.style.display = 'none';
+                showError('Failed to fetch data: ' + error.message);
+            }
+        }
+        
+        function showSuccess(userData) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.className = 'result success';
+            resultDiv.innerHTML = `
+                <h2>📊 Profile Summary</h2>
+                <div class="repo-count">${userData.public_repos}</div>
+                <div class="profile-info">
+                    <p><strong>Username:</strong> ${userData.login}</p>
+                    <p><strong>Name:</strong> ${userData.name || 'N/A'}</p>
+                    <p><strong>Public Repositories:</strong> ${userData.public_repos}</p>
+                    <p><strong>Public Gists:</strong> ${userData.public_gists}</p>
+                    <p><strong>Followers:</strong> ${userData.followers}</p>
+                    <p><strong>Following:</strong> ${userData.following}</p>
+                    <p><strong>Profile:</strong> <a href="${userData.html_url}" target="_blank">${userData.html_url}</a></p>
+                </div>
+            `;
+            resultDiv.style.display = 'block';
+        }
+        
+        function showError(message) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.className = 'result error';
+            resultDiv.innerHTML = `<strong>Error:</strong> ${message}`;
+            resultDiv.style.display = 'block';
+        }
+        
+        // Allow Enter key to trigger count
+        document.getElementById('username').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                countRepositories();
+            }
+        });
+        
+        // Auto-count on page load
+        window.addEventListener('load', function() {
+            countRepositories();
+        });
+    </script>
+</body>
+</html>

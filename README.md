@@ -153,6 +153,13 @@ Create a classic Tetris game implementation using HTML, CSS, and JavaScript with
 
 Implement the game using vanilla JavaScript with the Canvas API for rendering, ensuring smooth gameplay with appropriate animation timing. The implementation should be responsive and work in modern browsers without external libraries.
 
+## Additional Utilities
+
+This repository also includes a **GitHub Repository Counter** utility that displays the total number of public repositories for any GitHub user. See [REPOSITORY-COUNTER-README.md](REPOSITORY-COUNTER-README.md) for more information.
+
+- **Web Interface**: Open `repo-counter.html` in your browser
+- **Command Line**: Run `node count-repos.js [username]`
+
 ## Author
 
 [GitHub Copilot] + [NinelGPT]
