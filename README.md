@@ -1,5 +1,7 @@
 # Classic Tetris
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 A classic Tetris game implemented using HTML, CSS, JavaScript ... and little AI-trainer-mentor
 
 ## Screenshot
@@ -13,7 +15,9 @@ This implementation of the classic Tetris game includes all the main elements of
 - Increasing difficulty with each level
 - Scoring system with soft/hard drop bonuses
 - Display of the next piece
+- **Ghost piece preview** - See where your piece will land with a semi-transparent shadow
 - Option to enable/disable the grid overlay
+- **Procedural 8-bit sound system** using Web Audio API - Game sounds with no external dependencies
 - Adaptive learning engine that analyzes player mistakes
 - Optional touch controls for mobile and tablet devices
 - Persistent high-score and grid preference storage
@@ -21,6 +25,9 @@ This implementation of the classic Tetris game includes all the main elements of
 ## Features
 
 - Smooth animation and responsive keyboard controls
+- **Ghost piece landing preview** - Semi-transparent shadow shows where piece will land
+- **Sound effects** - 8-bit procedural sounds for all game events (move, rotate, drop, line clear, etc.)
+- **Mute/volume controls** - Toggle sound on/off with persistent preferences
 - Ability to pause/resume play at any time
 - Real-time display of score, level, and cleared lines
 - Preview of the next tetromino
@@ -37,6 +44,8 @@ This implementation of the classic Tetris game includes all the main elements of
 - **Space** : Hard drop (instant)
 - **P** : Pause
 - **G** : Toggle grid display
+- **H** : Toggle ghost piece preview
+- **Sound button** : Toggle sound effects on/off
 - **Touch panel** : Buttons for move/rotate/drop/pause on mobile devices
 
 For mobile users, add the game to your home screen or open it in full-screen mode for the best touch experience.

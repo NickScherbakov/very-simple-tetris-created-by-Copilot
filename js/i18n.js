@@ -41,7 +41,7 @@ const translations = {
         balance: "💰 Balance:",
         next: "Next:",
         controls: "Controls:",
-        controls_text: "Enter/S: Start Game | Arrow Keys: Move/Drop | Space: Hard Drop | P: Pause | G: Toggle Grid | T: Take Control (AI Mode)",
+        controls_text: "Enter/S: Start Game | Arrow Keys: Move/Drop | Space: Hard Drop | P: Pause | G: Toggle Grid | H: Toggle Ghost Piece | T: Take Control (AI Mode)",
         
         // Buttons
         start_game: "Start Game",

@@ -65,6 +65,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let isPaused = false;
     let dropInterval = 1000;
     let showGrid = true;
+    let showGhost = true;
     let consecutiveTetris = 0;
     let lastLinesClearedWas4 = false;
     
@@ -156,6 +157,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 showGrid = storedGrid === '1';
             }
             uiController.updateGridButton(showGrid);
+            
+            const storedGhost = localStorage.getItem('tetrisShowGhost');
+            if (storedGhost !== null) {
+                showGhost = storedGhost === 'true';
+            }
 
             aiTrainer.loadFromStorage();
         } catch (err) {
@@ -180,6 +186,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function mergePiece() {
         BoardModule.mergePieceInto(board, currentPiece, PieceModule.COLORS);
+    }
+    
+    function calculateGhostPosition(piece) {
+        if (!piece) return null;
+        
+        // Create a copy of the piece
+        const ghostPiece = {
+            ...piece,
+            shape: piece.shape,
+            x: piece.x,
+            y: piece.y
+        };
+        
+        // Drop the ghost piece until it collides
+        while (!checkCollision(ghostPiece, 0, 1)) {
+            ghostPiece.y++;
+        }
+        
+        // Only return ghost if it's not at the same position as current piece
+        if (ghostPiece.y === piece.y) {
+            return null;
+        }
+        
+        return ghostPiece;
     }
 
     function movePieceDown() {
@@ -443,6 +473,12 @@ document.addEventListener('DOMContentLoaded', () => {
         Renderer.clear();
         Renderer.drawGrid(showGrid, BoardModule.COLS, BoardModule.ROWS);
         Renderer.drawBoard(board);
+        if (currentPiece && showGhost) {
+            const ghostPiece = calculateGhostPosition(currentPiece);
+            if (ghostPiece) {
+                Renderer.drawGhostPiece(ghostPiece);
+            }
+        }
         if (currentPiece) {
             Renderer.drawPiece(currentPiece);
         }
@@ -452,6 +488,12 @@ document.addEventListener('DOMContentLoaded', () => {
         showGrid = !showGrid;
         uiController.updateGridButton(showGrid);
         persistGridPreference();
+        draw();
+    }
+    
+    function toggleGhost() {
+        showGhost = !showGhost;
+        localStorage.setItem('tetrisShowGhost', showGhost.toString());
         draw();
     }
     
@@ -845,6 +887,7 @@ document.addEventListener('DOMContentLoaded', () => {
             onHardDrop: () => hardDrop(),
             onTogglePause: () => togglePause(),
             onToggleGrid: () => toggleGrid(),
+            onToggleGhost: () => toggleGhost(),
             onTakeControl: () => takeControl()
         });
     });
