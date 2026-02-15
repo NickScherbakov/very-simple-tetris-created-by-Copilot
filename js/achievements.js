@@ -50,6 +50,16 @@ class AchievementSystem {
                 unlockedAt: null,
                 progress: 0,
                 target: 3
+            },
+            director: {
+                id: 'director',
+                name: '🎬 Режиссёр',
+                description: 'Сохранить 5 реплеев',
+                reward: 200,
+                unlocked: false,
+                unlockedAt: null,
+                progress: 0,
+                target: 5
             }
         };
         
@@ -158,6 +168,18 @@ class AchievementSystem {
         if (!this.achievements.streak.unlocked) {
             this.achievements.streak.progress = 0;
             this.saveAchievements();
+        }
+    }
+
+    // Check replay save achievement (Director)
+    checkReplaySaveAchievement(savedReplayCount) {
+        if (!this.achievements.director.unlocked) {
+            this.achievements.director.progress = savedReplayCount;
+            if (savedReplayCount >= 5) {
+                this.unlockAchievement('director');
+            } else {
+                this.saveAchievements();
+            }
         }
     }
 

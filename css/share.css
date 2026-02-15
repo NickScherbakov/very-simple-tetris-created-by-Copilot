@@ -1,0 +1,317 @@
+/* Share Modal Styles */
+#share-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    z-index: 2000;
+    overflow-y: auto;
+}
+
+#share-modal .modal-content {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    margin: 5% auto;
+    padding: 30px;
+    border: 2px solid #7b68ee;
+    border-radius: 15px;
+    width: 90%;
+    max-width: 600px;
+    box-shadow: 0 10px 40px rgba(123, 104, 238, 0.3);
+    position: relative;
+}
+
+#share-modal h2 {
+    color: #ffd700;
+    font-size: 2em;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+#share-modal h3 {
+    color: #7b68ee;
+    font-size: 1.3em;
+    margin: 20px 0 10px 0;
+}
+
+#share-modal .close-modal {
+    position: absolute;
+    right: 20px;
+    top: 20px;
+    font-size: 35px;
+    font-weight: bold;
+    color: #aaa;
+    cursor: pointer;
+    transition: color 0.3s;
+}
+
+#share-modal .close-modal:hover {
+    color: #fff;
+}
+
+/* Share Sections */
+.share-section {
+    background: rgba(123, 104, 238, 0.1);
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+    border: 1px solid rgba(123, 104, 238, 0.3);
+}
+
+.share-stats {
+    background: rgba(0, 0, 0, 0.3);
+    padding: 15px;
+    border-radius: 8px;
+    margin: 15px 0;
+    font-size: 1.1em;
+    line-height: 1.8;
+    color: #fff;
+}
+
+.share-section p {
+    color: #aaa;
+    margin: 10px 0;
+}
+
+.share-section .button {
+    margin: 10px 5px 0 0;
+    padding: 12px 20px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    border-radius: 8px;
+    color: white;
+    font-size: 1em;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: inline-block;
+}
+
+.share-section .button:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(123, 104, 238, 0.4);
+}
+
+.share-section .button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.share-section .button:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+/* Button success flash animation */
+@keyframes successFlash {
+    0% { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+    50% { background: linear-gradient(135deg, #00d4aa 0%, #00a878 100%); }
+    100% { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+}
+
+.share-section .button.success-flash {
+    animation: successFlash 0.6s ease;
+}
+
+/* Saved Replays List */
+#saved-replays-list {
+    max-height: 300px;
+    overflow-y: auto;
+    margin-top: 10px;
+}
+
+.replay-item {
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 10px;
+    border: 1px solid rgba(123, 104, 238, 0.2);
+    transition: all 0.3s;
+}
+
+.replay-item:hover {
+    border-color: rgba(123, 104, 238, 0.5);
+    transform: translateX(5px);
+}
+
+.replay-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.replay-item-name {
+    font-size: 1.1em;
+    font-weight: bold;
+    color: #ffd700;
+}
+
+.replay-item-date {
+    font-size: 0.9em;
+    color: #aaa;
+}
+
+.replay-item-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 10px;
+    font-size: 0.9em;
+    color: #ccc;
+}
+
+.replay-item-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.replay-item-actions button {
+    padding: 8px 15px;
+    border: none;
+    border-radius: 5px;
+    font-size: 0.9em;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.replay-item-actions .play-btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.replay-item-actions .share-btn {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+}
+
+.replay-item-actions .delete-btn {
+    background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+    color: #333;
+}
+
+.replay-item-actions button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+/* Replay Banner - shown during playback */
+.replay-banner {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(135deg, rgba(123, 104, 238, 0.95) 0%, rgba(118, 75, 162, 0.95) 100%);
+    color: #ffd700;
+    padding: 15px 20px;
+    text-align: center;
+    font-size: 1.2em;
+    font-weight: bold;
+    z-index: 1500;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+    display: none;
+}
+
+.replay-banner.show {
+    display: block;
+}
+
+#replay-info {
+    margin: 0 15px;
+    color: #fff;
+    font-weight: normal;
+}
+
+.replay-banner .button-small {
+    padding: 8px 16px;
+    font-size: 0.9em;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid #ffd700;
+    color: #ffd700;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s;
+    margin-left: 15px;
+}
+
+.replay-banner .button-small:hover {
+    background: rgba(0, 0, 0, 0.5);
+    transform: scale(1.05);
+}
+
+/* Empty state for saved replays */
+.no-replays {
+    text-align: center;
+    padding: 40px 20px;
+    color: #888;
+    font-style: italic;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+    #share-modal .modal-content {
+        width: 95%;
+        margin: 10px auto;
+        padding: 20px;
+    }
+
+    #share-modal h2 {
+        font-size: 1.5em;
+    }
+
+    #share-modal h3 {
+        font-size: 1.1em;
+    }
+
+    .share-section .button {
+        width: 100%;
+        margin: 10px 0;
+    }
+
+    .replay-item-stats {
+        grid-template-columns: 1fr;
+    }
+
+    .replay-item-actions {
+        flex-direction: column;
+    }
+
+    .replay-item-actions button {
+        width: 100%;
+    }
+
+    .replay-banner {
+        font-size: 1em;
+        padding: 12px 15px;
+    }
+
+    #replay-info {
+        display: block;
+        margin: 10px 0;
+    }
+
+    .replay-banner .button-small {
+        display: block;
+        margin: 10px auto 0;
+    }
+}
+
+/* Scrollbar styling */
+#saved-replays-list::-webkit-scrollbar {
+    width: 8px;
+}
+
+#saved-replays-list::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+}
+
+#saved-replays-list::-webkit-scrollbar-thumb {
+    background: rgba(123, 104, 238, 0.5);
+    border-radius: 4px;
+}
+
+#saved-replays-list::-webkit-scrollbar-thumb:hover {
+    background: rgba(123, 104, 238, 0.7);
+}

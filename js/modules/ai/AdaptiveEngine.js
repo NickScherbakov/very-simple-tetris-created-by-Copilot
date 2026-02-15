@@ -4,7 +4,7 @@
  * AdaptiveEngine - AI-driven adaptive difficulty system
  * @module AdaptiveEngine
  */
-export function createAdaptiveEngine(boardModule, shapeNames, storageKey) {
+export function createAdaptiveEngine(boardModule, shapeNames, storageKey, pieceModule = null) {
     const MIN_WEIGHT = 0.4;
     const MAX_WEIGHT = 8;
     const numShapes = shapeNames.length;
@@ -66,9 +66,9 @@ export function createAdaptiveEngine(boardModule, shapeNames, storageKey) {
     function selectShapeIndex() {
         const totalWeight = weights.reduce((sum, value) => sum + value, 0);
         if (totalWeight <= 0) {
-            return Math.floor(Math.random() * numShapes);
+            return Math.floor((pieceModule ? pieceModule.getRandom() : Math.random()) * numShapes);
         }
-        let threshold = Math.random() * totalWeight;
+        let threshold = (pieceModule ? pieceModule.getRandom() : Math.random()) * totalWeight;
         for (let i = 0; i < weights.length; i++) {
             threshold -= weights[i];
             if (threshold <= 0) {
