@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const BLOCK_SIZE = 30;
     const STORAGE_KEYS = {
         highScore: 'tetrisHighScore',
-        grid: 'tetrisShowGrid',
+        grid: 'tetrisGridContrast',
         aiState: 'tetrisAiStateV1'
     };
     
@@ -66,6 +66,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let isPaused = false;
     let dropInterval = 1000;
     let showGrid = true;
+    let gridContrast = 1; // 0=off, 1=low (default), 2=medium, 3=high
     let showGhost = true;
     let consecutiveTetris = 0;
     let lastLinesClearedWas4 = false;
@@ -142,7 +143,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function persistGridPreference() {
         try {
-            localStorage.setItem(STORAGE_KEYS.grid, showGrid ? '1' : '0');
+            localStorage.setItem(STORAGE_KEYS.grid, String(gridContrast));
         } catch (err) {
             // Ignore storage errors
         }
@@ -159,9 +160,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const storedGrid = localStorage.getItem(STORAGE_KEYS.grid);
             if (storedGrid !== null) {
-                showGrid = storedGrid === '1';
+                const parsed = parseInt(storedGrid, 10);
+                if (parsed >= 0 && parsed <= 3) {
+                    gridContrast = parsed;
+                } else {
+                    // Migrate legacy boolean value
+                    gridContrast = storedGrid === '1' ? 1 : 0;
+                }
             }
-            uiController.updateGridButton(showGrid);
+            showGrid = gridContrast > 0;
+            uiController.updateGridButton(gridContrast);
             
             const storedGhost = localStorage.getItem('tetrisShowGhost');
             if (storedGhost !== null) {
@@ -510,7 +518,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function draw() {
         Renderer.clear();
-        Renderer.drawGrid(showGrid, BoardModule.COLS, BoardModule.ROWS);
+        Renderer.drawGrid(gridContrast, BoardModule.COLS, BoardModule.ROWS);
         Renderer.drawBoard(board);
         if (currentPiece && showGhost) {
             const ghostPiece = calculateGhostPosition(currentPiece);
@@ -524,8 +532,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function toggleGrid() {
-        showGrid = !showGrid;
-        uiController.updateGridButton(showGrid);
+        gridContrast = (gridContrast + 1) % 4;
+        showGrid = gridContrast > 0;
+        uiController.updateGridButton(gridContrast);
         persistGridPreference();
         draw();
     }
@@ -1309,7 +1318,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Listen for language changes
     window.addEventListener('languageChanged', (e) => {
         if (elements.gridToggleBtn) {
-            uiController.updateGridButton(showGrid);
+            uiController.updateGridButton(gridContrast);
         }
         updateSoundButton(soundEngine.enabled);
     });
