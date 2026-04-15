@@ -122,8 +122,8 @@ export const Renderer = (() => {
         if (gridContrast === false || gridContrast === 0) return;
         if (gridContrast === true) gridContrast = 1;
 
-        const opacities = [null, 0.1, 0.28, 0.55];
-        const opacity = opacities[gridContrast] || 0.1;
+        const opacities = [0.1, 0.28, 0.55];
+        const opacity = opacities[gridContrast - 1] ?? 0.1;
 
         mainCtx.strokeStyle = `rgba(255, 255, 255, ${opacity})`;
         mainCtx.lineWidth = 0.5;
