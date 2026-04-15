@@ -113,14 +113,19 @@ export const Renderer = (() => {
 
     /**
      * Draws the grid overlay
-     * @param {boolean} enableGrid - Whether to draw the grid
+     * @param {number|boolean} gridContrast - Contrast level: 0=off, 1=low, 2=medium, 3=high (legacy boolean also accepted)
      * @param {number} cols - Number of columns
      * @param {number} rows - Number of rows
      */
-    function drawGrid(enableGrid, cols, rows) {
-        if (!enableGrid) return;
-        
-        mainCtx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+    function drawGrid(gridContrast, cols, rows) {
+        // Support legacy boolean values
+        if (gridContrast === false || gridContrast === 0) return;
+        if (gridContrast === true) gridContrast = 1;
+
+        const opacities = [0.1, 0.28, 0.55];
+        const opacity = opacities[gridContrast - 1] ?? 0.1;
+
+        mainCtx.strokeStyle = `rgba(255, 255, 255, ${opacity})`;
         mainCtx.lineWidth = 0.5;
         
         // Vertical lines

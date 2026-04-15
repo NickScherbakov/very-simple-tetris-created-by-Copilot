@@ -164,12 +164,16 @@ export const UIController = (() => {
 
         /**
          * Updates grid toggle button text
-         * @param {boolean} showGrid - Whether grid is shown
+         * @param {number|boolean} gridContrast - Contrast level: 0=off, 1=low, 2=medium, 3=high (legacy boolean accepted)
          */
-        function updateGridButton(showGrid) {
+        function updateGridButton(gridContrast) {
             if (elements.gridToggleBtn) {
                 const lang = window.currentLanguage || 'en';
-                const key = showGrid ? 'hide_grid' : 'show_grid';
+                // Support legacy boolean
+                if (gridContrast === true) gridContrast = 1;
+                if (gridContrast === false) gridContrast = 0;
+                const keys = ['grid_off', 'grid_low', 'grid_medium', 'grid_high'];
+                const key = keys[gridContrast] || 'grid_low';
                 if (window.getTranslation) {
                     elements.gridToggleBtn.textContent = window.getTranslation(key, lang);
                 }
