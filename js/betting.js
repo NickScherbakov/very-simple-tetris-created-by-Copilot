@@ -258,12 +258,31 @@ class BettingSystem {
         }
         
         this.currentBet = null;
+
+        const message = won
+            ? `You won ${payout} TC!`
+            : 'Bet lost. Better luck next round!';
         
         return {
             won: won,
             payout: payout,
-            profit: payout - bet.amount
+            profit: payout - bet.amount,
+            message: message
         };
+    }
+
+    // Normalize legacy and current match result payloads
+    normalizeMatchResult(matchResult = {}) {
+        return {
+            ...matchResult,
+            winnerScore: matchResult.winnerScore ?? matchResult.finalScore ?? 0,
+            firstToReach: matchResult.firstToReach ?? matchResult.firstToReach1000 ?? null
+        };
+    }
+
+    // Backward-compatible alias used by older game flow
+    processBetResult(matchResult) {
+        return this.resolveBet(this.normalizeMatchResult(matchResult));
     }
 
     // Check if score is in range
@@ -301,6 +320,11 @@ class BettingSystem {
         }
         
         return 0;
+    }
+
+    // Backward-compatible alias used by older game flow
+    finishTournament() {
+        return this.endTournament();
     }
 
     // Increment tournament match

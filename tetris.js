@@ -81,6 +81,9 @@ document.addEventListener('DOMContentLoaded', () => {
         firstTetris: null,
         firstToReach1000: null
     };
+    let aiMoveInterval = null;
+    let aiDropTimeout = null;
+    let aiNextMoveTimeout = null;
     
     // Betting and tournament variables
     let bettingEnabled = false;
@@ -195,6 +198,34 @@ document.addEventListener('DOMContentLoaded', () => {
     // Piece movement and collision
     function checkCollision(piece, offsetX = 0, offsetY = 0) {
         return !BoardModule.isValidPosition(piece, board, offsetX, offsetY);
+    }
+
+    function clearAiAutomationTimers() {
+        if (aiMoveInterval) {
+            clearInterval(aiMoveInterval);
+            aiMoveInterval = null;
+        }
+        if (aiDropTimeout) {
+            clearTimeout(aiDropTimeout);
+            aiDropTimeout = null;
+        }
+        if (aiNextMoveTimeout) {
+            clearTimeout(aiNextMoveTimeout);
+            aiNextMoveTimeout = null;
+        }
+    }
+
+    function scheduleNextAiMove(delay = 500) {
+        if (aiNextMoveTimeout) {
+            clearTimeout(aiNextMoveTimeout);
+        }
+
+        aiNextMoveTimeout = setTimeout(() => {
+            aiNextMoveTimeout = null;
+            if (aiVsAiMode && !gameOver && !playerTakingControl && currentPiece) {
+                executeAiMove();
+            }
+        }, delay);
     }
 
     function mergePiece() {
@@ -492,6 +523,7 @@ document.addEventListener('DOMContentLoaded', () => {
             uiController.updateAiInsight(aiTrainer.getSummary(finalMetrics));
             
             gameLoopManager.stop();
+            clearAiAutomationTimers();
             
             // In AI vs AI mode, handle tournament continuation
             if (aiVsAiMode && tournamentMode) {
@@ -501,18 +533,20 @@ document.addEventListener('DOMContentLoaded', () => {
                         startAiVsAiMode();
                     }, 2000);
                 } else {
-                    const jackpot = window.bettingSystem.finishTournament();
+                    let jackpot = 0;
+                    const bettingSystem = window.bettingSystem;
+                    const finishTournament = bettingSystem && (bettingSystem.finishTournament || bettingSystem.endTournament);
+                    if (typeof finishTournament === 'function') {
+                        jackpot = finishTournament.call(bettingSystem);
+                    }
                     if (jackpot > 0) {
                         uiController.showMessage(`Tournament complete! Jackpot: ${jackpot} TC`);
                     }
                     exitAiVsAiMode();
                 }
             }
-            
-            // Auto-execute AI move in AI vs AI mode
-            if (aiVsAiMode && !gameOver && !playerTakingControl) {
-                setTimeout(() => executeAiMove(), 500);
-            }
+        } else if (aiVsAiMode && !playerTakingControl) {
+            scheduleNextAiMove(500);
         }
     }
 
@@ -594,6 +628,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // AI vs AI execution function
     function executeAiMove() {
         if (!currentPiece || gameOver || !aiVsAiMode || playerTakingControl) return;
+        if (aiMoveInterval || aiDropTimeout) return;
         
         // Update AI thinking display
         uiController.updateAiThinking(currentAiPlayer, `AI ${currentAiPlayer} is analyzing...`, 'Calculating optimal position...');
@@ -619,12 +654,19 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Animate movement
         let movesMade = 0;
-        const moveInterval = setInterval(() => {
-            if (movesMade >= moveSteps || !currentPiece || gameOver) {
-                clearInterval(moveInterval);
+        aiMoveInterval = setInterval(() => {
+            if (!aiVsAiMode || playerTakingControl || !currentPiece || gameOver) {
+                clearAiAutomationTimers();
+                return;
+            }
+
+            if (movesMade >= moveSteps) {
+                clearInterval(aiMoveInterval);
+                aiMoveInterval = null;
                 // Drop the piece
-                setTimeout(() => {
-                    if (currentPiece && !gameOver) {
+                aiDropTimeout = setTimeout(() => {
+                    aiDropTimeout = null;
+                    if (aiVsAiMode && !playerTakingControl && currentPiece && !gameOver) {
                         hardDrop();
                         // Switch AI player
                         currentAiPlayer = currentAiPlayer === 1 ? 2 : 1;
@@ -646,6 +688,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Game control functions
     function startGame() {
+        clearAiAutomationTimers();
         gameLoopManager.start(
             () => {
                 elements.startBtn.textContent = 'Restart';
@@ -687,10 +730,19 @@ document.addEventListener('DOMContentLoaded', () => {
             firstTetris: null,
             firstToReach1000: null
         };
+
+        const bettingSystem = window.bettingSystem;
+        if (!bettingSystem || typeof bettingSystem.startBetting !== 'function') {
+            bettingEnabled = false;
+            currentBet = null;
+            uiController.showMessage('Betting unavailable. Starting AI match directly.');
+            startAiMatch();
+            return;
+        }
         
         // Start betting phase
         bettingEnabled = true;
-        window.bettingSystem.startBetting(
+        const bettingStarted = bettingSystem.startBetting(
             (bet) => {
                 currentBet = bet;
                 bettingEnabled = false;
@@ -702,28 +754,30 @@ document.addEventListener('DOMContentLoaded', () => {
                 startAiMatch();
             }
         );
+
+        if (bettingStarted === false) {
+            bettingEnabled = false;
+            startAiMatch();
+        }
     }
 
     function startAiMatch() {
+        clearAiAutomationTimers();
         aiVsAiMode = true;
         currentAiPlayer = 1;
         playerTakingControl = false;
         
         uiController.toggleAiVsAiPanel(true);
+        uiController.updateTakeControlButton(false);
         startGame();
         uiController.updateTurnDisplay(currentAiPlayer);
-        
-        // Start AI moves
-        setTimeout(() => {
-            if (aiVsAiMode) {
-                executeAiMove();
-            }
-        }, 1000);
     }
 
     function exitAiVsAiMode() {
+        clearAiAutomationTimers();
         aiVsAiMode = false;
         playerTakingControl = false;
+        bettingEnabled = false;
         
         uiController.toggleAiVsAiPanel(false);
         gameLoopManager.stop();
@@ -739,12 +793,13 @@ document.addEventListener('DOMContentLoaded', () => {
         uiController.updateTakeControlButton(playerTakingControl);
         
         if (playerTakingControl) {
+            clearAiAutomationTimers();
             gameLoopManager.resetDropCounter();
             uiController.updateAiThinking(1, 'Player in control!', null);
             uiController.updateAiThinking(2, 'Waiting...', null);
         } else {
             if (currentPiece && !gameOver) {
-                executeAiMove();
+                scheduleNextAiMove(100);
             }
         }
     }
@@ -795,7 +850,9 @@ document.addEventListener('DOMContentLoaded', () => {
     function startTournament() {
         tournamentMode = true;
         tournamentMatchCount = 0;
-        window.bettingSystem.startTournament();
+        if (window.bettingSystem && typeof window.bettingSystem.startTournament === 'function') {
+            window.bettingSystem.startTournament();
+        }
         
         const tournamentProgress = document.getElementById('tournament-progress');
         if (tournamentProgress) {
@@ -858,6 +915,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function initBettingUI() {
+        if (!window.bettingSystem) {
+            return;
+        }
+
         // Betting UI initialization (keep existing logic)
         let selectedBetType = null;
         let selectedTarget = null;
@@ -920,7 +981,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const cancelBetBtn = document.getElementById('cancel-bet-btn');
         if (cancelBetBtn) {
             cancelBetBtn.addEventListener('click', () => {
-                window.bettingSystem.stopBetting();
+                if (window.bettingSystem && typeof window.bettingSystem.stopBetting === 'function') {
+                    window.bettingSystem.stopBetting();
+                }
+                currentBet = null;
+                bettingEnabled = false;
+                startAiMatch();
             });
         }
 
