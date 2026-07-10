@@ -1405,12 +1405,13 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
-        // Soft-drop repeat rate: 80 ms gives ~12 drops/s — responsive without
+        // Soft-drop repeat rate: ~12 drops/s — responsive without
         // being uncontrollably fast on small phones.
-        const SOFT_DROP_INTERVAL_MS = 80;
+        const SOFT_DROP_INTERVAL_MILLIS = 80;
 
         // Soft-drop: repeat while held down
         let softDropInterval = null;
+        const downBtn = document.getElementById('vgp-down');
 
         function clearSoftDrop() {
             clearInterval(softDropInterval);
@@ -1424,14 +1425,13 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         window.addEventListener('blur', clearSoftDrop);
 
-        const downBtn = document.getElementById('vgp-down');
         if (downBtn) {
             downBtn.addEventListener('touchstart', (e) => {
                 e.preventDefault();
                 downBtn.classList.add('pressed');
                 if (!softDropInterval) {
                     movePieceDown();
-                    softDropInterval = setInterval(() => movePieceDown(), SOFT_DROP_INTERVAL_MS);
+                    softDropInterval = setInterval(() => movePieceDown(), SOFT_DROP_INTERVAL_MILLIS);
                 }
             }, { passive: false });
 

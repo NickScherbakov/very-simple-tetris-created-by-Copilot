@@ -276,8 +276,8 @@
     display: none;
 }
 
-/* Show on small screens that are touch-based OR in portrait orientation */
-@media (max-width: 480px) and ((hover: none) or (orientation: portrait)) {
+/* Show only on touch-only small screens (hover:none reliably identifies touch devices) */
+@media (max-width: 480px) and (hover: none) {
     .virtual-gamepad {
         display: flex;
     }
