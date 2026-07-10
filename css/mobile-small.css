@@ -276,7 +276,7 @@
     display: none;
 }
 
-/* Show only on touch-only small screens (hover:none reliably identifies touch devices) */
+/* Show on small screens whose primary input has no hover capability (touch-primary devices) */
 @media (max-width: 480px) and (hover: none) {
     .virtual-gamepad {
         display: flex;

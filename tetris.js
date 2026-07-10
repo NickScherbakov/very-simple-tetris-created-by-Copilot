@@ -1405,7 +1405,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
-        // Soft-drop repeat rate: ~12 drops/s — responsive without
+        // Soft-drop repeat rate: 80 ms ≈ 12.5 drops/s — responsive without
         // being uncontrollably fast on small phones.
         const SOFT_DROP_INTERVAL_MILLIS = 80;
 
