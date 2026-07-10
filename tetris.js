@@ -1388,20 +1388,26 @@ document.addEventListener('DOMContentLoaded', () => {
             function press()   { btn.classList.add('pressed'); }
             function release() { btn.classList.remove('pressed'); }
 
+            const handleTouchEnd = (e) => { e.preventDefault(); release(); };
+
             btn.addEventListener('touchstart', (e) => {
                 e.preventDefault();
                 press();
                 action();
             }, { passive: false });
 
-            btn.addEventListener('touchend',   (e) => { e.preventDefault(); release(); }, { passive: false });
-            btn.addEventListener('touchcancel',(e) => { e.preventDefault(); release(); }, { passive: false });
+            btn.addEventListener('touchend',   handleTouchEnd, { passive: false });
+            btn.addEventListener('touchcancel', handleTouchEnd, { passive: false });
 
             // Fallback for pointer / mouse (desktop testing, a11y)
             btn.addEventListener('click', () => {
                 action();
             });
         }
+
+        // Soft-drop repeat rate: 80 ms gives ~12 drops/s — responsive without
+        // being uncontrollably fast on small phones.
+        const SOFT_DROP_INTERVAL_MS = 80;
 
         // Soft-drop: repeat while held down
         let softDropInterval = null;
@@ -1425,7 +1431,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 downBtn.classList.add('pressed');
                 if (!softDropInterval) {
                     movePieceDown();
-                    softDropInterval = setInterval(() => movePieceDown(), 80);
+                    softDropInterval = setInterval(() => movePieceDown(), SOFT_DROP_INTERVAL_MS);
                 }
             }, { passive: false });
 

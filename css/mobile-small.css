@@ -277,7 +277,7 @@
 }
 
 /* Show on small screens that are touch-based OR in portrait orientation */
-@media (max-width: 480px) and ((pointer: coarse) or (orientation: portrait)) {
+@media (max-width: 480px) and ((hover: none) or (orientation: portrait)) {
     .virtual-gamepad {
         display: flex;
     }
