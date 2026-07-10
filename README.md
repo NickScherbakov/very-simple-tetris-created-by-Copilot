@@ -10,9 +10,17 @@ A classic Tetris game implemented using HTML, CSS, JavaScript ... and little AI-
 
 ## 📱 Play on Mobile
 
-Scan the QR code to play instantly on your phone:
+### 📲 For phones with a screen up to 5 inches
 
-![Play Tetris](https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://nickscherbakov.github.io/very-simple-tetris-created-by-Copilot/)
+Scan the QR code to open the game optimised for small screens (≤ 5 inches):
+
+![Play Tetris — Small Screen](https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://nickscherbakov.github.io/very-simple-tetris-created-by-Copilot/small.html)
+
+> ⚠️ This QR code is intended for smartphones with a screen **up to 5 inches** diagonal. On a larger device it will show a compatibility message and redirect you to the full version.
+
+### 🖥️ Full version (all devices)
+
+[![Play Now](https://img.shields.io/badge/Play%20Now-GitHub%20Pages-brightgreen)](https://nickscherbakov.github.io/very-simple-tetris-created-by-Copilot/)
 
 > 💡 **Tip:** Add the game to your home screen for a native app experience! The game works offline as a PWA.
 

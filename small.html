@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#7b68ee">
+    <title>Tetris — Small Screen Edition</title>
+    <script>
+        /* ---------------------------------------------------------------
+         * Small-screen gate
+         * Screens ≤ 480 CSS px (≈ 5-inch phone) → load the full game.
+         * Wider screens → stay on this page and show the error message.
+         * --------------------------------------------------------------- */
+        if (window.innerWidth <= 480) {
+            // Small device: go straight to the game
+            location.replace('./');
+        }
+    </script>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            min-height: 100vh;
+            background: #121212;
+            color: #e0e0e0;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            text-align: center;
+        }
+
+        .card {
+            max-width: 360px;
+            background: #1e1e2e;
+            border: 1px solid #7b68ee44;
+            border-radius: 16px;
+            padding: 36px 28px;
+        }
+
+        .icon { font-size: 56px; margin-bottom: 20px; }
+
+        h1 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #7b68ee;
+            margin-bottom: 12px;
+        }
+
+        p {
+            font-size: 0.95rem;
+            line-height: 1.6;
+            opacity: 0.75;
+            margin-bottom: 8px;
+        }
+
+        .divider {
+            border: none;
+            border-top: 1px solid #7b68ee33;
+            margin: 20px 0;
+        }
+
+        .full-link {
+            display: inline-block;
+            margin-top: 8px;
+            padding: 10px 24px;
+            background: #7b68ee22;
+            border: 1px solid #7b68ee66;
+            border-radius: 8px;
+            color: #7b68ee;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: background 0.2s;
+        }
+
+        .full-link:hover { background: #7b68ee44; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="icon">📱</div>
+        <h1>Только для маленьких экранов</h1>
+        <p>Эта ссылка предназначена для устройств<br>с экраном <strong>до&nbsp;5&nbsp;дюймов</strong>.</p>
+        <p>Откройте QR-код на смартфоне&nbsp;—&nbsp;и игра запустится автоматически.</p>
+        <hr class="divider">
+        <p>Хотите играть сейчас?</p>
+        <a class="full-link" href="./">Открыть полную версию →</a>
+    </div>
+</body>
+</html>
