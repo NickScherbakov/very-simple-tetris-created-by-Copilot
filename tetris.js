@@ -60,6 +60,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (elements.tapHint) {
             elements.tapHint.classList.toggle('visible', visible);
         }
+        canvas.classList.toggle('canvas-idle', visible);
     }
     
     // Game state variables
@@ -1046,7 +1047,7 @@ document.addEventListener('DOMContentLoaded', () => {
             handleCanvasActivation();
             return;
         }
-        InputManager.handleTouchEnd(e, true, {
+        InputManager.handleTouchEnd(e, !!currentPiece && !gameOver, {
             onMoveLeft: () => movePieceLeft(),
             onMoveRight: () => movePieceRight(),
             onRotate: () => rotatePiece(),

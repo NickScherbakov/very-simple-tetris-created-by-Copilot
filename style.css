@@ -213,6 +213,10 @@ body {
         0 0 40px rgba(124, 58, 237, 0.08);
     border: 1px solid rgba(255, 255, 255, 0.06);
     display: block;
+}
+
+/* Show pointer cursor only when canvas can be tapped to start */
+#tetris-canvas.canvas-idle {
     cursor: pointer;
 }
 
