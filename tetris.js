@@ -1372,6 +1372,70 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Virtual gamepad — connect buttons to game actions (mobile small screens)
+    (function initVirtualGamepad() {
+        /**
+         * Attach both touch (preferred) and click listeners so the gamepad
+         * works on any pointer type that triggers the buttons.
+         * Using touchstart + preventDefault stops the 300 ms click delay
+         * and prevents ghost-click duplication.
+         */
+        function attachAction(id, action) {
+            const btn = document.getElementById(id);
+            if (!btn) return;
+
+            // Visual feedback helper
+            function press()   { btn.classList.add('pressed'); }
+            function release() { btn.classList.remove('pressed'); }
+
+            btn.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                press();
+                action();
+            }, { passive: false });
+
+            btn.addEventListener('touchend',   (e) => { e.preventDefault(); release(); }, { passive: false });
+            btn.addEventListener('touchcancel',(e) => { e.preventDefault(); release(); }, { passive: false });
+
+            // Fallback for pointer / mouse (desktop testing, a11y)
+            btn.addEventListener('click', () => {
+                action();
+            });
+        }
+
+        // Soft-drop: repeat while held down
+        let softDropInterval = null;
+
+        const downBtn = document.getElementById('vgp-down');
+        if (downBtn) {
+            downBtn.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                downBtn.classList.add('pressed');
+                if (!softDropInterval) {
+                    movePieceDown();
+                    softDropInterval = setInterval(() => movePieceDown(), 80);
+                }
+            }, { passive: false });
+
+            const stopSoftDrop = (e) => {
+                e.preventDefault();
+                downBtn.classList.remove('pressed');
+                clearInterval(softDropInterval);
+                softDropInterval = null;
+            };
+            downBtn.addEventListener('touchend',    stopSoftDrop, { passive: false });
+            downBtn.addEventListener('touchcancel', stopSoftDrop, { passive: false });
+
+            // Click fallback
+            downBtn.addEventListener('click', () => movePieceDown());
+        }
+
+        attachAction('vgp-left',     () => movePieceLeft());
+        attachAction('vgp-right',    () => movePieceRight());
+        attachAction('vgp-rotate',   () => rotatePiece());
+        attachAction('vgp-harddrop', () => hardDrop());
+    })();
+
     // Initialize
     initBettingUI();
     window.tetriCoins.addListener(() => uiController.updateBalanceDisplay());
