@@ -186,7 +186,7 @@
         -webkit-user-select: none;
         -webkit-tap-highlight-color: transparent;
         transition: background 0.1s, transform 0.1s;
-        /* minimum 48 × 48 px touch target */
+        /* touch target: 64 × 56 px (exceeds the 48 × 48 px minimum) */
         min-width: 64px;
         min-height: 56px;
         flex: 1;
@@ -276,15 +276,8 @@
     display: none;
 }
 
-/* Show only on touch small screens */
-@media (max-width: 480px) and (pointer: coarse) {
-    .virtual-gamepad {
-        display: flex;
-    }
-}
-
-/* Portrait orientation safety: keep gamepad visible even if pointer:fine */
-@media (max-width: 480px) and (orientation: portrait) {
+/* Show on small screens that are touch-based OR in portrait orientation */
+@media (max-width: 480px) and ((pointer: coarse) or (orientation: portrait)) {
     .virtual-gamepad {
         display: flex;
     }

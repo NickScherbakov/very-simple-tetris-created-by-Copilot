@@ -1406,6 +1406,18 @@ document.addEventListener('DOMContentLoaded', () => {
         // Soft-drop: repeat while held down
         let softDropInterval = null;
 
+        function clearSoftDrop() {
+            clearInterval(softDropInterval);
+            softDropInterval = null;
+            if (downBtn) downBtn.classList.remove('pressed');
+        }
+
+        // Clear interval if page hides or app loses focus (e.g. incoming call)
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) clearSoftDrop();
+        });
+        window.addEventListener('blur', clearSoftDrop);
+
         const downBtn = document.getElementById('vgp-down');
         if (downBtn) {
             downBtn.addEventListener('touchstart', (e) => {
@@ -1419,9 +1431,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const stopSoftDrop = (e) => {
                 e.preventDefault();
-                downBtn.classList.remove('pressed');
-                clearInterval(softDropInterval);
-                softDropInterval = null;
+                clearSoftDrop();
             };
             downBtn.addEventListener('touchend',    stopSoftDrop, { passive: false });
             downBtn.addEventListener('touchcancel', stopSoftDrop, { passive: false });
