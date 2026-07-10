@@ -10,9 +10,17 @@
 
 ## 📱 Играть на мобильном
 
-Отсканируйте QR-код, чтобы мгновенно начать играть на телефоне:
+### 📲 Для телефонов с экраном до 5 дюймов
 
-![Играть в Тетрис](https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://nickscherbakov.github.io/very-simple-tetris-created-by-Copilot/)
+Отсканируйте QR-код, чтобы открыть версию игры, оптимизированную для маленьких экранов (≤ 5 дюймов):
+
+![Играть в Тетрис — маленький экран](https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://nickscherbakov.github.io/very-simple-tetris-created-by-Copilot/small.html)
+
+> ⚠️ Этот QR-код предназначен для смартфонов с экраном **до 5 дюймов** по диагонали. На устройстве с большим экраном появится сообщение о совместимости и ссылка на полную версию.
+
+### 🖥️ Полная версия (все устройства)
+
+[![Играть сейчас](https://img.shields.io/badge/Play%20Now-GitHub%20Pages-brightgreen)](https://nickscherbakov.github.io/very-simple-tetris-created-by-Copilot/)
 
 > 💡 **Совет:** Добавьте игру на главный экран для получения нативного приложения! Игра работает оффлайн как PWA.
 
