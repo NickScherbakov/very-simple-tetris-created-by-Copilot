@@ -1,0 +1,284 @@
+/* ============================================
+   MOBILE SMALL — 5-INCH DEVICE ADAPTATION
+   Targets screens ≤ 480 px (≈ 5 inches)
+   ============================================ */
+
+/* ---- Compact stats bar ---- */
+@media (max-width: 480px) {
+
+    /* Stack the whole page without side padding */
+    body {
+        padding: 0;
+        align-items: flex-start;
+    }
+
+    /* Single-column layout that puts everything in order */
+    .game-container {
+        grid-template-columns: 1fr;
+        grid-template-areas:
+            "left"
+            "canvas"
+            "gamepad"
+            "buttons"
+            "ai-panel"
+            "footer";
+        gap: 6px;
+        padding: 6px;
+        width: 100%;
+    }
+
+    /* ---- Left sidebar → horizontal stats strip ---- */
+    .left-sidebar {
+        order: -1;
+    }
+
+    .panel.score-section {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 0;
+        padding: 6px 8px;
+        border-radius: 10px;
+    }
+
+    .stat-item {
+        flex: 1 1 auto;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 4px 6px;
+        border-bottom: none;
+        border-right: 1px solid rgba(255, 255, 255, 0.06);
+        text-align: center;
+    }
+
+    .stat-item:last-child {
+        border-right: none;
+    }
+
+    .stat-label {
+        font-size: 0.6rem;
+        letter-spacing: 0.03em;
+    }
+
+    .stat-value {
+        font-size: 0.85rem;
+    }
+
+    .balance-item {
+        margin-top: 0;
+        padding-top: 0;
+        border-top: none;
+    }
+
+    /* ---- Canvas: full width, no sidebars ---- */
+    .canvas-area {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+    }
+
+    #tetris-canvas {
+        width: calc(100vw - 12px);
+        max-width: 320px;
+        height: auto;
+        aspect-ratio: 1/2;
+        border-radius: 6px;
+    }
+
+    /* ---- Hide right sidebar (next piece / AI insight / controls) ---- */
+    .right-sidebar {
+        display: none;
+    }
+
+    /* ---- Compact button bar ---- */
+    .button-bar {
+        gap: 6px;
+        padding: 0 2px;
+    }
+
+    .button-group-primary,
+    .button-group-secondary,
+    .button-group-tertiary {
+        gap: 4px;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .button-primary {
+        padding: 8px 12px;
+        font-size: 0.78rem;
+        border-radius: 9px;
+    }
+
+    .button-secondary {
+        padding: 6px 10px;
+        font-size: 0.72rem;
+        border-radius: 8px;
+    }
+
+    .button-icon {
+        padding: 7px 10px;
+        font-size: 0.78rem;
+    }
+
+    /* ---- AI vs AI panel: single column ---- */
+    .ai-vs-ai-panel {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+        padding: 12px;
+        border-radius: 12px;
+    }
+
+    .ai-player {
+        padding: 0.5rem;
+    }
+
+    .ai-player h4 {
+        font-size: 0.85rem;
+    }
+
+    /* ---- Footer ---- */
+    .game-footer {
+        padding: 8px;
+        border-radius: 8px;
+    }
+
+    .game-footer p {
+        font-size: 0.68rem;
+    }
+
+    /* ---- Virtual Gamepad ---- */
+    .virtual-gamepad {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 4px 4px;
+        margin: 0 auto;
+        width: 100%;
+        max-width: 320px;
+        user-select: none;
+        -webkit-user-select: none;
+        touch-action: manipulation;
+    }
+
+    .gamepad-row {
+        display: flex;
+        justify-content: center;
+        gap: 8px;
+        width: 100%;
+    }
+
+    .gamepad-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 12px;
+        color: var(--text-primary);
+        font-size: 1.4rem;
+        cursor: pointer;
+        touch-action: manipulation;
+        user-select: none;
+        -webkit-user-select: none;
+        -webkit-tap-highlight-color: transparent;
+        transition: background 0.1s, transform 0.1s;
+        /* touch target: 64 × 56 px (exceeds the 48 × 48 px minimum) */
+        min-width: 64px;
+        min-height: 56px;
+        flex: 1;
+    }
+
+    .gamepad-btn:active,
+    .gamepad-btn.pressed {
+        background: rgba(124, 58, 237, 0.45);
+        border-color: rgba(124, 58, 237, 0.7);
+        transform: scale(0.93);
+    }
+
+    /* Hard-drop button gets the accent colour */
+    .gamepad-btn.hard-drop {
+        background: rgba(124, 58, 237, 0.18);
+        border-color: rgba(124, 58, 237, 0.4);
+        min-height: 50px;
+        font-size: 1.1rem;
+    }
+
+    .gamepad-btn.hard-drop:active,
+    .gamepad-btn.hard-drop.pressed {
+        background: rgba(124, 58, 237, 0.55);
+    }
+
+    /* Soft-drop button */
+    .gamepad-btn.soft-drop {
+        min-height: 50px;
+        font-size: 1.2rem;
+    }
+
+    /* ---- Modal adjustments ---- */
+    .modal-content {
+        padding: 1rem;
+        width: 98%;
+        border-radius: 14px;
+    }
+
+    /* ---- Betting panel ---- */
+    #betting-panel {
+        width: 98%;
+        padding: 1rem;
+        border-radius: 14px;
+        max-height: 94vh;
+    }
+
+    .bet-types {
+        gap: 0.6rem;
+    }
+
+    .bet-type-card {
+        padding: 0.7rem;
+    }
+
+    .bet-type-title h3 {
+        font-size: 0.9rem;
+    }
+
+    .bet-type-desc {
+        font-size: 0.78rem;
+    }
+
+    .betting-header h2 {
+        font-size: 1.3rem;
+    }
+
+    .betting-countdown {
+        font-size: 1.8rem;
+    }
+
+    /* ---- Achievement notification ---- */
+    .achievement-notification {
+        max-width: 96%;
+        padding: 0.8rem;
+        border-radius: 12px;
+    }
+
+    /* ---- Temp message ---- */
+    .temp-message {
+        font-size: 0.85rem;
+        padding: 0.7rem 1.2rem;
+    }
+}
+
+/* ---- Virtual gamepad: hidden on larger screens ---- */
+.virtual-gamepad {
+    display: none;
+}
+
+/* Show on small screens whose primary input has no hover capability (touch-primary devices) */
+@media (max-width: 480px) and (hover: none) {
+    .virtual-gamepad {
+        display: flex;
+    }
+}

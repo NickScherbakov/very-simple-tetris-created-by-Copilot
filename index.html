@@ -30,6 +30,7 @@
     <link rel="stylesheet" href="css/language.css">
     <link rel="stylesheet" href="css/team-tournament.css">
     <link rel="stylesheet" href="css/share.css">
+    <link rel="stylesheet" href="css/mobile-small.css">
 </head>
 <body>
     <!-- Language Selection Screen -->
@@ -145,6 +146,21 @@
                     <div class="control-item"><span class="control-key">M</span> <span data-i18n="controls_mute">Mute</span></div>
                     <div class="control-item"><span class="control-key">T</span> <span data-i18n="controls_ai">AI Ctrl</span></div>
                 </div>
+            </div>
+        </div>
+
+        <!-- Virtual Gamepad (shown only on small mobile screens) -->
+        <div class="virtual-gamepad" id="virtual-gamepad" aria-label="Virtual gamepad">
+            <!-- Row 1: Left / Rotate / Right -->
+            <div class="gamepad-row">
+                <button class="gamepad-btn" id="vgp-left"   aria-label="Move left">◀</button>
+                <button class="gamepad-btn" id="vgp-rotate" aria-label="Rotate">↻</button>
+                <button class="gamepad-btn" id="vgp-right"  aria-label="Move right">▶</button>
+            </div>
+            <!-- Row 2: Soft drop / Hard drop -->
+            <div class="gamepad-row">
+                <button class="gamepad-btn soft-drop" id="vgp-down"     aria-label="Soft drop">▼</button>
+                <button class="gamepad-btn hard-drop" id="vgp-harddrop" aria-label="Hard drop">⤓ Drop</button>
             </div>
         </div>
 

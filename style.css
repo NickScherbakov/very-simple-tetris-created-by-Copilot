@@ -114,6 +114,10 @@ body {
     gap: 16px;
 }
 
+.virtual-gamepad {
+    grid-area: gamepad;
+}
+
 .button-bar {
     grid-area: buttons;
 }
