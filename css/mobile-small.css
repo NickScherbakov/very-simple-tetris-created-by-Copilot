@@ -79,9 +79,13 @@
         justify-content: center;
     }
 
-    #tetris-canvas {
+    .canvas-wrapper {
         width: calc(100vw - 12px);
         max-width: 320px;
+    }
+
+    #tetris-canvas {
+        width: 100%;
         height: auto;
         aspect-ratio: 1/2;
         border-radius: 6px;

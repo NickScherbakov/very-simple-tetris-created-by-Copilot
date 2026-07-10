@@ -51,8 +51,16 @@ document.addEventListener('DOMContentLoaded', () => {
         achievementsBtn: document.getElementById('achievements-btn'),
         shareBtn: document.getElementById('share-btn'),
         achievementsModal: document.getElementById('achievements-modal'),
-        closeAchievementsBtn: document.getElementById('close-achievements')
+        closeAchievementsBtn: document.getElementById('close-achievements'),
+        tapHint: document.getElementById('canvas-tap-hint')
     };
+
+    // Helper: show/hide the "Tap to Play" hint overlay on the canvas
+    function setTapHintVisible(visible) {
+        if (elements.tapHint) {
+            elements.tapHint.classList.toggle('visible', visible);
+        }
+    }
     
     // Game state variables
     let board = null;
@@ -525,6 +533,11 @@ document.addEventListener('DOMContentLoaded', () => {
             gameLoopManager.stop();
             clearAiAutomationTimers();
             
+            // Show tap hint so mobile users know they can tap to restart
+            if (!aiVsAiMode) {
+                setTapHintVisible(true);
+            }
+            
             // In AI vs AI mode, handle tournament continuation
             if (aiVsAiMode && tournamentMode) {
                 tournamentMatchCount++;
@@ -688,6 +701,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Game control functions
     function startGame() {
+        setTapHintVisible(false);
         clearAiAutomationTimers();
         gameLoopManager.start(
             () => {
@@ -786,6 +800,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Show start screen
         draw();
         Renderer.drawStartScreen();
+        setTapHintVisible(true);
     }
 
     function takeControl() {
@@ -1017,21 +1032,34 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    // Tap or click the canvas to start the game when idle
+    function handleCanvasActivation() {
+        if (!currentPiece || gameOver) {
+            soundEngine.init();
+            startGame();
+        }
+    }
+    canvas.addEventListener('click', handleCanvasActivation);
+    canvas.addEventListener('touchend', (e) => {
+        if (!currentPiece || gameOver) {
+            e.preventDefault();
+            handleCanvasActivation();
+            return;
+        }
+        InputManager.handleTouchEnd(e, true, {
+            onMoveLeft: () => movePieceLeft(),
+            onMoveRight: () => movePieceRight(),
+            onRotate: () => rotatePiece(),
+            onHardDrop: () => hardDrop()
+        });
+    });
+
     canvas.addEventListener('touchstart', (e) => {
         InputManager.handleTouchStart(e, !!currentPiece && !gameOver);
     });
 
     canvas.addEventListener('touchmove', (e) => {
         InputManager.handleTouchMove(e);
-    });
-
-    canvas.addEventListener('touchend', (e) => {
-        InputManager.handleTouchEnd(e, !!currentPiece && !gameOver, {
-            onMoveLeft: () => movePieceLeft(),
-            onMoveRight: () => movePieceRight(),
-            onRotate: () => rotatePiece(),
-            onHardDrop: () => hardDrop()
-        });
     });
 
     // Button event listeners
@@ -1350,6 +1378,7 @@ document.addEventListener('DOMContentLoaded', () => {
         gameOver = true;
         draw();
         Renderer.drawStartScreen();
+        setTapHintVisible(true);
     }
 
     if (stopReplayBtn) {
@@ -1460,6 +1489,7 @@ document.addEventListener('DOMContentLoaded', () => {
     updateSoundButton(soundEngine.enabled);
     draw();
     Renderer.drawStartScreen();
+    setTapHintVisible(true);
 
     // Listen for language changes
     window.addEventListener('languageChanged', (e) => {

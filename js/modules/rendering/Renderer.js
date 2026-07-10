@@ -170,6 +170,9 @@ export const Renderer = (() => {
      * Draws start screen overlay
      */
     function drawStartScreen() {
+        const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+        const promptText = isTouchDevice ? 'Tap to Play' : 'Press Start or Enter to Play';
+
         mainCtx.fillStyle = 'rgba(0, 0, 0, 0.75)';
         mainCtx.fillRect(0, 0, mainCanvas.width, mainCanvas.height);
         mainCtx.fillStyle = 'white';
@@ -177,7 +180,7 @@ export const Renderer = (() => {
         mainCtx.textAlign = 'center';
         mainCtx.fillText('TETRIS', mainCanvas.width / 2, mainCanvas.height / 2 - 30);
         mainCtx.font = '20px Arial';
-        mainCtx.fillText('Press Start or Enter to Play', mainCanvas.width / 2, mainCanvas.height / 2 + 20);
+        mainCtx.fillText(promptText, mainCanvas.width / 2, mainCanvas.height / 2 + 20);
     }
 
     return { 
