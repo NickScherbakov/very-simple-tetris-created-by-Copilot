@@ -197,6 +197,12 @@ body {
 /* ============================================
    CANVAS STYLING
    ============================================ */
+.canvas-wrapper {
+    position: relative;
+    display: inline-block;
+    line-height: 0;
+}
+
 #tetris-canvas {
     width: 300px;
     height: 600px;
@@ -206,6 +212,45 @@ body {
         inset 0 0 30px rgba(0, 0, 0, 0.5),
         0 0 40px rgba(124, 58, 237, 0.08);
     border: 1px solid rgba(255, 255, 255, 0.06);
+    display: block;
+}
+
+/* Show pointer cursor only when canvas can be tapped to start */
+#tetris-canvas.canvas-idle {
+    cursor: pointer;
+}
+
+/* Pulsing "TAP TO PLAY" hint shown on touch screens when game is idle */
+.canvas-tap-hint {
+    display: none;
+    position: absolute;
+    bottom: 18%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(124, 58, 237, 0.85);
+    color: #fff;
+    font-family: var(--font-ui);
+    font-weight: 700;
+    font-size: 1.1rem;
+    letter-spacing: 0.08em;
+    padding: 12px 28px;
+    border-radius: 40px;
+    pointer-events: none;
+    white-space: nowrap;
+    animation: tap-pulse 1.6s ease-in-out infinite;
+    box-shadow: 0 4px 20px rgba(124, 58, 237, 0.5);
+}
+
+@keyframes tap-pulse {
+    0%, 100% { opacity: 1; transform: translateX(-50%) scale(1); }
+    50%       { opacity: 0.65; transform: translateX(-50%) scale(0.96); }
+}
+
+/* Show hint only on touch devices when game is not running */
+@media (hover: none) and (pointer: coarse) {
+    .canvas-tap-hint.visible {
+        display: block;
+    }
 }
 
 @media (min-width: 768px) {
