@@ -181,9 +181,10 @@ const translations = {
         shop_note:              'Payments are processed securely via',
         shop_success_heading:   'TetriCoins added! 🎉',
         shop_success_text:      '{coins} TC have been added to your balance.',
+        shop_error_not_configured: 'Payments are not configured yet. The site owner needs to add Stripe Payment Link URLs in js/shop.js.',
 
         // Footer
-        footer_disclaimer: "🎮 This is a game with virtual currency. No real money is used. For entertainment only!",
+        footer_disclaimer: "🎮 TetriCoins are virtual in-game currency. Optional real-money top-ups are processed securely via Stripe.",
     },
     
     ar: {
@@ -367,9 +368,10 @@ const translations = {
         shop_note:              'تتم معالجة المدفوعات بأمان عبر',
         shop_success_heading:   'تمت إضافة TetriCoins! 🎉',
         shop_success_text:      'تمت إضافة {coins} TC إلى رصيدك.',
+        shop_error_not_configured: 'لم يتم تكوين المدفوعات بعد. يحتاج مالك الموقع إلى إضافة روابط Stripe في js/shop.js.',
 
         // Footer
-        footer_disclaimer: "🎮 هذه لعبة بعملة افتراضية. لا يتم استخدام أموال حقيقية. للترفيه فقط!",
+        footer_disclaimer: "🎮 TetriCoins عملة افتراضية داخل اللعبة. يتم معالجة عمليات الشحن الاختيارية بأمان عبر Stripe.",
     },
     
     zh: {
@@ -553,9 +555,10 @@ const translations = {
         shop_note:              '支付由以下机构安全处理：',
         shop_success_heading:   'TetriCoins 已添加！🎉',
         shop_success_text:      '{coins} TC 已成功添加至您的余额。',
+        shop_error_not_configured: '支付尚未配置。网站所有者需在 js/shop.js 中添加 Stripe 支付链接。',
 
         // Footer
-        footer_disclaimer: "🎮 这是一款虚拟货币游戏。不使用真实货币。仅供娱乐!",
+        footer_disclaimer: "🎮 TetriCoins 是游戏内虚拟货币。可选充值通过 Stripe 安全处理。",
     },
     
     ru: {
@@ -739,9 +742,10 @@ const translations = {
         shop_note:              'Платежи безопасно обрабатываются через',
         shop_success_heading:   'TetriCoins зачислены! 🎉',
         shop_success_text:      '{coins} TC добавлено на ваш баланс.',
+        shop_error_not_configured: 'Платежи ещё не настроены. Владельцу сайта нужно добавить ссылки Stripe в js/shop.js.',
 
         // Footer
-        footer_disclaimer: "🎮 Это игра на виртуальную валюту. Реальные деньги не используются. Только для развлечения!",
+        footer_disclaimer: "🎮 TetriCoins — внутриигровая виртуальная валюта. Необязательное пополнение безопасно обрабатывается через Stripe.",
     }
 };
 

@@ -88,12 +88,12 @@ function isSessionUsed(sid) {
 
 // ── Check URL on page load for payment success ─────────────────
 function checkPaymentSuccess() {
-    const params   = new URLSearchParams(window.location.search);
-    const payment  = params.get('payment');
-    const pkg      = params.get('pkg');
-    const sid      = params.get('sid') || pkg; // fallback: use pkg as session id
+    const params  = new URLSearchParams(window.location.search);
+    const payment = params.get('payment');
+    const pkg     = params.get('pkg');
+    const sid     = params.get('sid');
 
-    if (payment !== 'success' || !pkg) return;
+    if (payment !== 'success' || !pkg || !sid) return;
 
     const coins = PACKAGE_COINS[pkg];
     if (!coins) return;
@@ -126,7 +126,22 @@ function cleanUrl() {
 // ── Build the success redirect URL for a payment link ──────────
 function buildSuccessUrl(pkgId) {
     const base = window.location.origin + window.location.pathname;
-    return `${base}?payment=success&pkg=${pkgId}`;
+    // Generate a unique session ID to allow the same package to be purchased multiple times
+    const sid = Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+    return `${base}?payment=success&pkg=${pkgId}&sid=${sid}`;
+}
+
+// ── Build the full payment URL with success_url appended safely ─
+function buildPaymentUrl(paymentBase, successUrl) {
+    try {
+        const url = new URL(paymentBase);
+        url.searchParams.set('success_url', successUrl);
+        return url.toString();
+    } catch {
+        // Fallback for non-standard URLs
+        const sep = paymentBase.includes('?') ? '&' : '?';
+        return `${paymentBase}${sep}success_url=${encodeURIComponent(successUrl)}`;
+    }
 }
 
 // ── Build the modal HTML ───────────────────────────────────────
@@ -138,10 +153,10 @@ function buildShopModal() {
         : '—';
 
     const packagesHtml = SHOP_PACKAGES.map(pkg => {
-        const successUrl  = encodeURIComponent(buildSuccessUrl(pkg.id));
+        const successUrl  = buildSuccessUrl(pkg.id);
         const paymentHref = pkg.paymentUrl.includes('YOUR_')
             ? '#shop-not-configured'
-            : `${pkg.paymentUrl}?success_url=${successUrl}`;
+            : buildPaymentUrl(pkg.paymentUrl, successUrl);
         const bonusHtml   = pkg.bonusKey
             ? `<div class="pkg-bonus">✦ ${t(pkg.bonusKey)}</div>` : '';
         const popularBadge = pkg.popular
@@ -252,7 +267,9 @@ function attachShopEvents(modal) {
 
         const href = btn.dataset.href;
         if (href === '#shop-not-configured') {
-            alert('Payment not configured yet. Replace YOUR_*_LINK in js/shop.js with your Stripe Payment Link URLs.');
+            const lang = typeof getCurrentLanguage === 'function' ? getCurrentLanguage() : 'en';
+            const t    = key => (typeof getTranslation === 'function' ? getTranslation(key, lang) : key);
+            alert(t('shop_error_not_configured'));
             return;
         }
         // Navigate to payment page (same tab, so the redirect back works)
