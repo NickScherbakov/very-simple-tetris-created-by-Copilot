@@ -218,6 +218,7 @@
 ═══════════════════════════════════════════════════════════ */
 const COLS = 10;
 const ROWS = 20;
+// Colors match piece order: I J L O S T Z
 const COLORS = ['#00cfcf','#1e6fdc','#f5a623','#f5e642','#4caf50','#9c27b0','#f44336'];
 // Shapes: I J L O S T Z
 const SHAPES = [
@@ -229,6 +230,7 @@ const SHAPES = [
     [[0,1,0],[1,1,1],[0,0,0]],
     [[1,1,0],[0,1,1],[0,0,0]]
 ];
+// Scores per simultaneous line clear: [0 lines, 1 line, 2 lines, 3 lines, 4 lines (Tetris)]
 const LINE_SCORES = [0, 100, 300, 500, 800];
 
 /* ═══════════════════════════════════════════════════════════
@@ -246,7 +248,7 @@ function resize() {
     const availW  = Math.min(window.innerWidth, 320);
     const availH  = window.innerHeight - statsH - padH;
 
-    // Block size that fits both width and height
+    // Block size that fits both width and height; minimum 16 px so blocks remain tappable
     const bByW = Math.floor(availW / COLS);
     const bByH = Math.floor(availH / ROWS);
     const bs   = Math.max(16, Math.min(bByW, bByH));
@@ -335,6 +337,7 @@ function spawnNext() {
 }
 
 function dropInterval() {
+    // 1000 ms at level 1, decreasing by 90 ms per level, floor 80 ms
     return Math.max(80, 1000 - (level - 1) * 90);
 }
 
@@ -527,7 +530,7 @@ function bindBtn(id, action, repeat=false) {
         e.preventDefault();
         btn.classList.add('pressed');
         action();
-        if (repeat) timer = setInterval(action, 120);
+        if (repeat) timer = setInterval(action, 120); // 120 ms auto-repeat interval
     }
     function release() {
         btn.classList.remove('pressed');
