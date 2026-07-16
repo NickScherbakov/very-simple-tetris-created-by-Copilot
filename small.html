@@ -2,96 +2,583 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#7b68ee">
-    <title>Tetris — Small Screen Edition</title>
-    <script>
-        /* ---------------------------------------------------------------
-         * Small-screen gate
-         * Screens ≤ 480 CSS px (≈ 5-inch phone) → load the full game.
-         * Wider screens → stay on this page and show the error message.
-         * A resize listener handles the edge case where the browser window
-         * is narrowed after initial load (e.g., developer tools).
-         * --------------------------------------------------------------- */
-        function checkScreenSize() {
-            if (window.innerWidth <= 480) {
-                location.replace('./');
-            }
-        }
-
-        checkScreenSize();
-        window.addEventListener('resize', checkScreenSize);
-    </script>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Tetris — Mobile Edition</title>
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+        :root {
+            --accent: #7b68ee;
+            --bg: #0d0d1a;
+            --surface: #1a1a2e;
+            --border: rgba(123,104,238,0.3);
+            --text: #e0e0e0;
+            --text-dim: rgba(224,224,224,0.55);
+        }
+
+        html, body {
+            height: 100%;
+            overflow: hidden;
+        }
+
         body {
-            min-height: 100vh;
-            background: #121212;
-            color: #e0e0e0;
+            background: var(--bg);
+            color: var(--text);
             font-family: 'Segoe UI', system-ui, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            touch-action: none;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        /* ── Stats bar ── */
+        #stats {
+            display: flex;
+            width: 100%;
+            max-width: 320px;
+            justify-content: space-around;
+            padding: 6px 4px 4px;
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+        .stat { display: flex; flex-direction: column; align-items: center; }
+        .stat-label { font-size: 0.58rem; letter-spacing: 0.05em; color: var(--text-dim); text-transform: uppercase; }
+        .stat-value { font-size: 1rem; font-weight: 700; color: var(--accent); line-height: 1.2; }
+
+        /* ── Canvas wrapper ── */
+        #canvas-wrap {
+            position: relative;
+            flex-shrink: 0;
+        }
+        #game-canvas {
+            display: block;
+            background: #060612;
+            border-left: 1px solid var(--border);
+            border-right: 1px solid var(--border);
+        }
+
+        /* Overlay: Start / Game Over / Pause */
+        #overlay {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: rgba(6,6,18,0.82);
+            gap: 10px;
+        }
+        #overlay.hidden { display: none; }
+        #overlay-title {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: var(--accent);
+            text-align: center;
+            padding: 0 12px;
+        }
+        #overlay-sub {
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            text-align: center;
+            padding: 0 12px;
+        }
+        #overlay-btn {
+            margin-top: 6px;
+            padding: 10px 32px;
+            background: var(--accent);
+            border: none;
+            border-radius: 10px;
+            color: #fff;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+        }
+        #overlay-btn:active { opacity: 0.8; transform: scale(0.96); }
+
+        /* ── Virtual gamepad ── */
+        #gamepad {
+            flex-shrink: 0;
+            width: 100%;
+            max-width: 320px;
+            padding: 6px 4px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            background: var(--surface);
+            border-top: 1px solid var(--border);
+        }
+        .gp-row {
+            display: flex;
+            gap: 5px;
+            justify-content: center;
+        }
+        .gp-btn {
+            flex: 1;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 24px;
-            text-align: center;
+            background: rgba(255,255,255,0.07);
+            border: 1px solid rgba(255,255,255,0.13);
+            border-radius: 10px;
+            color: var(--text);
+            font-size: 1.5rem;
+            min-height: 52px;
+            cursor: pointer;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+            transition: background 0.08s, transform 0.08s;
         }
-
-        .card {
-            max-width: 360px;
-            background: #1e1e2e;
-            border: 1px solid #7b68ee44;
-            border-radius: 16px;
-            padding: 36px 28px;
+        .gp-btn:active, .gp-btn.pressed {
+            background: rgba(123,104,238,0.4);
+            border-color: rgba(123,104,238,0.7);
+            transform: scale(0.93);
         }
-
-        .icon { font-size: 56px; margin-bottom: 20px; }
-
-        h1 {
-            font-size: 1.3rem;
+        #btn-drop {
+            background: rgba(123,104,238,0.15);
+            border-color: rgba(123,104,238,0.35);
+            font-size: 1rem;
             font-weight: 700;
-            color: #7b68ee;
-            margin-bottom: 12px;
+            letter-spacing: 0.03em;
+        }
+        #btn-drop:active, #btn-drop.pressed {
+            background: rgba(123,104,238,0.5);
+        }
+        #btn-pause {
+            flex: none;
+            width: 44px;
+            font-size: 1rem;
         }
 
-        p {
-            font-size: 0.95rem;
-            line-height: 1.6;
-            opacity: 0.75;
-            margin-bottom: 8px;
+        /* Next-piece mini canvas in stats bar */
+        #next-canvas {
+            width: 36px;
+            height: 36px;
         }
-
-        .divider {
-            border: none;
-            border-top: 1px solid #7b68ee33;
-            margin: 20px 0;
-        }
-
-        .full-link {
-            display: inline-block;
-            margin-top: 8px;
-            padding: 10px 24px;
-            background: #7b68ee22;
-            border: 1px solid #7b68ee66;
-            border-radius: 8px;
-            color: #7b68ee;
-            text-decoration: none;
-            font-size: 0.9rem;
-            transition: background 0.2s;
-        }
-
-        .full-link:hover { background: #7b68ee44; }
     </style>
 </head>
 <body>
-    <div class="card">
-        <div class="icon">📱</div>
-        <h1>Только для маленьких экранов</h1>
-        <p>Эта ссылка предназначена для устройств<br>с экраном <strong>до&nbsp;5&nbsp;дюймов</strong>.</p>
-        <p>Откройте QR-код на смартфоне&nbsp;—&nbsp;и игра запустится автоматически.</p>
-        <hr class="divider">
-        <p>Хотите играть сейчас?</p>
-        <a class="full-link" href="./">Открыть полную версию →</a>
+
+<!-- Stats bar -->
+<div id="stats">
+    <div class="stat">
+        <span class="stat-label">Счёт</span>
+        <span class="stat-value" id="score-val">0</span>
     </div>
+    <div class="stat">
+        <span class="stat-label">Уровень</span>
+        <span class="stat-value" id="level-val">1</span>
+    </div>
+    <div class="stat">
+        <span class="stat-label">Линии</span>
+        <span class="stat-value" id="lines-val">0</span>
+    </div>
+    <div class="stat">
+        <span class="stat-label">Следующий</span>
+        <canvas id="next-canvas" width="48" height="48"></canvas>
+    </div>
+</div>
+
+<!-- Canvas -->
+<div id="canvas-wrap">
+    <canvas id="game-canvas"></canvas>
+    <div id="overlay">
+        <div id="overlay-title">🎮 Tetris</div>
+        <div id="overlay-sub">Нажмите Start, чтобы начать</div>
+        <button id="overlay-btn">▶ Start</button>
+    </div>
+</div>
+
+<!-- Virtual gamepad -->
+<div id="gamepad">
+    <div class="gp-row">
+        <button class="gp-btn" id="btn-left"   aria-label="Move left">◀</button>
+        <button class="gp-btn" id="btn-rotate" aria-label="Rotate">↻</button>
+        <button class="gp-btn" id="btn-right"  aria-label="Move right">▶</button>
+        <button class="gp-btn" id="btn-pause"  aria-label="Pause">⏸</button>
+    </div>
+    <div class="gp-row">
+        <button class="gp-btn" id="btn-down"   aria-label="Soft drop">▼</button>
+        <button class="gp-btn" id="btn-drop"   aria-label="Hard drop">⤓ DROP</button>
+    </div>
+</div>
+
+<script>
+(function () {
+'use strict';
+
+/* ═══════════════════════════════════════════════════════════
+   CONSTANTS
+═══════════════════════════════════════════════════════════ */
+const COLS = 10;
+const ROWS = 20;
+const COLORS = ['#00cfcf','#1e6fdc','#f5a623','#f5e642','#4caf50','#9c27b0','#f44336'];
+// Shapes: I J L O S T Z
+const SHAPES = [
+    [[0,0,0,0],[1,1,1,1],[0,0,0,0],[0,0,0,0]],
+    [[1,0,0],[1,1,1],[0,0,0]],
+    [[0,0,1],[1,1,1],[0,0,0]],
+    [[1,1],[1,1]],
+    [[0,1,1],[1,1,0],[0,0,0]],
+    [[0,1,0],[1,1,1],[0,0,0]],
+    [[1,1,0],[0,1,1],[0,0,0]]
+];
+const LINE_SCORES = [0, 100, 300, 500, 800];
+
+/* ═══════════════════════════════════════════════════════════
+   LAYOUT — fit canvas between stats bar and gamepad
+═══════════════════════════════════════════════════════════ */
+const canvas    = document.getElementById('game-canvas');
+const ctx       = canvas.getContext('2d');
+const nextCvs   = document.getElementById('next-canvas');
+const nextCtx   = nextCvs.getContext('2d');
+const wrap      = document.getElementById('canvas-wrap');
+
+function resize() {
+    const statsH  = document.getElementById('stats').offsetHeight;
+    const padH    = document.getElementById('gamepad').offsetHeight;
+    const availW  = Math.min(window.innerWidth, 320);
+    const availH  = window.innerHeight - statsH - padH;
+
+    // Block size that fits both width and height
+    const bByW = Math.floor(availW / COLS);
+    const bByH = Math.floor(availH / ROWS);
+    const bs   = Math.max(16, Math.min(bByW, bByH));
+
+    canvas.width  = bs * COLS;
+    canvas.height = bs * ROWS;
+    wrap.style.width  = canvas.width  + 'px';
+    wrap.style.height = canvas.height + 'px';
+    B = bs;
+    if (state !== 'idle') draw();
+}
+
+let B = 24; // block size in px, updated by resize()
+
+/* ═══════════════════════════════════════════════════════════
+   GAME STATE
+═══════════════════════════════════════════════════════════ */
+let board, piece, nextPiece, score, level, lines, state, dropTimer, lastTime;
+// state: 'idle' | 'running' | 'paused' | 'over'
+
+function createBoard() {
+    return Array.from({length: ROWS}, () => new Array(COLS).fill(0));
+}
+
+function randPiece() {
+    const i = Math.floor(Math.random() * SHAPES.length);
+    const shape = SHAPES[i].map(r => r.slice());
+    return { shape, color: COLORS[i], x: Math.floor(COLS/2) - Math.floor(shape[0].length/2), y: 0 };
+}
+
+function rotateCW(shape) {
+    const n = shape.length;
+    return Array.from({length: n}, (_, y) =>
+        Array.from({length: n}, (__, x) => shape[n-1-x][y])
+    );
+}
+
+function valid(p, ox=0, oy=0, shape=p.shape) {
+    return shape.every((row, y) =>
+        row.every((v, x) => {
+            if (!v) return true;
+            const nx = p.x + x + ox, ny = p.y + y + oy;
+            return nx >= 0 && nx < COLS && ny < ROWS && (ny < 0 || !board[ny][nx]);
+        })
+    );
+}
+
+function merge() {
+    piece.shape.forEach((row, y) =>
+        row.forEach((v, x) => {
+            if (v && piece.y + y >= 0) {
+                board[piece.y + y][piece.x + x] = piece.color;
+            }
+        })
+    );
+}
+
+function clearLines() {
+    let cleared = 0;
+    for (let y = ROWS - 1; y >= 0; ) {
+        if (board[y].every(v => v)) {
+            board.splice(y, 1);
+            board.unshift(new Array(COLS).fill(0));
+            cleared++;
+        } else {
+            y--;
+        }
+    }
+    if (cleared) {
+        score += LINE_SCORES[cleared] * level;
+        lines += cleared;
+        level = Math.floor(lines / 10) + 1;
+        updateStats();
+    }
+}
+
+function spawnNext() {
+    piece = nextPiece || randPiece();
+    nextPiece = randPiece();
+    drawNext();
+    if (!valid(piece)) {
+        merge();
+        draw();
+        endGame();
+    }
+}
+
+function dropInterval() {
+    return Math.max(80, 1000 - (level - 1) * 90);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   GAME LOOP
+═══════════════════════════════════════════════════════════ */
+function startGame() {
+    board     = createBoard();
+    score     = 0; level = 1; lines = 0;
+    state     = 'running';
+    dropTimer = 0;
+    lastTime  = performance.now();
+    nextPiece = randPiece();
+    spawnNext();
+    updateStats();
+    hideOverlay();
+    requestAnimationFrame(loop);
+}
+
+function loop(ts) {
+    if (state !== 'running') return;
+    const dt = ts - lastTime;
+    lastTime = ts;
+    dropTimer += dt;
+    if (dropTimer >= dropInterval()) {
+        dropTimer = 0;
+        softDrop();
+    }
+    draw();
+    requestAnimationFrame(loop);
+}
+
+function softDrop() {
+    if (valid(piece, 0, 1)) {
+        piece.y++;
+    } else {
+        merge();
+        clearLines();
+        spawnNext();
+    }
+}
+
+function hardDrop() {
+    while (valid(piece, 0, 1)) piece.y++;
+    merge();
+    clearLines();
+    spawnNext();
+    draw();
+}
+
+function moveLeft()  { if (valid(piece, -1)) piece.x--; }
+function moveRight() { if (valid(piece,  1)) piece.x++; }
+function rotate() {
+    const r = rotateCW(piece.shape);
+    // Wall-kick: try 0, -1, +1, -2, +2
+    for (const kick of [0, -1, 1, -2, 2]) {
+        if (valid(piece, kick, 0, r)) { piece.shape = r; piece.x += kick; return; }
+    }
+}
+
+function togglePause() {
+    if (state === 'running') {
+        state = 'paused';
+        showOverlay('⏸ Пауза', 'Нажмите Продолжить', 'Продолжить');
+    } else if (state === 'paused') {
+        state = 'running';
+        lastTime = performance.now();
+        hideOverlay();
+        requestAnimationFrame(loop);
+    }
+}
+
+function endGame() {
+    state = 'over';
+    showOverlay('💀 Игра окончена', 'Счёт: ' + score, '▶ Заново');
+}
+
+/* ═══════════════════════════════════════════════════════════
+   RENDERING
+═══════════════════════════════════════════════════════════ */
+function draw() {
+    ctx.fillStyle = '#060612';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Grid
+    ctx.strokeStyle = 'rgba(123,104,238,0.08)';
+    ctx.lineWidth = 0.5;
+    for (let x = 0; x <= COLS; x++) {
+        ctx.beginPath(); ctx.moveTo(x*B, 0); ctx.lineTo(x*B, canvas.height); ctx.stroke();
+    }
+    for (let y = 0; y <= ROWS; y++) {
+        ctx.beginPath(); ctx.moveTo(0, y*B); ctx.lineTo(canvas.width, y*B); ctx.stroke();
+    }
+
+    // Placed blocks
+    board.forEach((row, y) =>
+        row.forEach((color, x) => {
+            if (color) drawBlock(ctx, x, y, color);
+        })
+    );
+
+    // Ghost piece
+    if (piece) {
+        let gy = piece.y;
+        while (valid(piece, 0, gy - piece.y + 1)) gy++;
+        if (gy !== piece.y) drawPiece(ctx, piece, 0, gy - piece.y, 0.22);
+    }
+
+    // Active piece
+    if (piece) drawPiece(ctx, piece, 0, 0, 1);
+}
+
+function drawBlock(c, x, y, color, alpha=1) {
+    c.globalAlpha = alpha;
+    c.fillStyle = color;
+    c.fillRect(x*B+1, y*B+1, B-2, B-2);
+    // Highlight
+    c.fillStyle = 'rgba(255,255,255,0.18)';
+    c.fillRect(x*B+1, y*B+1, B-2, 3);
+    c.fillRect(x*B+1, y*B+1, 3, B-2);
+    c.globalAlpha = 1;
+}
+
+function drawPiece(c, p, ox, oy, alpha) {
+    p.shape.forEach((row, y) =>
+        row.forEach((v, x) => {
+            if (v) drawBlock(c, p.x+x+ox, p.y+y+oy, p.color, alpha);
+        })
+    );
+}
+
+function drawNext() {
+    const c = nextCtx, sz = nextCvs.width, bs = Math.floor(sz / 5);
+    c.fillStyle = '#060612';
+    c.fillRect(0, 0, sz, sz);
+    if (!nextPiece) return;
+    const sh = nextPiece.shape;
+    const offX = Math.floor((5 - sh[0].length) / 2);
+    const offY = Math.floor((5 - sh.length) / 2);
+    sh.forEach((row, y) =>
+        row.forEach((v, x) => {
+            if (v) {
+                c.globalAlpha = 1;
+                c.fillStyle = nextPiece.color;
+                c.fillRect((offX+x)*bs+1, (offY+y)*bs+1, bs-2, bs-2);
+            }
+        })
+    );
+}
+
+/* ═══════════════════════════════════════════════════════════
+   STATS UI
+═══════════════════════════════════════════════════════════ */
+const elScore = document.getElementById('score-val');
+const elLevel = document.getElementById('level-val');
+const elLines = document.getElementById('lines-val');
+function updateStats() {
+    elScore.textContent = score;
+    elLevel.textContent = level;
+    elLines.textContent = lines;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   OVERLAY
+═══════════════════════════════════════════════════════════ */
+const overlay    = document.getElementById('overlay');
+const overlayT   = document.getElementById('overlay-title');
+const overlaySub = document.getElementById('overlay-sub');
+const overlayBtn = document.getElementById('overlay-btn');
+
+function showOverlay(title, sub, btnLabel) {
+    overlayT.textContent   = title;
+    overlaySub.textContent = sub;
+    overlayBtn.textContent = btnLabel;
+    overlay.classList.remove('hidden');
+}
+function hideOverlay() { overlay.classList.add('hidden'); }
+
+overlayBtn.addEventListener('click', () => startGame());
+overlayBtn.addEventListener('touchend', e => { e.preventDefault(); startGame(); });
+
+/* ═══════════════════════════════════════════════════════════
+   VIRTUAL GAMEPAD
+═══════════════════════════════════════════════════════════ */
+function bindBtn(id, action, repeat=false) {
+    const btn = document.getElementById(id);
+    let timer = null;
+
+    function press(e) {
+        e.preventDefault();
+        btn.classList.add('pressed');
+        action();
+        if (repeat) timer = setInterval(action, 120);
+    }
+    function release() {
+        btn.classList.remove('pressed');
+        clearInterval(timer);
+    }
+
+    btn.addEventListener('touchstart', press, {passive: false});
+    btn.addEventListener('touchend',   release);
+    btn.addEventListener('mousedown',  press);
+    btn.addEventListener('mouseup',    release);
+}
+
+function guardAction(fn) {
+    return () => { if (state === 'running') { fn(); draw(); } };
+}
+
+bindBtn('btn-left',   guardAction(moveLeft),  true);
+bindBtn('btn-right',  guardAction(moveRight), true);
+bindBtn('btn-rotate', guardAction(rotate));
+bindBtn('btn-down',   guardAction(softDrop),  true);
+bindBtn('btn-drop',   guardAction(hardDrop));
+bindBtn('btn-pause',  () => { if (state === 'running' || state === 'paused') togglePause(); });
+
+/* ═══════════════════════════════════════════════════════════
+   KEYBOARD
+═══════════════════════════════════════════════════════════ */
+document.addEventListener('keydown', e => {
+    if (state === 'idle' || state === 'over') { if (e.key === 'Enter' || e.key === ' ') startGame(); return; }
+    if (e.key === 'p' || e.key === 'P' || e.key === 'Escape') { togglePause(); return; }
+    if (state !== 'running') return;
+    switch (e.key) {
+        case 'ArrowLeft':  e.preventDefault(); moveLeft();  draw(); break;
+        case 'ArrowRight': e.preventDefault(); moveRight(); draw(); break;
+        case 'ArrowUp':    e.preventDefault(); rotate();    draw(); break;
+        case 'ArrowDown':  e.preventDefault(); softDrop();  draw(); break;
+        case ' ':          e.preventDefault(); hardDrop();         break;
+    }
+});
+
+/* ═══════════════════════════════════════════════════════════
+   INIT
+═══════════════════════════════════════════════════════════ */
+state = 'idle';
+resize();
+window.addEventListener('resize', resize);
+
+// Draw empty board on load
+ctx.fillStyle = '#060612';
+ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+})();
+</script>
 </body>
 </html>
