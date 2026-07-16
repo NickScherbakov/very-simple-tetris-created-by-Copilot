@@ -1,10 +1,11 @@
 /* ============================================
-   MOBILE SMALL — 5-INCH DEVICE ADAPTATION
-   Targets screens ≤ 480 px (≈ 5 inches)
+   MOBILE SMALL — 3–5 INCH DEVICE ADAPTATION
+   Targets common phone viewports in the 3–5 inch class:
+   320–480 px width, 480–950 px height, touch-first devices.
    ============================================ */
 
 /* ---- Compact stats bar ---- */
-@media (max-width: 480px) {
+@media (hover: none) and (pointer: coarse) and (min-width: 320px) and (max-width: 480px) and (min-height: 480px) and (max-height: 950px) {
 
     /* Stack the whole page without side padding */
     body {
@@ -280,8 +281,8 @@
     display: none;
 }
 
-/* Show on small screens whose primary input has no hover capability (touch-primary devices) */
-@media (max-width: 480px) and (hover: none) {
+/* Show on target 3–5 inch touch devices */
+@media (hover: none) and (pointer: coarse) and (min-width: 320px) and (max-width: 480px) and (min-height: 480px) and (max-height: 950px) {
     .virtual-gamepad {
         display: flex;
     }
