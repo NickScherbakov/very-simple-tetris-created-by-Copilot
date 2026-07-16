@@ -33,6 +33,11 @@
         width: 100%;
     }
 
+    /* Explicitly enable gamepad in the target viewport range */
+    .virtual-gamepad {
+        display: flex;
+    }
+
     /* ---- Left sidebar → horizontal stats strip ---- */
     .left-sidebar {
         order: -1;
