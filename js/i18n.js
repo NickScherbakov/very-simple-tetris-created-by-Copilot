@@ -166,8 +166,25 @@ const translations = {
         rounds_won: "Rounds Won",
         back_to_menu: "Back to Menu",
         
+        // Shop
+        shop_btn:               'Buy TC',
+        shop_btn_title:         'Buy TetriCoins',
+        shop_title:             'TetriCoins Shop',
+        shop_subtitle:          'Top up your balance and unlock exclusive themes',
+        shop_your_balance:      'Your balance:',
+        shop_popular:           'Best Value',
+        shop_pkg_starter:       'Starter Pack',
+        shop_pkg_standard:      'Standard Pack',
+        shop_pkg_standard_bonus:'+10% bonus coins',
+        shop_pkg_premium:       'Premium Pack',
+        shop_pkg_premium_bonus: '+70% bonus coins',
+        shop_note:              'Payments are processed securely via',
+        shop_success_heading:   'TetriCoins added! 🎉',
+        shop_success_text:      '{coins} TC have been added to your balance.',
+        shop_error_not_configured: 'Payments are not configured yet. The site owner needs to add Stripe Payment Link URLs in js/shop.js.',
+
         // Footer
-        footer_disclaimer: "🎮 This is a game with virtual currency. No real money is used. For entertainment only!",
+        footer_disclaimer: "🎮 TetriCoins are virtual in-game currency. Optional real-money top-ups are processed securely via Stripe. TetriCoins are stored in your browser and will be lost if you clear browser data.",
     },
     
     ar: {
@@ -336,8 +353,25 @@ const translations = {
         rounds_won: "الجولات الفائزة",
         back_to_menu: "العودة للقائمة",
         
+        // Shop
+        shop_btn:               'شراء TC',
+        shop_btn_title:         'شراء TetriCoins',
+        shop_title:             'متجر TetriCoins',
+        shop_subtitle:          'أضف رصيداً وافتح ثيمات حصرية',
+        shop_your_balance:      'رصيدك:',
+        shop_popular:           'أفضل قيمة',
+        shop_pkg_starter:       'حزمة المبتدئ',
+        shop_pkg_standard:      'الحزمة القياسية',
+        shop_pkg_standard_bonus:'+10% عملات إضافية',
+        shop_pkg_premium:       'الحزمة المميزة',
+        shop_pkg_premium_bonus: '+70% عملات إضافية',
+        shop_note:              'تتم معالجة المدفوعات بأمان عبر',
+        shop_success_heading:   'تمت إضافة TetriCoins! 🎉',
+        shop_success_text:      'تمت إضافة {coins} TC إلى رصيدك.',
+        shop_error_not_configured: 'لم يتم تكوين المدفوعات بعد. يحتاج مالك الموقع إلى إضافة روابط Stripe في js/shop.js.',
+
         // Footer
-        footer_disclaimer: "🎮 هذه لعبة بعملة افتراضية. لا يتم استخدام أموال حقيقية. للترفيه فقط!",
+        footer_disclaimer: "🎮 TetriCoins عملة افتراضية داخل اللعبة. يتم معالجة عمليات الشحن الاختيارية بأمان عبر Stripe. يتم تخزين TetriCoins في متصفحك وستُفقد إذا مسحت بيانات المتصفح.",
     },
     
     zh: {
@@ -506,8 +540,25 @@ const translations = {
         rounds_won: "获胜回合",
         back_to_menu: "返回菜单",
         
+        // Shop
+        shop_btn:               '购买TC',
+        shop_btn_title:         '购买TetriCoins',
+        shop_title:             'TetriCoins 商店',
+        shop_subtitle:          '充值余额，解锁专属主题',
+        shop_your_balance:      '当前余额：',
+        shop_popular:           '最佳性价比',
+        shop_pkg_starter:       '入门礼包',
+        shop_pkg_standard:      '标准礼包',
+        shop_pkg_standard_bonus:'+10% 额外金币',
+        shop_pkg_premium:       '高级礼包',
+        shop_pkg_premium_bonus: '+70% 额外金币',
+        shop_note:              '支付由以下机构安全处理：',
+        shop_success_heading:   'TetriCoins 已添加！🎉',
+        shop_success_text:      '{coins} TC 已成功添加至您的余额。',
+        shop_error_not_configured: '支付尚未配置。网站所有者需在 js/shop.js 中添加 Stripe 支付链接。',
+
         // Footer
-        footer_disclaimer: "🎮 这是一款虚拟货币游戏。不使用真实货币。仅供娱乐!",
+        footer_disclaimer: "🎮 TetriCoins 是游戏内虚拟货币。可选充值通过 Stripe 安全处理。TetriCoins 存储在您的浏览器中，清除浏览器数据后将会丢失。",
     },
     
     ru: {
@@ -676,8 +727,25 @@ const translations = {
         rounds_won: "Выиграно раундов",
         back_to_menu: "Назад в меню",
         
+        // Shop
+        shop_btn:               'Купить TC',
+        shop_btn_title:         'Купить TetriCoins',
+        shop_title:             'Магазин TetriCoins',
+        shop_subtitle:          'Пополните баланс и откройте эксклюзивные темы',
+        shop_your_balance:      'Ваш баланс:',
+        shop_popular:           'Лучшая цена',
+        shop_pkg_starter:       'Стартовый набор',
+        shop_pkg_standard:      'Стандартный набор',
+        shop_pkg_standard_bonus:'+10% бонусных монет',
+        shop_pkg_premium:       'Премиум набор',
+        shop_pkg_premium_bonus: '+70% бонусных монет',
+        shop_note:              'Платежи безопасно обрабатываются через',
+        shop_success_heading:   'TetriCoins зачислены! 🎉',
+        shop_success_text:      '{coins} TC добавлено на ваш баланс.',
+        shop_error_not_configured: 'Платежи ещё не настроены. Владельцу сайта нужно добавить ссылки Stripe в js/shop.js.',
+
         // Footer
-        footer_disclaimer: "🎮 Это игра на виртуальную валюту. Реальные деньги не используются. Только для развлечения!",
+        footer_disclaimer: "🎮 TetriCoins — внутриигровая виртуальная валюта. Необязательное пополнение безопасно обрабатывается через Stripe. TetriCoins хранятся в браузере и будут удалены при очистке данных браузера.",
     }
 };
 
