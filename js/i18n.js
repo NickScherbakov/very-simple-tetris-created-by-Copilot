@@ -184,7 +184,7 @@ const translations = {
         shop_error_not_configured: 'Payments are not configured yet. The site owner needs to add Stripe Payment Link URLs in js/shop.js.',
 
         // Footer
-        footer_disclaimer: "🎮 TetriCoins are virtual in-game currency. Optional real-money top-ups are processed securely via Stripe.",
+        footer_disclaimer: "🎮 TetriCoins are virtual in-game currency. Optional real-money top-ups are processed securely via Stripe. TetriCoins are stored in your browser and will be lost if you clear browser data.",
     },
     
     ar: {
@@ -371,7 +371,7 @@ const translations = {
         shop_error_not_configured: 'لم يتم تكوين المدفوعات بعد. يحتاج مالك الموقع إلى إضافة روابط Stripe في js/shop.js.',
 
         // Footer
-        footer_disclaimer: "🎮 TetriCoins عملة افتراضية داخل اللعبة. يتم معالجة عمليات الشحن الاختيارية بأمان عبر Stripe.",
+        footer_disclaimer: "🎮 TetriCoins عملة افتراضية داخل اللعبة. يتم معالجة عمليات الشحن الاختيارية بأمان عبر Stripe. يتم تخزين TetriCoins في متصفحك وستُفقد إذا مسحت بيانات المتصفح.",
     },
     
     zh: {
@@ -558,7 +558,7 @@ const translations = {
         shop_error_not_configured: '支付尚未配置。网站所有者需在 js/shop.js 中添加 Stripe 支付链接。',
 
         // Footer
-        footer_disclaimer: "🎮 TetriCoins 是游戏内虚拟货币。可选充值通过 Stripe 安全处理。",
+        footer_disclaimer: "🎮 TetriCoins 是游戏内虚拟货币。可选充值通过 Stripe 安全处理。TetriCoins 存储在您的浏览器中，清除浏览器数据后将会丢失。",
     },
     
     ru: {
@@ -745,7 +745,7 @@ const translations = {
         shop_error_not_configured: 'Платежи ещё не настроены. Владельцу сайта нужно добавить ссылки Stripe в js/shop.js.',
 
         // Footer
-        footer_disclaimer: "🎮 TetriCoins — внутриигровая виртуальная валюта. Необязательное пополнение безопасно обрабатывается через Stripe.",
+        footer_disclaimer: "🎮 TetriCoins — внутриигровая виртуальная валюта. Необязательное пополнение безопасно обрабатывается через Stripe. TetriCoins хранятся в браузере и будут удалены при очистке данных браузера.",
     }
 };
 

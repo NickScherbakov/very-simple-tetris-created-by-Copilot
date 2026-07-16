@@ -126,21 +126,38 @@ function cleanUrl() {
 // ── Build the success redirect URL for a payment link ──────────
 function buildSuccessUrl(pkgId) {
     const base = window.location.origin + window.location.pathname;
-    // Generate a unique session ID to allow the same package to be purchased multiple times
-    const sid = Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
-    return `${base}?payment=success&pkg=${pkgId}&sid=${sid}`;
+    // Use crypto.randomUUID() for a cryptographically secure session ID
+    const sid = (typeof crypto !== 'undefined' && crypto.randomUUID)
+        ? crypto.randomUUID()
+        : (Date.now().toString(36) + Array.from(
+              (typeof crypto !== 'undefined' && crypto.getRandomValues)
+                  ? crypto.getRandomValues(new Uint8Array(12))
+                  : new Uint8Array(12).map(() => Math.floor(Math.random() * 256))
+          ).map(b => b.toString(16).padStart(2, '0')).join(''));
+    return `${base}?payment=success&pkg=${encodeURIComponent(pkgId)}&sid=${encodeURIComponent(sid)}`;
 }
 
 // ── Build the full payment URL with success_url appended safely ─
+const PLACEHOLDER_URLS = new Set([
+    'https://buy.stripe.com/YOUR_STARTER_LINK',
+    'https://buy.stripe.com/YOUR_STANDARD_LINK',
+    'https://buy.stripe.com/YOUR_PREMIUM_LINK',
+]);
+
+function isPlaceholderUrl(url) {
+    return PLACEHOLDER_URLS.has(url);
+}
+
 function buildPaymentUrl(paymentBase, successUrl) {
     try {
         const url = new URL(paymentBase);
         url.searchParams.set('success_url', successUrl);
         return url.toString();
     } catch {
-        // Fallback for non-standard URLs
+        // Fallback for non-standard URLs: use URLSearchParams for safe encoding
+        const params = new URLSearchParams({ success_url: successUrl });
         const sep = paymentBase.includes('?') ? '&' : '?';
-        return `${paymentBase}${sep}success_url=${encodeURIComponent(successUrl)}`;
+        return `${paymentBase}${sep}${params.toString()}`;
     }
 }
 
@@ -154,7 +171,7 @@ function buildShopModal() {
 
     const packagesHtml = SHOP_PACKAGES.map(pkg => {
         const successUrl  = buildSuccessUrl(pkg.id);
-        const paymentHref = pkg.paymentUrl.includes('YOUR_')
+        const paymentHref = isPlaceholderUrl(pkg.paymentUrl)
             ? '#shop-not-configured'
             : buildPaymentUrl(pkg.paymentUrl, successUrl);
         const bonusHtml   = pkg.bonusKey
