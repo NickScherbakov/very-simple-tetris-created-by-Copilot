@@ -318,3 +318,65 @@
         padding: 0.7rem 1.2rem;
     }
 }
+
+/* ---- Extra-compact overrides for very short viewports (e.g. iPhone SE1/SE2, 375×667) ---- */
+/* Goal: stats strip + canvas + virtual gamepad all fit within the visible viewport.           */
+/*                                                                                             */
+/* --_ui-height: combined height of all non-canvas rows (stats panel, gamepad, gaps, padding) */
+/* Canvas aspect-ratio is 1:2, so:                                                            */
+/*   max canvas height = 100dvh − --_ui-height                                                */
+/*   max canvas width  = (100dvh − --_ui-height) / 2                                          */
+/*                                                                                             */
+/* dvh (dynamic viewport height) shrinks when the browser chrome is visible —                 */
+/* exactly the condition where we need the most vertical space savings.                        */
+/* Supported since Safari 15.4; iPhone SE2 runs iOS 15.4+.                                    */
+/*                                                                                             */
+/* Width range 320–480 px + max-height 700 px targets compact phones only and does not        */
+/* affect tablets or larger handsets.                                                          */
+@media (hover: none) and (pointer: coarse) and (min-width: 320px) and (max-width: 480px) and (max-height: 700px) {
+
+    /* 195 px = stats panel (~69 px) + gamepad (~90 px) + grid gaps (~18 px) + container padding (12 px) + margin (~6 px) */
+    :root {
+        --_ui-height: 195px;
+    }
+
+    /* Tighter stats panel */
+    .panel.score-section {
+        padding: 3px 6px;
+    }
+
+    .stat-item {
+        padding: 2px 4px;
+    }
+
+    .balance-item {
+        padding: 3px 6px;
+    }
+
+    /* Smaller virtual gamepad buttons */
+    .gamepad-btn {
+        min-height: 42px;
+        font-size: 1.2rem;
+    }
+
+    .gamepad-btn.hard-drop,
+    .gamepad-btn.soft-drop {
+        min-height: 38px;
+        font-size: 1.1rem;
+    }
+
+    .virtual-gamepad {
+        padding: 4px 4px 2px;
+        gap: 4px;
+    }
+
+    /* Constrain canvas width: 12 px = game-container horizontal padding (6 px × 2 sides) */
+    .canvas-wrapper {
+        max-width: min(calc(100vw - 12px), calc((100dvh - var(--_ui-height)) / 2));
+    }
+
+    /* Safety cap: prevent the canvas element itself from overflowing the viewport */
+    #tetris-canvas {
+        max-height: calc(100dvh - var(--_ui-height));
+    }
+}
