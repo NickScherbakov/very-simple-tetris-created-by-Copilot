@@ -16,6 +16,8 @@
     body {
         padding: 0;
         align-items: flex-start;
+        /* Prevent horizontal scroll from any overflowing child */
+        overflow-x: hidden;
     }
 
     /* Single-column layout that puts everything in order */
@@ -53,17 +55,23 @@
     }
 
     .stat-item {
-        flex: 1 1 auto;
+        flex: 1 1 25%;        /* each of the 4 stats takes one quarter of the row */
         min-width: 0;
         display: flex;
         flex-direction: column;
         align-items: center;
         padding: 4px 6px;
         border-bottom: none;
-        border-right: 1px solid rgba(255, 255, 255, 0.06);
+        border-right: none;   /* dividers handled with border-left below */
         text-align: center;
     }
 
+    /* Dividers: add a left border between adjacent stats (but not before balance-item) */
+    .stat-item + .stat-item:not(.balance-item) {
+        border-left: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    /* Legacy :last-child rule kept for safety — balance-item has its own overrides */
     .stat-item:last-child {
         border-right: none;
     }
@@ -78,9 +86,28 @@
     }
 
     .balance-item {
+        /* Break onto its own full-width row */
+        flex: 0 0 100%;
+        /* Row layout: label | value | buy-button side-by-side */
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        /* Separator from the stats row above */
+        border-top: 1px solid rgba(255, 255, 255, 0.06);
+        border-right: none;
+        padding: 6px 8px;
         margin-top: 0;
-        padding-top: 0;
-        border-top: none;
+    }
+
+    /* Shop "Buy TC" button — compact inline variant for the balance row */
+    .shop-open-btn {
+        font-size: 0.65rem;
+        padding: 3px 8px;
+        border-radius: 6px;
+        margin-left: 0;
+        flex-shrink: 0;
+        vertical-align: baseline;
     }
 
     /* ---- Canvas: full width, no sidebars ---- */

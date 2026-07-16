@@ -914,6 +914,8 @@ button:active, .button:active {
 .pwa-mode .game-container {
     margin-top: env(safe-area-inset-top);
     margin-bottom: env(safe-area-inset-bottom);
+    padding-left: max(16px, env(safe-area-inset-left));
+    padding-right: max(16px, env(safe-area-inset-right));
 }
 
 /* ============================================
@@ -922,6 +924,9 @@ button:active, .button:active {
 @media (max-width: 767px) {
     body {
         padding: 0.5rem;
+        /* Prevent content from sliding under iOS notch / home indicator */
+        padding-left: max(0.5rem, env(safe-area-inset-left));
+        padding-right: max(0.5rem, env(safe-area-inset-right));
     }
     
     .game-container {
