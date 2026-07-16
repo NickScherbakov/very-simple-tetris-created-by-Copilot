@@ -1,0 +1,249 @@
+/* TetriCoins Shop — Real Purchase Panel */
+
+/* ── Shop button near balance ────────────────────────────────── */
+.shop-open-btn {
+    background: linear-gradient(135deg, #7b2ff7, #f107a3);
+    border: none;
+    border-radius: 8px;
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 3px 8px;
+    cursor: pointer;
+    letter-spacing: 0.04em;
+    transition: opacity 0.2s, transform 0.1s;
+    vertical-align: middle;
+    margin-left: 6px;
+}
+.shop-open-btn:hover  { opacity: 0.85; }
+.shop-open-btn:active { transform: scale(0.96); }
+
+/* ── Modal overlay ───────────────────────────────────────────── */
+#shop-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.82);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 3000;
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    animation: shopFadeIn 0.25s ease-out;
+}
+@keyframes shopFadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+/* ── Modal content ───────────────────────────────────────────── */
+.shop-modal-content {
+    background: rgba(10, 8, 20, 0.97);
+    border: 1px solid rgba(123, 47, 247, 0.45);
+    border-radius: 22px;
+    padding: 2rem 1.8rem 1.8rem;
+    max-width: 480px;
+    width: 92%;
+    max-height: 88vh;
+    overflow-y: auto;
+    position: relative;
+    box-shadow:
+        0 0 60px rgba(123, 47, 247, 0.35),
+        0 25px 70px rgba(0, 0, 0, 0.6);
+    animation: shopSlideIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes shopSlideIn {
+    from { opacity: 0; transform: translateY(30px) scale(0.96); }
+    to   { opacity: 1; transform: translateY(0)   scale(1);    }
+}
+
+.shop-modal-content h2 {
+    text-align: center;
+    font-size: 1.6rem;
+    margin: 0 0 0.3rem;
+    background: linear-gradient(90deg, #c084fc, #f472b6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+.shop-modal-content .shop-subtitle {
+    text-align: center;
+    color: #94a3b8;
+    font-size: 0.85rem;
+    margin: 0 0 1.5rem;
+}
+
+/* ── Current balance strip ───────────────────────────────────── */
+.shop-balance-strip {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: rgba(123, 47, 247, 0.15);
+    border: 1px solid rgba(123, 47, 247, 0.3);
+    border-radius: 12px;
+    padding: 0.6rem 1rem;
+    margin-bottom: 1.6rem;
+    font-size: 0.95rem;
+    color: #e2e8f0;
+}
+.shop-balance-strip .tc-amount {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #fbbf24;
+}
+
+/* ── Package cards ───────────────────────────────────────────── */
+.shop-packages {
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+}
+
+.shop-package {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    border-radius: 14px;
+    padding: 1rem 1.1rem;
+    transition: border-color 0.2s, background 0.2s;
+    position: relative;
+    overflow: hidden;
+}
+.shop-package:hover {
+    border-color: rgba(123, 47, 247, 0.5);
+    background: rgba(123, 47, 247, 0.08);
+}
+.shop-package.popular {
+    border-color: rgba(251, 191, 36, 0.45);
+}
+.shop-package.popular:hover {
+    border-color: rgba(251, 191, 36, 0.75);
+    background: rgba(251, 191, 36, 0.06);
+}
+
+.popular-badge {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background: linear-gradient(135deg, #f59e0b, #fbbf24);
+    color: #000;
+    font-size: 0.62rem;
+    font-weight: 800;
+    padding: 3px 10px;
+    border-bottom-left-radius: 10px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.shop-pkg-icon {
+    font-size: 2rem;
+    flex-shrink: 0;
+    width: 2.5rem;
+    text-align: center;
+}
+
+.shop-pkg-info {
+    flex: 1;
+    min-width: 0;
+}
+.shop-pkg-info .pkg-name {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #f1f5f9;
+    margin-bottom: 2px;
+}
+.shop-pkg-info .pkg-coins {
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: #fbbf24;
+}
+.shop-pkg-info .pkg-bonus {
+    font-size: 0.75rem;
+    color: #4ade80;
+    margin-top: 1px;
+}
+
+.shop-pkg-buy {
+    flex-shrink: 0;
+    background: linear-gradient(135deg, #7b2ff7, #a855f7);
+    border: none;
+    border-radius: 10px;
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.9rem;
+    padding: 0.55rem 1.1rem;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.15s;
+    white-space: nowrap;
+}
+.shop-pkg-buy:hover  { opacity: 0.88; }
+.shop-pkg-buy:active { transform: scale(0.95); }
+.shop-package.popular .shop-pkg-buy {
+    background: linear-gradient(135deg, #d97706, #fbbf24);
+    color: #000;
+}
+
+/* ── Success message ─────────────────────────────────────────── */
+#shop-success-msg {
+    display: none;
+    text-align: center;
+    padding: 1.5rem 1rem;
+}
+#shop-success-msg .success-icon {
+    font-size: 3rem;
+    display: block;
+    margin-bottom: 0.6rem;
+}
+#shop-success-msg h3 {
+    color: #4ade80;
+    font-size: 1.3rem;
+    margin: 0 0 0.4rem;
+}
+#shop-success-msg p {
+    color: #94a3b8;
+    font-size: 0.9rem;
+    margin: 0;
+}
+
+/* ── Footer note ─────────────────────────────────────────────── */
+.shop-note {
+    margin-top: 1.2rem;
+    text-align: center;
+    font-size: 0.72rem;
+    color: #64748b;
+    line-height: 1.5;
+}
+.shop-note a {
+    color: #a78bfa;
+    text-decoration: none;
+}
+.shop-note a:hover { text-decoration: underline; }
+
+/* ── Close button ────────────────────────────────────────────── */
+#close-shop {
+    position: absolute;
+    top: 1rem;
+    right: 1.1rem;
+    font-size: 1.8rem;
+    cursor: pointer;
+    color: #64748b;
+    transition: color 0.2s;
+    line-height: 1;
+    background: none;
+    border: none;
+}
+#close-shop:hover { color: #f1f5f9; }
+
+/* ── Scrollbar ───────────────────────────────────────────────── */
+.shop-modal-content::-webkit-scrollbar { width: 5px; }
+.shop-modal-content::-webkit-scrollbar-track { background: transparent; }
+.shop-modal-content::-webkit-scrollbar-thumb { background: rgba(123, 47, 247, 0.4); border-radius: 3px; }
+
+/* ── Mobile tweak ────────────────────────────────────────────── */
+@media (max-width: 480px) {
+    .shop-modal-content { padding: 1.5rem 1.1rem; }
+    .shop-pkg-buy       { font-size: 0.82rem; padding: 0.5rem 0.8rem; }
+}
