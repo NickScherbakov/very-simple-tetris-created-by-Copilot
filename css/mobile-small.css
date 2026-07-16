@@ -9,7 +9,87 @@
     display: none;
 }
 
-/* ---- Compact stats bar ---- */
+/* ---- Show virtual gamepad on ALL touch mobile devices (≤767px) ---- */
+@media (hover: none) and (pointer: coarse) and (max-width: 767px) {
+
+    .game-container {
+        grid-template-columns: 1fr;
+        grid-template-areas:
+            "left"
+            "canvas"
+            "gamepad"
+            "buttons"
+            "ai-panel"
+            "footer";
+    }
+
+    .virtual-gamepad {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 4px 4px;
+        margin: 0 auto;
+        width: 100%;
+        max-width: 480px;
+        user-select: none;
+        -webkit-user-select: none;
+        touch-action: manipulation;
+    }
+
+    .gamepad-row {
+        display: flex;
+        justify-content: center;
+        gap: 8px;
+        width: 100%;
+    }
+
+    .gamepad-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 12px;
+        color: var(--text-primary);
+        font-size: 1.4rem;
+        cursor: pointer;
+        touch-action: manipulation;
+        user-select: none;
+        -webkit-user-select: none;
+        -webkit-tap-highlight-color: transparent;
+        transition: background 0.1s, transform 0.1s;
+        min-width: 64px;
+        min-height: 56px;
+        flex: 1;
+    }
+
+    .gamepad-btn:active,
+    .gamepad-btn.pressed {
+        background: rgba(124, 58, 237, 0.45);
+        border-color: rgba(124, 58, 237, 0.7);
+        transform: scale(0.93);
+    }
+
+    .gamepad-btn.hard-drop {
+        background: rgba(124, 58, 237, 0.18);
+        border-color: rgba(124, 58, 237, 0.4);
+        min-height: 50px;
+        font-size: 1.1rem;
+    }
+
+    .gamepad-btn.hard-drop:active,
+    .gamepad-btn.hard-drop.pressed {
+        background: rgba(124, 58, 237, 0.55);
+    }
+
+    .gamepad-btn.soft-drop {
+        min-height: 50px;
+        font-size: 1.2rem;
+    }
+}
+
+/* ---- Compact stats bar (narrow phones 320–480px) ---- */
 @media (hover: none) and (pointer: coarse) and (min-width: 320px) and (max-width: 480px) and (min-height: 480px) and (max-height: 950px) {
 
     /* Stack the whole page without side padding */
@@ -33,11 +113,6 @@
         gap: 6px;
         padding: 6px;
         width: 100%;
-    }
-
-    /* Explicitly enable gamepad in the target viewport range */
-    .virtual-gamepad {
-        display: flex;
     }
 
     /* ---- Left sidebar → horizontal stats strip ---- */
@@ -189,75 +264,6 @@
 
     .game-footer p {
         font-size: 0.68rem;
-    }
-
-    /* ---- Virtual Gamepad ---- */
-    .virtual-gamepad {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 6px;
-        padding: 8px 4px 4px;
-        margin: 0 auto;
-        width: 100%;
-        max-width: 320px;
-        user-select: none;
-        -webkit-user-select: none;
-        touch-action: manipulation;
-    }
-
-    .gamepad-row {
-        display: flex;
-        justify-content: center;
-        gap: 8px;
-        width: 100%;
-    }
-
-    .gamepad-btn {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: rgba(255, 255, 255, 0.08);
-        border: 1px solid rgba(255, 255, 255, 0.15);
-        border-radius: 12px;
-        color: var(--text-primary);
-        font-size: 1.4rem;
-        cursor: pointer;
-        touch-action: manipulation;
-        user-select: none;
-        -webkit-user-select: none;
-        -webkit-tap-highlight-color: transparent;
-        transition: background 0.1s, transform 0.1s;
-        /* touch target: 64 × 56 px (exceeds the 48 × 48 px minimum) */
-        min-width: 64px;
-        min-height: 56px;
-        flex: 1;
-    }
-
-    .gamepad-btn:active,
-    .gamepad-btn.pressed {
-        background: rgba(124, 58, 237, 0.45);
-        border-color: rgba(124, 58, 237, 0.7);
-        transform: scale(0.93);
-    }
-
-    /* Hard-drop button gets the accent colour */
-    .gamepad-btn.hard-drop {
-        background: rgba(124, 58, 237, 0.18);
-        border-color: rgba(124, 58, 237, 0.4);
-        min-height: 50px;
-        font-size: 1.1rem;
-    }
-
-    .gamepad-btn.hard-drop:active,
-    .gamepad-btn.hard-drop.pressed {
-        background: rgba(124, 58, 237, 0.55);
-    }
-
-    /* Soft-drop button */
-    .gamepad-btn.soft-drop {
-        min-height: 50px;
-        font-size: 1.2rem;
     }
 
     /* ---- Modal adjustments ---- */
