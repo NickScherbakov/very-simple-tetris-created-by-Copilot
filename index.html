@@ -32,8 +32,15 @@
     <link rel="stylesheet" href="css/share.css">
     <link rel="stylesheet" href="css/mobile-small.css">
     <link rel="stylesheet" href="css/shop.css">
+    <link rel="stylesheet" href="css/challenge.css">
 </head>
 <body>
+    <!-- Challenge acceptance banner (shown when visiting a challenge URL) -->
+    <div id="challenge-banner" class="challenge-banner" role="alert" aria-live="polite">
+        <span class="challenge-banner-text"></span>
+        <button class="challenge-banner-close" aria-label="Close">✕</button>
+    </div>
+
     <!-- Language Selection Screen -->
     <div class="language-screen" id="language-screen" style="display: none;">
         <h1>🎮 Tetris Arena</h1>
@@ -409,6 +416,53 @@
         </div>
     </div>
     
+    <!-- Challenge Share Modal -->
+    <div id="challenge-modal" class="challenge-modal" role="dialog" aria-modal="true" aria-labelledby="challenge-modal-title">
+        <div class="challenge-modal-content">
+            <button class="challenge-modal-close" aria-label="Close">✕</button>
+            <h2 class="challenge-modal-title" id="challenge-modal-title" data-i18n="challenge_modal_title">🎯 Challenge Friends!</h2>
+            <p class="challenge-modal-subtitle" data-i18n="challenge_modal_subtitle">Share your score — let them try to beat it!</p>
+
+            <div class="challenge-score-display">
+                <div class="challenge-score-label" data-i18n="challenge_your_score">Your Score</div>
+                <div class="challenge-score-value">0</div>
+                <div class="challenge-score-level"></div>
+            </div>
+
+            <div class="challenge-reward-info"></div>
+
+            <div class="challenge-url-box"></div>
+
+            <button class="challenge-copy-btn" data-i18n="challenge_copy_link">📋 Copy Challenge Link</button>
+
+            <div class="challenge-share-label" data-i18n="challenge_share_via">Share via</div>
+            <div class="challenge-social-row">
+                <a class="challenge-social-btn telegram" href="#">
+                    <span class="social-icon">✈️</span>Telegram
+                </a>
+                <a class="challenge-social-btn whatsapp" href="#">
+                    <span class="social-icon">💬</span>WhatsApp
+                </a>
+                <a class="challenge-social-btn twitter" href="#">
+                    <span class="social-icon">🐦</span>Twitter/X
+                </a>
+                <a class="challenge-social-btn vk" href="#">
+                    <span class="social-icon">💙</span>VK
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Challenge game-over prompt (corner card) -->
+    <div id="challenge-prompt" class="challenge-prompt" role="region">
+        <p class="challenge-prompt-text"></p>
+        <button class="challenge-prompt-btn" data-i18n="challenge_btn">🎯 Challenge Friends!</button>
+        <button class="challenge-prompt-dismiss" data-i18n="challenge_dismiss">Not now</button>
+    </div>
+
+    <!-- Challenge won toast -->
+    <div id="challenge-won-toast" class="challenge-won-toast" role="status" aria-live="polite"></div>
+
     <!-- Scripts -->
     <script src="js/i18n.js"></script>
     <script src="js/language-selector.js"></script>
@@ -419,6 +473,7 @@
     <script src="js/team-tournament.js"></script>
     <script src="js/team-tournament-ui.js"></script>
     <script src="js/shop.js"></script>
+    <script src="js/challenge.js"></script>
     <script type="module" src="tetris.js"></script>
 </body>
 </html>

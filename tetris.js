@@ -538,6 +538,11 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!aiVsAiMode) {
                 setTapHintVisible(true);
             }
+
+            // Trigger friend challenge system (player games only)
+            if (!aiVsAiMode && window.challengeSystem) {
+                window.challengeSystem.onGameOver(score, level);
+            }
             
             // In AI vs AI mode, handle tournament continuation
             if (aiVsAiMode && tournamentMode) {

@@ -185,6 +185,23 @@ const translations = {
 
         // Footer
         footer_disclaimer: "🎮 TetriCoins are virtual in-game currency. Optional real-money top-ups are processed securely via Stripe. TetriCoins are stored in your browser and will be lost if you clear browser data.",
+
+        // Friend Challenge
+        challenge_banner_text: "Beat",
+        challenge_banner_to_win: "to win",
+        challenge_modal_title: "🎯 Challenge Friends!",
+        challenge_modal_subtitle: "Share your score — let them try to beat it!",
+        challenge_your_score: "Your Score",
+        challenge_reward_info: "🏆 If your friend beats this score, they win +{reward} TC!",
+        challenge_copy_link: "📋 Copy Challenge Link",
+        challenge_link_copied: "✅ Copied!",
+        challenge_share_via: "Share via",
+        challenge_share_text: "🎮 I scored {score} in Tetris! Can you beat me? Win +{reward} TC if you do!",
+        challenge_btn: "🎯 Challenge Friends!",
+        challenge_dismiss: "Not now",
+        challenge_prompt_text: "Your score:",
+        challenge_prompt_invite: "Challenge your friends!",
+        challenge_won: "🎉 Challenge beaten! +{reward} TC added!",
     },
     
     ar: {
@@ -372,6 +389,23 @@ const translations = {
 
         // Footer
         footer_disclaimer: "🎮 TetriCoins عملة افتراضية داخل اللعبة. يتم معالجة عمليات الشحن الاختيارية بأمان عبر Stripe. يتم تخزين TetriCoins في متصفحك وستُفقد إذا مسحت بيانات المتصفح.",
+
+        // Friend Challenge
+        challenge_banner_text: "تغلب على",
+        challenge_banner_to_win: "لتفوز بـ",
+        challenge_modal_title: "🎯 تحدَّ أصدقاءك!",
+        challenge_modal_subtitle: "شارك نقاطك — دعهم يحاولون تجاوزها!",
+        challenge_your_score: "نقاطك",
+        challenge_reward_info: "🏆 إذا تجاوز صديقك هذه النقاط، يفوز بـ +{reward} TC!",
+        challenge_copy_link: "📋 نسخ رابط التحدي",
+        challenge_link_copied: "✅ تم النسخ!",
+        challenge_share_via: "شارك عبر",
+        challenge_share_text: "🎮 سجّلت {score} في Tetris! هل تستطيع التغلب عليّ؟ اربح +{reward} TC إذا فعلت!",
+        challenge_btn: "🎯 تحدَّ أصدقاءك!",
+        challenge_dismiss: "ليس الآن",
+        challenge_prompt_text: "نقاطك:",
+        challenge_prompt_invite: "تحدَّ أصدقاءك!",
+        challenge_won: "🎉 تجاوزت التحدي! تمت إضافة +{reward} TC!",
     },
     
     zh: {
@@ -559,6 +593,23 @@ const translations = {
 
         // Footer
         footer_disclaimer: "🎮 TetriCoins 是游戏内虚拟货币。可选充值通过 Stripe 安全处理。TetriCoins 存储在您的浏览器中，清除浏览器数据后将会丢失。",
+
+        // Friend Challenge
+        challenge_banner_text: "超越",
+        challenge_banner_to_win: "赢取",
+        challenge_modal_title: "🎯 挑战好友！",
+        challenge_modal_subtitle: "分享你的分数——让他们来挑战！",
+        challenge_your_score: "你的分数",
+        challenge_reward_info: "🏆 如果你的好友超过这个分数，他们将赢得 +{reward} TC！",
+        challenge_copy_link: "📋 复制挑战链接",
+        challenge_link_copied: "✅ 已复制！",
+        challenge_share_via: "通过以下方式分享",
+        challenge_share_text: "🎮 我在 Tetris 中得了 {score} 分！你能超过我吗？超过就赢 +{reward} TC！",
+        challenge_btn: "🎯 挑战好友！",
+        challenge_dismiss: "暂不",
+        challenge_prompt_text: "你的分数：",
+        challenge_prompt_invite: "挑战你的好友！",
+        challenge_won: "🎉 挑战成功！+{reward} TC 已添加！",
     },
     
     ru: {
@@ -746,6 +797,23 @@ const translations = {
 
         // Footer
         footer_disclaimer: "🎮 TetriCoins — внутриигровая виртуальная валюта. Необязательное пополнение безопасно обрабатывается через Stripe. TetriCoins хранятся в браузере и будут удалены при очистке данных браузера.",
+
+        // Friend Challenge
+        challenge_banner_text: "Превзойди",
+        challenge_banner_to_win: "и получи",
+        challenge_modal_title: "🎯 Бросить вызов друзьям!",
+        challenge_modal_subtitle: "Поделитесь счётом — пусть попробуют побить!",
+        challenge_your_score: "Ваш счёт",
+        challenge_reward_info: "🏆 Если ваш друг побьёт этот счёт, он выиграет +{reward} TC!",
+        challenge_copy_link: "📋 Копировать ссылку",
+        challenge_link_copied: "✅ Скопировано!",
+        challenge_share_via: "Поделиться через",
+        challenge_share_text: "🎮 Я набрал {score} очков в Tetris! Сможешь побить? Победи — и получи +{reward} TC!",
+        challenge_btn: "🎯 Бросить вызов!",
+        challenge_dismiss: "Не сейчас",
+        challenge_prompt_text: "Ваш счёт:",
+        challenge_prompt_invite: "Бросьте вызов друзьям!",
+        challenge_won: "🎉 Вызов принят и выигран! +{reward} TC добавлено!",
     }
 };
 
