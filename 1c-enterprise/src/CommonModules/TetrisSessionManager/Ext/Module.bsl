@@ -83,6 +83,7 @@
     OriginalRotation = Piece.Rotation;
     OriginalMatrix = Piece.Matrix;
     OriginalX = Piece.X;
+    OriginalY = Piece.Y;
     Piece.Rotation = Move.Rotation;
     Piece.Matrix = Piece.Variants[Move.Rotation];
     Piece.X = Move.TargetX;
@@ -91,10 +92,7 @@
         Piece.Rotation = OriginalRotation;
         Piece.Matrix = OriginalMatrix;
         Piece.X = OriginalX;
-        Если Не TetrisGameLogic.IsValidPosition(Session.GameState.Board, Piece) Тогда
-            Session.LastMessage = "AI could not find a safe move";
-            Возврат BuildUiSnapshot(Session);
-        КонецЕсли;
+        Piece.Y = OriginalY;
     КонецЕсли;
 
     HandleCommand(Session, "drop");
