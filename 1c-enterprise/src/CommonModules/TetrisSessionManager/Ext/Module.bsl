@@ -93,6 +93,8 @@
         Piece.Matrix = OriginalMatrix;
         Piece.X = OriginalX;
         Piece.Y = OriginalY;
+        Session.LastMessage = "AI move rejected";
+        Возврат BuildUiSnapshot(Session);
     КонецЕсли;
 
     HandleCommand(Session, "drop");

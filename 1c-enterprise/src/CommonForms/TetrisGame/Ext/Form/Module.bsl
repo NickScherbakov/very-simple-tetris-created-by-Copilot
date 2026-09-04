@@ -1,13 +1,12 @@
 Перем Session;
 
 Процедура OnCreateAtServer(Отказ, СтандартнаяОбработка)
-    Session = TetrisSessionManager.CreateSession(1);
-    TetrisEconomy.ApplyDailyBonus(Session.EconomyState);
 КонецПроцедуры
 
 Процедура OnOpen(Отказ)
     Если Session = Неопределено Тогда
         Session = TetrisSessionManager.CreateSession(1);
+        TetrisEconomy.ApplyDailyBonus(Session.EconomyState);
     КонецЕсли;
     RefreshView();
 КонецПроцедуры

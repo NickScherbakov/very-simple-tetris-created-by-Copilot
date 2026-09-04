@@ -56,22 +56,22 @@
     Weight = 1;
     TrainerState.Weights.Свойство(PieceName, Weight);
 
-    Penalty = 0;
+    FrequencyBoost = 0;
     Reward = LinesCleared * 0.3;
 
     Если AfterMetrics.Holes > BeforeMetrics.Holes Тогда
-        Penalty = Penalty + (AfterMetrics.Holes - BeforeMetrics.Holes) * 0.25;
+        FrequencyBoost = FrequencyBoost + (AfterMetrics.Holes - BeforeMetrics.Holes) * 0.25;
     КонецЕсли;
 
     Если AfterMetrics.MaxHeight > BeforeMetrics.MaxHeight Тогда
-        Penalty = Penalty + (AfterMetrics.MaxHeight - BeforeMetrics.MaxHeight) * 0.1;
+        FrequencyBoost = FrequencyBoost + (AfterMetrics.MaxHeight - BeforeMetrics.MaxHeight) * 0.1;
     КонецЕсли;
 
     Если AfterMetrics.Bumpiness > BeforeMetrics.Bumpiness Тогда
-        Penalty = Penalty + (AfterMetrics.Bumpiness - BeforeMetrics.Bumpiness) * 0.03;
+        FrequencyBoost = FrequencyBoost + (AfterMetrics.Bumpiness - BeforeMetrics.Bumpiness) * 0.03;
     КонецЕсли;
 
-    NewWeight = Weight + Penalty - Reward;
+    NewWeight = Weight + FrequencyBoost - Reward;
     Если NewWeight < 0.4 Тогда
         NewWeight = 0.4;
     КонецЕсли;
