@@ -83,7 +83,6 @@
     OriginalRotation = Piece.Rotation;
     OriginalMatrix = Piece.Matrix;
     OriginalX = Piece.X;
-    OriginalY = Piece.Y;
     Piece.Rotation = Move.Rotation;
     Piece.Matrix = Piece.Variants[Move.Rotation];
     Piece.X = Move.TargetX;
@@ -92,12 +91,16 @@
         Piece.Rotation = OriginalRotation;
         Piece.Matrix = OriginalMatrix;
         Piece.X = OriginalX;
-        Piece.Y = OriginalY;
         Session.LastMessage = "AI move rejected";
         Возврат BuildUiSnapshot(Session);
     КонецЕсли;
 
-    HandleCommand(Session, "drop");
+    BeforeMetrics = TetrisAiCoach.AnalyzeBoard(Session.GameState.Board);
+    LockResult = TetrisGameLogic.HardDrop(Session.GameState, Session.TrainerState.Weights);
+    Если LockResult <> Неопределено Тогда
+        ApplyPostLockEffects(Session, BeforeMetrics, LockResult);
+    КонецЕсли;
+    Session.LiveHint = TetrisAiCoach.GetLiveHint(Session.TrainerState, Session.GameState);
     Session.AiPlayer = ?(Session.AiPlayer = 1, 2, 1);
     Session.LastMessage = "AI turn completed";
     Возврат BuildUiSnapshot(Session);
