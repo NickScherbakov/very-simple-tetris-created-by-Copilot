@@ -227,6 +227,10 @@ This mode is perfect for players who want to:
 
 The built-in trainer observes each of your placements and increases the frequency of pieces that caused trouble—such as creating holes or raising tall columns—while reducing shapes that helped you recover. It never changes the fall speed, keeping gameplay fair. During the round the **AI Insight** panel calls out what it noticed most recently, and after a top-out it explains exactly how it capitalized on your mistakes so you can adjust your strategy next time.
 
+## 1C:Enterprise
+
+The repository now also includes a 1C:Enterprise source analogue in [`1c-enterprise`](./1c-enterprise/README.md), covering game logic, adaptive AI, economy, replays, session orchestration, and a sample form module.
+
 ## AI Prompt for Recreation
 
 ### Prompt for AI Assistant
